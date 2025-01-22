@@ -132,13 +132,13 @@ extern "C" HRESULT _stdcall ApplyP2KLayoutToDiskGPT(Console* console, LibPanther
 	wcscpy_s(layout->Partitions[1].PartitionSize, L"16M");
 	wcscpy_s(layout->Partitions[1].FileSystem, L"RAW");
 
-	layout->Partitions[2].PartitionNumber = 1;
+	layout->Partitions[2].PartitionNumber = 3;
 	layout->Partitions[2].PartitionType = 0x0700;
 	wcscpy_s(layout->Partitions[2].PartitionSize, L"100%");
 	wcscpy_s(layout->Partitions[2].FileSystem, L"NTFS");
 	layout->Partitions[2].MountPoint = (*mountPath)[1];
 
-	layout->Partitions[3].PartitionNumber = 1;
+	layout->Partitions[3].PartitionNumber = 4;
 	layout->Partitions[3].PartitionType = 0x0700;
 	wcscpy_s(layout->Partitions[3].PartitionSize, L"500M");
 	wcscpy_s(layout->Partitions[3].FileSystem, L"NTFS");

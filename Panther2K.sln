@@ -10,7 +10,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Panther2K", "Panther2K\Pant
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WinParted", "WinParted\WinParted.vcxproj", "{E999838A-4F2D-4748-A038-39E2BDB49722}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "P2KConsole", "P2KConsole\P2KConsole.vcxproj", "{A3DD51CE-63AB-4189-9D8A-3111288A3463}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LibPanther", "P2KConsole\P2KConsole.vcxproj", "{A3DD51CE-63AB-4189-9D8A-3111288A3463}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Leet.Panther2K.SetupEngine", "Leet.Panther2K.SetupEngine\Leet.Panther2K.SetupEngine.vcxproj", "{3E61BD60-CA66-4FFD-8864-AD2C550DAABA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -44,6 +46,14 @@ Global
 		{A3DD51CE-63AB-4189-9D8A-3111288A3463}.Release|x64.Build.0 = Release|x64
 		{A3DD51CE-63AB-4189-9D8A-3111288A3463}.Release|x86.ActiveCfg = Release|Win32
 		{A3DD51CE-63AB-4189-9D8A-3111288A3463}.Release|x86.Build.0 = Release|Win32
+		{3E61BD60-CA66-4FFD-8864-AD2C550DAABA}.Debug|x64.ActiveCfg = Debug|x64
+		{3E61BD60-CA66-4FFD-8864-AD2C550DAABA}.Debug|x64.Build.0 = Debug|x64
+		{3E61BD60-CA66-4FFD-8864-AD2C550DAABA}.Debug|x86.ActiveCfg = Debug|Win32
+		{3E61BD60-CA66-4FFD-8864-AD2C550DAABA}.Debug|x86.Build.0 = Debug|Win32
+		{3E61BD60-CA66-4FFD-8864-AD2C550DAABA}.Release|x64.ActiveCfg = Release|x64
+		{3E61BD60-CA66-4FFD-8864-AD2C550DAABA}.Release|x64.Build.0 = Release|x64
+		{3E61BD60-CA66-4FFD-8864-AD2C550DAABA}.Release|x86.ActiveCfg = Release|Win32
+		{3E61BD60-CA66-4FFD-8864-AD2C550DAABA}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
