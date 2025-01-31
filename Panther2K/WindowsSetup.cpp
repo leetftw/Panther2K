@@ -1244,14 +1244,12 @@ void WindowsSetup::EnumerateImageInfo()
 	// Parse XML
 	rapidxml::xml_node<>* wimNode = doc->first_node();
 	rapidxml::xml_node<>* imageNode = wimNode->first_node("IMAGE");
-	rapidxml::xml_node<>* creationTimeNode;
-	rapidxml::xml_node<>* windowsNode;
-	rapidxml::xml_node<>* node;
 
 	for (int i = 1; i <= WimImageCount; i++, imageNode = imageNode->next_sibling("IMAGE"))
 	{
-		creationTimeNode = imageNode->first_node("CREATIONTIME");
-		windowsNode = imageNode->first_node("WINDOWS");
+		rapidxml::xml_node<>* creationTimeNode = imageNode->first_node("CREATIONTIME");
+		rapidxml::xml_node<>* windowsNode = imageNode->first_node("WINDOWS");
+		rapidxml::xml_node<>* node;
 
 		node = windowsNode->first_node("ARCH");
 		(pointer + i - 1)->Architecture = node->value()[0] - '0';

@@ -1,0 +1,367 @@
+/*
+ * Leet's Panther 2K
+ * This project is licensed under the Simple Classic Theme license, version 1.0.
+ *
+ * SetupEngine.cpp/h: Core setup engine. Responsible for validating runtime
+ * parameters and installing Windows.
+ */
+
+#include "pch.h"
+#include "SetupEngine.h"
+
+#include <wimgapi.h>
+#include <iostream>
+
+#include "pugixml.hpp"
+
+// Undocumented WIMGAPI flag, loads the file with solid compression
+#define WIM_FLAG_SOLIDCOMPRESSION 0x20000000
+#define FACILITY_PANTHER2K 1337
+#define STDOUT(buffer) WriteConsoleW(consoleHandle, buffer, lstrlenW(buffer), NULL, NULL)
+
+Leet::Panther2K::SetupEngine::SetupEngine(LibPanther::Logger* logger)
+{
+	bUseLegacy = false;
+	dwCallbackThread = -1;
+	installLog = logger;
+#ifdef _DEBUG
+	if (!installLog) installLog = new LibPanther::Logger(L"PantherEngine.log", PANTHER_LL_VERBOSE);
+#else
+	if (!installLog) installLog = new LibPanther::Logger(L"PantherEngine.log", PANTHER_LL_NORMAL);
+#endif
+	hWimFile = nullptr;
+	hWimImage = nullptr;
+	dwWimImageCount = -1;
+	dwWimImageIndex = -1;
+
+	installLog->Write(PANTHER_LL_BASIC, L"Panther2K Installation Engine Initialized. Version 2.0");
+}
+
+Leet::Panther2K::SetupEngine::~SetupEngine()
+{
+	freeWimFile();
+}
+
+void Leet::Panther2K::SetupEngine::SetUseLegacy(bool useLegacy)
+{
+	HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+	const wchar_t* buffer = useLegacy ? L"[Engine] Using Legacy." : L"[Engine] Using UEFI.";
+	installLog->Write(PANTHER_LL_DETAILED, buffer);
+
+	bUseLegacy = useLegacy;
+}
+
+inline bool EndsWithI(const wchar_t* str, const wchar_t* suffix)
+{
+	if (!str || !suffix)
+		return false;
+
+	size_t strLen = lstrlenW(str);
+	size_t suffixLen = lstrlenW(suffix);
+
+	if (suffixLen > strLen)
+		return 0;
+
+	return _wcsnicmp(str + strLen - suffixLen, suffix, suffixLen) == 0;
+}
+
+HRESULT Leet::Panther2K::SetupEngine::SetWimFile(const std::wstring& path)
+{
+	// Free any previously opened handles
+	freeWimImage();
+	freeWimFile();
+
+	// Load the wim file using wimgapi
+	const unsigned int flags = EndsWithI(path.c_str(), L".esd") ? WIM_FLAG_SOLIDCOMPRESSION : 0;
+	wlogf(installLog, PANTHER_LL_DETAILED, MAX_PATH + 100, L"[Engine] Loading WIM file '%s', (%s)...", path.c_str(), flags ? L"solid" : L"not solid");
+	
+	for (int compression = WIM_COMPRESS_NONE; compression <= WIM_COMPRESS_LZMS; compression++)
+	{
+		hWimFile = WIMCreateFile(path.c_str(), WIM_GENERIC_READ, WIM_OPEN_EXISTING, flags, compression, NULL);
+		if (hWimFile) break;
+	}
+	if (!hWimFile)
+	{
+		HRESULT result = HRESULT_FROM_WIN32(GetLastError());
+
+		wlogf(installLog, PANTHER_LL_DETAILED, 100, installLog->GetLogLevel() == PANTHER_LL_VERBOSE ? 
+			L"[Engine] (WIMCreateFile) Failed to load WIM file (0x%08x)." : L"[Engine] Failed to load WIM file (0x%08x).", result);
+
+		return HRESULT_FROM_WIN32(GetLastError());
+	}
+
+	wchar_t buffer[MAX_PATH];
+	GetTempPathW(MAX_PATH, buffer);
+	WIMSetTemporaryPath(hWimFile, buffer);
+	dwWimImageCount = WIMGetImageCount(hWimFile);
+
+	return S_OK;
+
+}
+
+#define REL L"./"
+#define INODE(a) L"/*[translate(name(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz') = '" a L"']"
+
+HRESULT Leet::Panther2K::SetupEngine::GetWimInfo(PantherWimInfo** lpWimPtr)
+{
+	if (!hWimFile) 
+		return HRESULT_FROM_WIN32(ERROR_INVALID_STATE);
+
+	installLog->Write(PANTHER_LL_DETAILED, L"[Engine] Parsing image information...");
+
+	PantherWimInfo* wimInfo = static_cast<PantherWimInfo*>(safeLocalAlloc(installLog, 
+		sizeof(PantherWimInfo) + (sizeof(PantherImageInfo) * dwWimImageCount)));
+
+	wchar_t* str_ptr;
+	long str_len;
+	if (!WIMGetImageInformation(hWimFile, (PVOID*)&str_ptr, (PDWORD)&str_len))
+	{
+		// TODO: error handling
+	}
+	
+	pugi::xml_document document;
+	// Not a bug, first character is a UTF-16 BOM
+	document.load_string(str_ptr + 1);
+	LocalFree(str_ptr);
+
+	auto elements = document.select_nodes(INODE(L"wim") INODE(L"image"));
+	if (elements.size() != dwWimImageCount) return HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
+
+	int i = 0;
+	for (pugi::xpath_node node : elements)
+	{
+		// Note on INODE: it stand for (case-)insensitive node. When writing images with Wimgapi, all caps are
+		// used. But in some scenarios, splitted/joined WIMs might have some names in lowercase. For those instances
+		// it is needed to do a case-invariant XType querry. This involves mapping upperrcase alphabet to lowercase,
+		// which is exactly what the INODE macro does.
+		auto archNode = node.node().select_node(REL INODE(L"windows") INODE(L"arch"));
+		if (!archNode) 
+			return HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
+		wimInfo->Images[i].Architecture = archNode.node().text().as_int();
+
+		auto nameNode = node.node().select_node(REL INODE(L"displayname"));
+		if (!nameNode) nameNode = node.node().select_node(INODE(L"wim") INODE(L"image") INODE(L"name"));
+		if (!nameNode) 
+			return HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
+		wcscpy_s(wimInfo->Images[i].DisplayName, nameNode.node().text().get());
+
+		auto lowDtNode = node.node().select_node(REL INODE(L"creationtime") INODE(L"lowpart"));
+		if (!lowDtNode) 
+			return HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
+		wimInfo->Images[i].CreationTime.dwLowDateTime = wcstoul(lowDtNode.node().text().get(), nullptr, 16);
+
+		auto highDtNode = node.node().select_node(REL INODE(L"creationtime") INODE(L"highpart"));
+		if (!highDtNode) 
+			return HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
+		wimInfo->Images[i].CreationTime.dwHighDateTime = wcstoul(highDtNode.node().text().get(), nullptr, 16);
+
+		// The actual space required is (<TOTALBYTES> - <HARDLINKBYTES>), but this gives extra headroom for temporary files
+		auto totalBytesNode = node.node().select_node(REL INODE(L"totalbytes"));
+		if (!totalBytesNode) 
+			return HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
+		wimInfo->Images[i].TotalSize = totalBytesNode.node().text().as_ullong();
+
+		wlogf(installLog, PANTHER_LL_VERBOSE, MAX_PATH, L"[Engine] Found system image [%2d]: %s (Architecture %d) (Size: %llu bytes)",
+			i + 1, wimInfo->Images[i].DisplayName, wimInfo->Images[i].Architecture, wimInfo->Images[i].TotalSize);
+
+		i++;
+	}
+
+	*lpWimPtr = wimInfo;
+	return S_OK;
+}
+
+HRESULT Leet::Panther2K::SetupEngine::SetWimIndex(int index)
+{
+	if (!hWimFile)
+		return HRESULT_FROM_WIN32(ERROR_INVALID_STATE);
+	if (index < 1 || index > dwWimImageCount)
+		return HRESULT_FROM_WIN32(ERROR_INDEX_OUT_OF_BOUNDS);
+
+	dwWimImageIndex = index;
+	hWimImage = WIMLoadImage(hWimFile, dwWimImageIndex);
+	if (!hWimImage)
+		return HRESULT_FROM_WIN32(GetLastError());
+
+	return S_OK;
+}
+
+HRESULT checkVolume(const std::wstring& volumeGuid, unsigned long long minSize, unsigned long long minSpace, ...)
+{
+	std::wstring path = L"\\\\?\\Volume" + volumeGuid + L"\\";
+
+	// Buffer to store file system name
+	wchar_t fsName[MAX_PATH];
+
+	// Get file system information
+	if (!GetVolumeInformationW(path.c_str(), nullptr, 0, nullptr, nullptr, nullptr, fsName, MAX_PATH))
+		return HRESULT_FROM_WIN32(GetLastError());
+
+	// Check if the file system is in the supported list
+	va_list fileSystems;
+	va_start(fileSystems, minSpace);
+
+	bool isSupported = false;
+	while (true)
+	{
+		const wchar_t* fs = va_arg(fileSystems, wchar_t*);
+		if (!fs) break;
+
+		if (_wcsicmp(fsName, fs) == 0)
+		{
+			isSupported = true;
+			break;
+		}
+	}
+	va_end(fileSystems);
+
+	if (!isSupported)
+		return HRESULT_FROM_WIN32(ERROR_UNSUPPORTED_TYPE);
+
+	// Get disk size and available space
+	ULARGE_INTEGER fsSize;
+	ULARGE_INTEGER fsSpace;
+	if (!GetDiskFreeSpaceExW(path.c_str(), nullptr, &fsSize, &fsSpace))
+		return HRESULT_FROM_WIN32(GetLastError());
+
+	// Check if the disk meets size and space requirements
+	if (fsSize.QuadPart < minSize)
+		return HRESULT_FROM_WIN32(ERROR_DISK_FULL);
+
+	if (fsSpace.QuadPart < minSpace)
+		return HRESULT_FROM_WIN32(ERROR_DISK_FULL);
+
+	// If everything is fine, return S_OK
+	return S_OK;
+}
+
+HRESULT Leet::Panther2K::SetupEngine::SetBootVolume(const std::wstring& volumeGuid)
+{
+	HRESULT res = checkVolume(volumeGuid, 50000000ULL, 0ULL, L"ntfs", L"fat32", nullptr);
+	if (SUCCEEDED(res)) szBootPartition.assign(volumeGuid);
+	return res;
+}
+
+HRESULT Leet::Panther2K::SetupEngine::SetSystemVolume(const std::wstring& volumeGuid)
+{
+	HRESULT res = checkVolume(volumeGuid, 0ULL, 21474836480ULL, L"ntfs", nullptr);
+	if (SUCCEEDED(res)) szSystemPartition.assign(volumeGuid);
+	return res;
+}
+
+HRESULT Leet::Panther2K::SetupEngine::SetRecoveryVolume(const std::wstring& volumeGuid)
+{
+	HRESULT res = checkVolume(volumeGuid, 0ULL, 1000000000ULL, L"ntfs", nullptr);
+	if (SUCCEEDED(res)) szRecoveryPartition.assign(volumeGuid);
+	return res;
+}
+
+HRESULT Leet::Panther2K::SetupEngine::SetCallbackThread(unsigned int threadId)
+{
+	wchar_t buffer[MAX_PATH];
+	HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	HANDLE hThread = OpenThread(THREAD_QUERY_LIMITED_INFORMATION, FALSE, threadId);
+	if (!hThread)
+	{
+		wsprintfW(buffer, L"OpenThread failed: (0x%08x).\n", HRESULT_FROM_WIN32(GetLastError()));
+		STDOUT(buffer);
+		return HRESULT_FROM_WIN32(GetLastError());
+	}
+
+	CloseHandle(hThread);
+	dwCallbackThread = threadId;
+	return S_OK;
+}
+
+void Leet::Panther2K::SetupEngine::freeWimFile()
+{
+	if (!hWimFile)
+		return;
+
+	dwWimImageCount = -1;
+	WIMCloseHandle(hWimFile);
+	hWimImage = nullptr;
+}
+
+void Leet::Panther2K::SetupEngine::freeWimImage()
+{
+	if (!hWimImage)
+		return;
+
+	dwWimImageIndex = -1;
+	WIMCloseHandle(hWimImage);
+	hWimImage = nullptr;
+}
+
+HRESULT Leet::Panther2K::SetupEngine::StartInstallation()
+{
+	auto threadFunction = [](LPVOID pCode) -> DWORD WINAPI
+	{
+		SetupEngine* engine = static_cast<SetupEngine*>(pCode);
+		engine->installLog->Write(PANTHER_LL_BASIC, L"[Engine/Install thread] Starting installation.");
+
+		engine->installLog->Write(PANTHER_LL_VERBOSE, L"[Engine/Install thread] Registering internal callback...");
+		WIMRegisterMessageCallback(engine->hWimFile, (FARPROC)WimgapiCallback, pCode);
+
+		engine->installLog->Write(PANTHER_LL_DETAILED, L"[Engine/Install thread] Applying system image...");
+		std::wstring path = L"\\\\?\\Volume" + engine->szSystemPartition + L"\\";
+		BOOL result = WIMApplyImage(engine->hWimImage, path.c_str(), WIM_FLAG_FILEINFO);
+		wloglerr(engine->installLog, PANTHER_LL_DETAILED, MAX_PATH, engine->installLog->GetLogLevel() == PANTHER_LL_VERBOSE
+			? L"[Engine/Install thread] (WIMApplyImage) %s"
+			: L"[Engine/Install thread] %s");
+		
+		if (result != TRUE)
+			return HRESULT_FROM_WIN32(GetLastError());
+
+		result = engine->createBootFiles();
+		wloglerr(engine->installLog, PANTHER_LL_DETAILED, MAX_PATH, engine->installLog->GetLogLevel() == PANTHER_LL_VERBOSE
+			? L"[Engine/Install thread] (createBootFiles) %s"
+			: L"[Engine/Install thread] %s");
+
+		engine->installLog->Write(PANTHER_LL_VERBOSE, L"[Engine/Install thread] Unregistering internal callback...");
+		WIMUnregisterMessageCallback(engine->hWimFile, (FARPROC)WimgapiCallback);
+
+		if (engine->dwCallbackThread != -1)
+		{
+			engine->installLog->Write(PANTHER_LL_DETAILED, L"[Engine/Install thread] Installation finished, notifying callback...");
+			PostThreadMessageW(engine->dwCallbackThread, WM_USER + 0x1337, 0, 0);
+		}
+
+		return HRESULT_FROM_WIN32(GetLastError());
+	};
+
+	DWORD threadId;
+	HANDLE hThread = CreateThread(nullptr, 0, threadFunction, this, 0, &threadId);
+	if (!hThread)
+	{
+		wloglerr(installLog, PANTHER_LL_BASIC, MAX_PATH, L"[Engine] Failed to create installation thread: %s");
+		return HRESULT_FROM_WIN32(GetLastError());
+	}
+
+	installLog->Write(PANTHER_LL_BASIC, L"[Engine] Installation thread created.");
+	return S_OK;
+}
+
+DWORD Leet::Panther2K::SetupEngine::WimgapiCallback(DWORD dwMessageId, WPARAM wParam, LPARAM lParam, PVOID pvUserData)
+{
+	SetupEngine* engine = static_cast<SetupEngine*>(pvUserData);
+
+	switch (dwMessageId)
+	{
+	case WIM_MSG_PROGRESS:
+		if (!(wParam % 10)) wlogf(engine->installLog, PANTHER_LL_DETAILED, MAX_PATH, L"[Engine/Install thread] Applying system image: %ud%%", (unsigned int)wParam);
+		break;
+	case WIM_MSG_INFO:
+		wlogerr(engine->installLog, PANTHER_LL_DETAILED, MAX_PATH, L"[Engine/Install thread] Warning received from WIMGAPI:\r\n\tMessage:\t%s\r\nFile:\t%s", lParam, (LPWSTR)wParam);
+		break;
+	case WIM_MSG_WARNING:
+		wlogerr(engine->installLog, PANTHER_LL_NORMAL, MAX_PATH, L"[Engine/Install thread] Warning received from WIMGAPI:\r\n\tMessage:\t%s\r\nFile:\t%s", lParam, (LPWSTR)wParam);
+		break;
+	case WIM_MSG_ERROR:
+		wlogerr(engine->installLog, PANTHER_LL_BASIC, MAX_PATH, L"[Engine/Install thread] An error occurred while applying the system image:\r\n\tMessage:\t%s\r\nFile:\t%s", lParam, (LPWSTR)wParam);
+		break;
+	}
+	
+	return WIM_MSG_SUCCESS;
+}

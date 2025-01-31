@@ -1,9 +1,12 @@
 #include "pch.h"
-#include "SetupCore.h"
+#include "SetupEngine.h"
 
-HRESULT Leet::Panther2K::SetupEngine::SetupCore::createBootFiles()
+BOOL Leet::Panther2K::SetupEngine::createBootFiles()
 {
+	installLog->Write(PANTHER_LL_DETAILED, L"[Engine/Install thread] Creating boot files...");
+
 	// This is by far the most complex part of Panther2K.
 	// Probably the last thing that will be rewritten
-	return E_NOTIMPL;
+	SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+	return FALSE;
 }

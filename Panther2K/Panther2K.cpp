@@ -38,8 +38,8 @@ void Test()
 // Command line builds (for testing and debugging)
 int wmain(int argc, wchar_t** argv) 
 {
-    Test();
-    return 0;
+    //Test();
+    //return 0;
 
     if (__argc == 2 && lstrcmpiW(__wargv[1], L"--pe") == 0) 
     {

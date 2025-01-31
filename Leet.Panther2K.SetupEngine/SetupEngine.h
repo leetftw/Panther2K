@@ -1,29 +1,31 @@
+/*
+ * Leet's Panther 2K
+ * This project is licensed under the Simple Classic Theme license, version 1.0.
+ *
+ * SetupEngine.cpp/h: Core setup engine. Responsible for validating runtime
+ * parameters and installing Windows.
+ */
+
 #pragma once
 #include <windows.h>
-#include <string>
-#include <vector>
 #include <PantherLogger.h>
+#include <string>
 
-struct ImageInfo
-{
-	unsigned int Architecture;
-	wchar_t* DisplayName;
-	SYSTEMTIME CreationTime;
-	unsigned long long TotalSize;
-};
+#include "engine_def.h"
 
-namespace Leet::Panther2K::SetupEngine
+namespace Leet::Panther2K
 {
-	class SetupCore
+	class SetupEngine
 	{
 	public:
-		SetupCore(LibPanther::Logger* logger);
-		~SetupCore();
+		SetupEngine(LibPanther::Logger* logger);
+		~SetupEngine();
 
 		// Setters for installation config
 		void SetUseLegacy(bool useLegacy);
 
 		HRESULT SetWimFile(const std::wstring& path);
+		HRESULT GetWimInfo(PantherWimInfo** lpWimPtr);
 		HRESULT SetWimIndex(int index);
 
 		HRESULT SetBootVolume(const std::wstring& volumeGuid);
@@ -35,7 +37,9 @@ namespace Leet::Panther2K::SetupEngine
 	private:
 		void freeWimFile();
 		void freeWimImage();
-		HRESULT createBootFiles();
+
+		static DWORD CALLBACK WimgapiCallback(DWORD dwMessageId, WPARAM wParam, LPARAM lParam, PVOID pvUserData);
+		BOOL createBootFiles();
 
 		LibPanther::Logger* installLog;
 
@@ -43,7 +47,6 @@ namespace Leet::Panther2K::SetupEngine
 		std::wstring szWimPath;
 		HANDLE hWimFile;
 		int dwWimImageCount;
-		std::vector<ImageInfo> wimImageInfos;
 		int dwWimImageIndex;
 		HANDLE hWimImage;
 
