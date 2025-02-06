@@ -12,10 +12,31 @@
 // Shows verbose progress informations
 #define PANTHER_LL_VERBOSE 3
 
-#define TRIM_CRLF(buffer) {int trim_crlf_len = lstrlenW(buffer); while (trim_crlf_len > 0 && (buffer[trim_crlf_len - 1] == L'\n' || buffer[trim_crlf_len - 1] == L'\r')) { buffer[--trim_crlf_len] = L'\0'; } }
-#define wlogf(logger, level, buffersize, message, ...) { wchar_t wlogbuffer[buffersize]; swprintf_s(wlogbuffer, message, __VA_ARGS__); logger->Write(level, wlogbuffer); }
-#define wloglerr(logger, level, buffersize, format) { wchar_t wlog_errbuffer[buffersize]; wchar_t* wlog_errmessage; size_t wlog_errsize = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPWSTR)&wlog_errmessage, 0, NULL); if (wlog_errsize != 0) { TRIM_CRLF(wlog_errmessage); swprintf_s(wlog_errbuffer, format, wlog_errmessage); LocalFree(wlog_errmessage); } else swprintf_s(wlog_errbuffer, L"Unable to format Win32 error message."); logger->Write(level, wlog_errbuffer); }
-#define wlogerr(logger, level, buffersize, format, code, ...) { wchar_t wlog_errbuffer[buffersize]; wchar_t* wlog_errmessage; size_t wlog_errsize = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, code, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPWSTR)&wlog_errmessage, 0, NULL); if (wlog_errsize != 0) { TRIM_CRLF(wlog_errmessage); swprintf_s(wlog_errbuffer, format, wlog_errmessage, __VA_ARGS__); LocalFree(wlog_errmessage); } else swprintf_s(wlog_errbuffer, L"Unable to format Win32 error message."); logger->Write(level, wlog_errbuffer); }
+#define TRIM_CRLF(buffer) \
+do { \
+	int trim_crlf_len = lstrlenW(buffer); \
+	while (trim_crlf_len > 0 && (buffer[trim_crlf_len - 1] == L'\n' || buffer[trim_crlf_len - 1] == L'\r')) \
+		buffer[--trim_crlf_len] = L'\0'; } while(0)
+
+#define wlogf(logger, level, buffersize, message, ...) \
+do { \
+	wchar_t wlogbuffer[buffersize]; \
+	swprintf_s(wlogbuffer, message, __VA_ARGS__); \
+	logger->Write(level, wlogbuffer); } while(0)
+
+#define wlogerr(logger, level, buffersize, format, code, ...) \
+do { \
+	wchar_t wlog_errbuffer[buffersize]; \
+	wchar_t* wlog_errmessage; \
+	size_t wlog_errsize = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, \
+										code, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPWSTR)&wlog_errmessage, 0, NULL); \
+	if (wlog_errsize != 0) { \
+		TRIM_CRLF(wlog_errmessage); \
+		wlogf(logger, level, buffersize, format, wlog_errmessage, __VA_ARGS__); \
+		LocalFree(wlog_errmessage); \
+	} else logger->Write(level, L"Unable to format Win32 error message."); } while(0)
+
+#define wloglerr(logger, level, buffersize, format, ...) wlogerr(logger, level, buffersize, format, GetLastError(), __VA_ARGS__)
 
 namespace LibPanther
 {

@@ -1,9 +1,7 @@
-#include "pch.h"
-
 #include <PantherLogger.h>
 #include "SetupEngine.h"
 #define BUILDING_C_LIB
-#include "SetupEngineC.h"
+#include "include/SetupEngineC.h"
 
 // Example C code
 int APIENTRY wWinMain_C(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)

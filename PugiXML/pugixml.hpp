@@ -17,6 +17,15 @@
 #	define PUGIXML_VERSION 1150 // 1.15
 #endif
 
+#define REL L"."
+
+#define NODE(a) L"/" a
+#define INODE(a) L"/*[translate(name(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz') = '" a L"']"
+
+#define OR(a, b) a L" | " b
+
+#define END L"/"
+
 // Include user configuration file (this can define various configuration macros)
 #include "pugiconfig.hpp"
 

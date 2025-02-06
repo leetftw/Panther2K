@@ -1,12 +1,17 @@
 #pragma once
 #include "Page.h"
 #include <vector>
-#include <array>
+#include <string>
+
+#include "../Leet.Panther2K.SetupEngine/engine_def.h"
 
 class ImageSelectionPage : public Page
 {
+public:
+	bool SetData(PantherWimInfo* wimInfo);
+	int GetResult();
 private:
-	::std::vector<::std::array<wchar_t, 256>> FormattedStrings;
+	std::vector<std::wstring> FormattedStrings;
 	int scrollIndex;
 	int selectionIndex;
 	int boxY;

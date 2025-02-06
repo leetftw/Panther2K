@@ -2,22 +2,14 @@
 #include "WindowsSetup.h"
 #include "QuitingPage.h"
 
-void ImageSelectionPage::Init()
+bool ImageSelectionPage::SetData(PantherWimInfo* wimInfo)
 {
-	text = L"Leet's Panther2K Setup";
-	statusText = L"  ENTER=Select  ESC=Back  F3=Quit";
+	wchar_t buffer[MAX_PATH];
 
-	wchar_t buffer[256];
-
-	::std::array<wchar_t, 256> a;
-
-	WindowsSetup::EnumerateImageInfo();
-
-	for (int i = 0; i < WindowsSetup::WimImageCount; i++)
+	for (int i = 0; i < wimInfo->ImageCount; i++)
 	{
-		ImageInfo* info = WindowsSetup::WimImageInfos + i;
 		const wchar_t* arch;
-		switch (info->Architecture)
+		switch (wimInfo->Images[i].Architecture)
 		{
 		case 0:
 			arch = L"x86";
@@ -29,16 +21,31 @@ void ImageSelectionPage::Init()
 			arch = L"ARM64";
 			break;
 		default:
-			arch = L"NaN";
+			arch = L"UNKNWN";
 			break;
 		}
+		
+		SYSTEMTIME st;
+		if (!FileTimeToSystemTime(&wimInfo->Images[i].CreationTime, &st))
+		{
+			return false;
+		}
 
-		swprintf(buffer, 256, L"%-*s %-6s %02d/%02d/%04d", console->GetSize().cx - 16 - 18, info->DisplayName, arch, info->CreationTime.wDay, info->CreationTime.wMonth, info->CreationTime.wYear);
-		memcpy(a.data(), buffer, sizeof(wchar_t) * 256);
-		//::std::copy(::std::begin(buffer), ::std::end(buffer), a.begin());
-		//MessageBoxW(console->WindowHandle, a.data(), L"", MB_OK);
-		FormattedStrings.push_back(a);
+		swprintf_s(buffer, L"%-*s %-6s %02d/%02d/%04d", console->GetSize().cx - 16 - 18, 
+			wimInfo->Images[i].DisplayName, arch, st.wDay, st.wMonth, st.wYear);
+		
+		FormattedStrings.push_back(std::wstring(buffer));
 	}
+}
+
+int ImageSelectionPage::GetResult()
+{
+	return scrollIndex + selectionIndex + 1;
+}
+
+void ImageSelectionPage::Init()
+{
+	statusText = L"  ENTER=Select  ESC=Back  F3=Quit";
 }
 
 void ImageSelectionPage::Drawer()
@@ -70,13 +77,13 @@ void ImageSelectionPage::Redrawer()
 	int boxHeight = consoleSize.cy - boxY - 2;
 	int maxItems = boxHeight - 3;
 
-	bool canScrollDown = (scrollIndex + maxItems) < WindowsSetup::WimImageCount;
+	bool canScrollDown = (scrollIndex + maxItems) < FormattedStrings.size();
 	bool canScrollUp = scrollIndex != 0;
 
-	for (int i = 0; i < min(maxItems, WindowsSetup::WimImageCount); i++)
+	for (int i = 0; i < min(maxItems, FormattedStrings.size()); i++)
 	{
 		int j = i + scrollIndex;
-		wchar_t* text = FormattedStrings[j].data();
+		const wchar_t* text = FormattedStrings[j].c_str();
 		/*wchar_t buffer[100];
 		swprintf(buffer, 100, L"maxItems: %i\nimageCount: %i\nstringCount: %i\ni: %i\nscroll: %i\nj: %i", maxItems, WindowsSetup::WimImageCount, FormattedStrings.size(), i, scrollIndex, j);
 		MessageBoxW(console->WindowHandle, buffer, L"", MB_OK);*/
@@ -131,14 +138,14 @@ bool ImageSelectionPage::KeyHandler(WPARAM wParam)
 		Redraw();
 		break;
 	case VK_RETURN:
-		WindowsSetup::WimImageIndex = scrollIndex + selectionIndex + 1;
-		WindowsSetup::LoadPhase(3);
-		break;
+		//WindowsSetup::WimImageIndex = scrollIndex + selectionIndex + 1;
+		//WindowsSetup::LoadPhase(3);
+		return false;
 	case VK_F3:
 		AddPopup(new QuitingPage());
 		break;
 	case VK_ESCAPE:
-		WindowsSetup::LoadPhase(1);
+		//WindowsSetup::LoadPhase(1);
 		break;
 	}
 	return true;

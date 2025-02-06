@@ -39,7 +39,7 @@ namespace Leet::Panther2K
 		void freeWimImage();
 
 		static DWORD CALLBACK WimgapiCallback(DWORD dwMessageId, WPARAM wParam, LPARAM lParam, PVOID pvUserData);
-		BOOL createBootFiles();
+		HRESULT createBootFiles();
 
 		LibPanther::Logger* installLog;
 
@@ -59,6 +59,7 @@ namespace Leet::Panther2K
 		std::wstring szRecoveryPartition;
 
 		unsigned int dwCallbackThread;
+		HANDLE hFileNameReadyEvent;
 	};
 }
 

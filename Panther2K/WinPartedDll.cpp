@@ -17,7 +17,8 @@ EXPORTS
 #define ORD_ApplyP2KLayoutToDiskGPT   (LPCSTR)3
 #define ORD_ApplyP2KLayoutToDiskMBR   (LPCSTR)4
 #define ORD_SetPartType               (LPCSTR)5
-#define ORD_MountPartition (LPCSTR)6
+#define ORD_MountPartition            (LPCSTR)6
+#define ORD_EnumerateDisks            (LPCSTR)7
 
 typedef void (*InitializeCRTStub)();
 typedef int (*RunWinPartedStub)(Console*, LibPanther::Logger*);
@@ -25,6 +26,8 @@ typedef HRESULT(*ApplyP2KLayoutToDiskGPTStub)(Console*, LibPanther::Logger*, int
 typedef HRESULT(*ApplyP2KLayoutToDiskMBRStub)(Console*, LibPanther::Logger*, int, bool, wchar_t***, wchar_t***);
 typedef HRESULT(*SetPartTypeStub)(Console*, LibPanther::Logger*, int, unsigned long long, short);
 typedef HRESULT(*MountPartitionStub)(Console*, LibPanther::Logger*, int, unsigned long long, const wchar_t*);
+typedef HRESULT(*EnumerateDisksStub)(Console*, LibPanther::Logger*, DISK_INFORMATION**, int*);
+
 
 bool WinPartedDll::partedInitialized = false;
 HMODULE WinPartedDll::hWinParted = NULL;
@@ -76,6 +79,16 @@ HRESULT WinPartedDll::MountPartition(Console* console, LibPanther::Logger* logge
 
 	auto mountPartition = (MountPartitionStub)GetProcAddress(hWinParted, ORD_MountPartition);
 	return mountPartition(console, logger, diskNumber, partOffset, mountPoint);
+}
+
+HRESULT WinPartedDll::EnumerateDisks(Console* console, LibPanther::Logger* logger, DISK_INFORMATION** disks, int* diskCount)
+{
+	HRESULT res;
+	if (!partedInitialized && (res = InitParted()) != ERROR_SUCCESS)
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, res);
+
+	auto enumerateDisks = (EnumerateDisksStub)GetProcAddress(hWinParted, ORD_EnumerateDisks);
+	return enumerateDisks(console, logger, disks, diskCount);
 }
 
 HRESULT WinPartedDll::InitParted()

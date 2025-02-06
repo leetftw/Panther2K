@@ -18,6 +18,24 @@ extern "C" int _stdcall RunWinParted(Console* console, LibPanther::Logger* logge
 	return result;
 };
 
+extern "C" HRESULT _stdcall EnumerateDisks(Console* console, LibPanther::Logger* logger, DISK_INFORMATION** disks, int* diskCount)
+{
+	PartitionManager::ShowNoInfoDialogs = true;
+	PartitionManager::SetConsole(console);
+	PartitionManager::SetLogger(logger);
+
+	PartitionManager::CurrentPage = new Page();
+	PartitionManager::CurrentPage->Initialize(console);
+	PartitionManager::CurrentPage->Update();
+
+	PartitionManager::PopulateDiskInformation();
+	size_t tableSize = PartitionManager::DiskInformationTableSize * sizeof(DISK_INFORMATION);
+	*disks = static_cast<DISK_INFORMATION*>(LocalAlloc(LPTR, tableSize));
+	memcpy_s(*disks, tableSize, PartitionManager::DiskInformationTable, tableSize);
+	*diskCount = PartitionManager::DiskInformationTableSize;
+	return S_OK;
+}
+
 // TODO: Cleanup this mess
 // TODO: Merge GPT and MBR into a single function with a flag
 // TODO: Move partition layout information to Panther2K
@@ -119,7 +137,7 @@ extern "C" HRESULT _stdcall ApplyP2KLayoutToDiskGPT(Console* console, LibPanther
 	layout->PartitionCount = totalPartitions;
 
 	layout->Partitions[0].PartitionNumber = 1;
-	layout->Partitions[0].PartitionType = 0x0700;
+	layout->Partitions[0].PartitionType = 0xEF00;
 	if (PartitionManager::CurrentDisk.SectorSize == 4096)
 		wcscpy_s(layout->Partitions[0].PartitionSize, L"300M");
 	else

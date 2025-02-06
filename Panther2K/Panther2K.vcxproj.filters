@@ -84,6 +84,15 @@
     <ClInclude Include="WinPartedDll.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SetupManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\PugiXML\pugiconfig.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\PugiXML\pugixml.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Panther2K.cpp">
@@ -129,6 +138,12 @@
       <Filter>Source Files\Pages</Filter>
     </ClCompile>
     <ClCompile Include="WinPartedDll.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SetupManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\PugiXML\pugixml.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

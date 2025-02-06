@@ -111,7 +111,7 @@ int CreateProcessPiped(char* outputBuffer, int bufferSize, wchar_t* commandLine)
 
 BootPreparationPage::~BootPreparationPage()
 {
-	free((wchar_t*)text);
+
 }
 
 void BootPreparationPage::PrepareBootFilesNew()
@@ -492,12 +492,6 @@ void BootPreparationPage::PrepareBootFilesNew()
 
 void BootPreparationPage::Init()
 {
-	wchar_t* displayName = WindowsSetup::WimImageInfos[WindowsSetup::WimImageIndex - 1].DisplayName;
-	int length = lstrlenW(displayName);
-	wchar_t* textBuffer = (wchar_t*)safeMalloc(WindowsSetup::GetLogger(), length * sizeof(wchar_t) + 14);
-	memcpy(textBuffer, displayName, length * sizeof(wchar_t));
-	memcpy(textBuffer + length, L" Setup", 14);
-	text = textBuffer;
 	statusText = L"";
 }
 

@@ -32,6 +32,7 @@ COLOR ParseColor(const wchar_t* text, bool* success)
 
 bool Console::Init()
 {
+    /*
     wchar_t INIFile[MAX_PATH] = L"";
     wchar_t iniBuffer[MAX_PATH] = L"";
     GetFullPathNameW(L"libpanther.ini", MAX_PATH, INIFile, NULL);
@@ -107,6 +108,8 @@ bool Console::Init()
         MessageBoxW(NULL, L"The value Console\\FontHeight specified in libpanther.ini is invalid. This application will exit.", L"LibPanther console", MB_OK | MB_ICONERROR);
         return false;
     }
+    */
+    return true;
 }
 
 void Console::SetPosition(long, long) { }
@@ -166,6 +169,8 @@ void Console::SetColorTable(COLOR* colorTable, int colorTableSize)
     this->colorTable = colorTable;
     this->colorTableSize = colorTableSize;
     UpdateColorTable();
+    SetBackgroundColor(CONSOLE_COLOR_BG);
+    SetForegroundColor(CONSOLE_COLOR_FG);
 }
 
 void Console::SetCursor(bool enabled, bool blinking) { }

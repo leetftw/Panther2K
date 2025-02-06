@@ -1,2 +1,3 @@
 #pragma once
-#define PANTHER_VERSION "1.3.1"
+#define PANTHER_VERSION "2.0.0 Alpha"
+#define WINPARTED_VERSION "14"

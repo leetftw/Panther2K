@@ -4,17 +4,22 @@
 
 BootMethodSelectionPage::~BootMethodSelectionPage()
 {
-	free((wchar_t*)text);
+
+}
+
+bool BootMethodSelectionPage::GetResult()
+{
+	return legacy;
 }
 
 void BootMethodSelectionPage::Init()
 {
-	wchar_t* displayName = WindowsSetup::WimImageInfos[WindowsSetup::WimImageIndex - 1].DisplayName;
+	/*wchar_t* displayName = WindowsSetup::WimImageInfos[WindowsSetup::WimImageIndex - 1].DisplayName;
 	int length = lstrlenW(displayName);
 	wchar_t* textBuffer = (wchar_t*)safeMalloc(WindowsSetup::GetLogger(), length * sizeof(wchar_t) + 14);
 	memcpy(textBuffer, displayName, length * sizeof(wchar_t));
 	memcpy(textBuffer + length, L" Setup", 14);
-	text = textBuffer;
+	text = textBuffer;*/
 	statusText = L"  ENTER=Select  ESC=Back  F3=Quit";
 }
 
@@ -85,13 +90,9 @@ bool BootMethodSelectionPage::KeyHandler(WPARAM wParam)
 		Redraw();
 		break;
 	case VK_ESCAPE:
-		WindowsSetup::LoadPhase(2);
 		break;
 	case VK_RETURN:
-		WindowsSetup::GetLogger()->Write(PANTHER_LL_DETAILED, legacy ? L"Using legacy boot." : L"Using UEFI boot.");
-		WindowsSetup::UseLegacy = legacy;
-		WindowsSetup::LoadPhase(4);
-		break;
+		return false;
 	case VK_F3:
 		AddPopup(new QuitingPage());
 		break;

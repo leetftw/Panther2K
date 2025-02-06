@@ -24,7 +24,7 @@
     <ProjectGuid>{a3dd51ce-63ab-4189-9d8a-3111288a3463}</ProjectGuid>
     <RootNamespace>LibPanther</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>LibPanther</ProjectName>
+    <ProjectName>Leet.Panther2K.Util</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

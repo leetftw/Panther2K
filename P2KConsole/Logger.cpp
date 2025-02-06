@@ -88,7 +88,7 @@ void *safeMalloc(LibPanther::Logger* logger, size_t size)
 	if (!returnValue) 
 	{
 		logger->WriteDirect(PANTHER_LL_BASIC, L"FATAL: OUT OF MEMORY.\r\n");
-		exit(MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, ERROR_NOT_ENOUGH_MEMORY));
+		ExitProcess(MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, ERROR_NOT_ENOUGH_MEMORY));
 	}
 	return returnValue;
 }
@@ -99,7 +99,7 @@ void* safeLocalAlloc(LibPanther::Logger* logger, size_t size)
 	if (!returnValue)
 	{
 		logger->WriteDirect(PANTHER_LL_BASIC, L"FATAL: OUT OF MEMORY.\r\n");
-		exit(MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, ERROR_NOT_ENOUGH_MEMORY));
+		ExitProcess(MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, ERROR_NOT_ENOUGH_MEMORY));
 	}
 	return returnValue;
 }

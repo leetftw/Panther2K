@@ -5,7 +5,6 @@
 
 void WelcomePage::Init()
 {
-	text = L"Leet's Panther2K";
 	statusText = L"  ENTER=Continue  R=Repair  F3=Quit";
 }
 
@@ -41,12 +40,10 @@ bool WelcomePage::KeyHandler(WPARAM wParam)
 	switch (wParam) 
 	{
 	case VK_RETURN:
-		statusText = L"  Please wait while Setup loads data...";
-		Draw();
-		WindowsSetup::LoadPhase(2);
-		break;
-	case (WPARAM)'R':
-		break;
+		statusText = L"  Please wait while Panther2K loads data...";
+		Redraw();
+		return false;
+	case VK_ESCAPE:
 	case VK_F3:
 		AddPopup(new QuitingPage());
 		break;

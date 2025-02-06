@@ -182,13 +182,13 @@ void PartitionManager::PopulateDiskInformation()
 	{
 		return;
 	}
-
+	
 	QueryDosDeviceW(NULL, dosdevs, 65536);
 	int diskCount = 0;
 	for (wchar_t* pos = dosdevs; *pos; pos += lstrlenW(pos) + 1)
 		if (wcsncmp(pos, L"PhysicalDrive", 13) == 0)
 			diskCount++;
-
+	
 	DISK_INFORMATION* diskInfos = (DISK_INFORMATION*)malloc(sizeof(DISK_INFORMATION) * diskCount);
 	if (diskInfos == NULL)
 	{

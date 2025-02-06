@@ -1,17 +1,15 @@
 #pragma once
 #include "Page.h"
-
-typedef struct DISK_INFO
-{
-	int diskNumber;
-	wchar_t name[MAX_PATH];
-	MEDIA_TYPE mediaType;
-	unsigned long long size;
-} *PDISK_INFO;
+#include "WinPartedDll.h"
+#include <PantherLogger.h>
 
 class DiskSelectionPage :
 	public Page
 {
+public:
+	~DiskSelectionPage();
+	HRESULT LoadData(Console* console, LibPanther::Logger* logger);
+	int GetResult();
 protected:
 	virtual void Init() override;
 	virtual void Drawer() override;
@@ -22,7 +20,6 @@ private:
 	int selectionIndex = 0;
 	int scrollIndex = 0;
 	int diskCount = 0;
-	DISK_INFO* diskInfo = 0;
-
+	DISK_INFORMATION* diskInfo = 0;
 };
 

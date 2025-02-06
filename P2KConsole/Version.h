@@ -1,2 +1,2 @@
 #pragma once
-#define PANTHER_VERSION "1.3.1"
+#include "include/PantherVersion.h"

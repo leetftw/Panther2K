@@ -1,6 +1,8 @@
 ﻿#include "Page.h"
 #include "WindowsSetup.h"
 
+#include <PantherVersion.h>
+
 Page::Page()
 {
 	console = 0;
@@ -12,6 +14,8 @@ Page::Page()
 void Page::Initialize(Console* con)
 {
 	console = con;
+
+	text = L"Panther2K " PANTHER_VERSION;
 
 	Init();
 	Draw();

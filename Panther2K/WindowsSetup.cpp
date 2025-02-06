@@ -332,6 +332,7 @@ bool FileExists(const wchar_t* szPath)
 
 bool WindowsSetup::LocateWimFile(wchar_t* buffer)
 {
+
 	wchar_t pathBuffer[MAX_PATH + 1];
 	const wchar_t* chars = L"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	DWORD letters = GetLogicalDrives();

@@ -70,6 +70,7 @@ void CustomConsole::ConsoleMessageLoop()
 
 			console->screenBuffer = (DISPLAYCHAR*)malloc(sizeof(DISPLAYCHAR) * console->columns * console->rows);
 			ZeroMemory(console->screenBuffer, sizeof(DISPLAYCHAR) * console->columns * console->rows);
+			//ShowWindow(console->WindowHandle, SW_SHOW);
 			PostMessageW(console->WindowHandle, WM_KEYDOWN, VK_HOME, 0);
 			break;
 		}
@@ -136,6 +137,7 @@ void CustomConsole::SetSize(long columns, long rows)
 	t.cx = columns; t.cy = rows;
 	if (WindowHandle) SendMessage(WindowHandle, WM_RESIZECONSOLE, (WPARAM)&t, 0);
 	else newConsoleSize = t;
+	SetPixelScale(1);
 }
 
 SIZE CustomConsole::GetSize()
@@ -550,7 +552,6 @@ LRESULT CALLBACK CustomConsole::WndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPAR
 		screenBufferUpdated = true;
 		screenPointerX = 0;
 		screenPointerY = 0;
-		break;
 	}
 	case WM_UPDATECONSOLE:
 		/*if (!console)

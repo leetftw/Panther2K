@@ -6,6 +6,7 @@ class BootMethodSelectionPage : public Page
 {
 public:
 	~BootMethodSelectionPage();
+	bool GetResult();
 private:
 	bool legacy = false;
 	int y = 0;

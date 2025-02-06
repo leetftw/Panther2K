@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "engine_def.h"
+#include "../engine_def.h"
 
 #ifdef BUILDING_C_LIB
 #define EXPORT __declspec(dllexport)
@@ -18,6 +18,8 @@
 typedef void* HSetupEngine;
 EXPORT HRESULT PantherCreateEngine(HSetupEngine* engine, const wchar_t* loggerFile, int logLevel);
 EXPORT HRESULT PantherCreateEngine(HSetupEngine* engine, void* logger);
+
+EXPORT HRESULT PantherFreeEngine(HSetupEngine engine);
 
 EXPORT HRESULT PantherEngineSetUseLegacy(HSetupEngine engine, bool useLegacy);
 
