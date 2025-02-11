@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "Logger.h"
 #include <time.h>
 #include <stdio.h>

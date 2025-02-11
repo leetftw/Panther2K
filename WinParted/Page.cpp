@@ -7,7 +7,7 @@ Page::Page()
 {
 	console = 0;
 	statusText = L"WinParted is inspecting your computer's hardware configuration...";
-	text = L"WinParted " PANTHER_VERSION " milestone " WINPARTED_VERSION;
+	text = L"WinParted milestone " WINPARTED_VERSION " (LibPanther " PANTHER_VERSION ")";
 	drawHeader = true;
 	drawStatus = true;
 	drawClear = true;

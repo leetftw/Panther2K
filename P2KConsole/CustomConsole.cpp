@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "CustomConsole.h"
 #include <iostream>
 #include "Win32Console.h"

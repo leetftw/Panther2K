@@ -1,44 +1,8 @@
 ﻿#include "WimApplyPage.h"
-#include "WindowsSetup.h"
-#include <iostream>
-#include <process.h>
+
 #include "MessageBoxPage.h"
 
-#define WM_PROGRESSUPDATE WM_APP
-#define WM_FILENAMEUPDATE WM_APP + 1
-#define WM_FINISHUPDATE WM_APP + 2
-
-int hResult = 0;
-bool runMessageLoop = true;
-bool canSendProgress = true;
-bool canSendFileName = true;
-unsigned int progress = 0;
-LibPanther::Logger* installLog = nullptr;
-
-void WriteToFile(const wchar_t* string)
-{
-	DWORD bytes;
-	if (!installLog)
-	{
-		wchar_t buffer[MAX_PATH];
-		swprintf_s(buffer, L"%s%s", WindowsSetup::SystemPartition.mountPoint, L"panther2k.log");
-		installLog = new LibPanther::Logger(buffer, PANTHER_LL_VERBOSE);
-
-		WriteToFile(L"Starting Panther2K installation log...");
-		swprintf_s(buffer, L"   Installing %s to %s.", 
-			WindowsSetup::WimImageInfos[WindowsSetup::WimImageIndex - 1].DisplayName,
-			WindowsSetup::SystemPartition.name);
-		WriteToFile(buffer);
-		swprintf_s(buffer, L"   Total installation size: %llu bytes", WindowsSetup::WimImageInfos[WindowsSetup::WimImageIndex - 1].TotalSize);
-	}
-
-	if (string)
-	{
-		WindowsSetup::GetLogger()->Write(PANTHER_LL_BASIC, string);
-		installLog->Write(PANTHER_LL_BASIC, string);
-	}
-}
-
+/*
 DWORD __stdcall MessageCallback(IN DWORD Msg, IN WPARAM wParam, IN LPARAM lParam, IN PDWORD dwThreadId)
 {
 	wchar_t buffer[MAX_PATH * 2];
@@ -105,61 +69,11 @@ DWORD __stdcall MessageCallback(IN DWORD Msg, IN WPARAM wParam, IN LPARAM lParam
 	}
 	return WIM_MSG_SUCCESS;
 }
-
-void __stdcall WimApplyThread(PDWORD dwThreadId)
-{
-	WIMRegisterMessageCallback(WindowsSetup::WimHandle, (FARPROC)MessageCallback, dwThreadId);
-	HANDLE him = WIMLoadImage(WindowsSetup::WimHandle, WindowsSetup::WimImageIndex);
-	BOOL result = WIMApplyImage(him, WindowsSetup::SystemPartition.mountPoint, WIM_FLAG_INDEX);
-	hResult = GetLastError();
-	WIMUnregisterMessageCallback(WindowsSetup::WimHandle, (FARPROC)MessageCallback);
-	runMessageLoop = false;
-	PostThreadMessageW(*dwThreadId, WM_FINISHUPDATE, 0, 0);
-}
-
-void WimApplyPage::WimMessageLoop()
-{
-	MSG msg;
-	int progress = 0;
-    wchar_t* filename = 0;
-	runMessageLoop = true;
-
-	while (GetMessageW(&msg, nullptr, WM_PROGRESSUPDATE, WM_FINISHUPDATE) && runMessageLoop)
-	{
-		switch (msg.message)
-		{
-		case WM_PROGRESSUPDATE:
-			Update(msg.wParam);
-			break;
-		case WM_FILENAMEUPDATE:
-			Update((wchar_t*)msg.wParam);
-			break;
-		case WM_FINISHUPDATE:
-			runMessageLoop = false;
-			break;
-		}
-
-		TranslateMessage(&msg);
-		DispatchMessageW(&msg);
-		Sleep(25);
-		canSendFileName = true;
-	}
-
-	if (hResult)
-	{
-		MessageBoxPage* msgBox = new MessageBoxPage(L"The installation has failed. See the installation log for more details.", true, this);
-		msgBox->ShowDialog();
-		delete msgBox;
-		WindowsSetup::RequestExit();
-	}
-
-end:
-	return;
-}
+*/
 
 WimApplyPage::~WimApplyPage()
 {
-	free((wchar_t*)statusText);
+	if (statusText) free((wchar_t*)statusText);
 }
 
 void WimApplyPage::Update(int prog)
@@ -168,10 +82,10 @@ void WimApplyPage::Update(int prog)
 	Redraw();
 }
 
-LPTSTR PathFindFileName(
-	LPTSTR pPath)
+LPCWSTR PathFindFileName(
+	LPCWSTR pPath)
 {
-	LPTSTR pT;
+	LPCWSTR pT;
 
 	for (pT = pPath; *pPath; pPath++) {
 		if ((pPath[0] == TEXT('\\') || pPath[0] == TEXT(':') || pPath[0] == TEXT('/'))
@@ -182,7 +96,7 @@ LPTSTR PathFindFileName(
 	return pT;
 }
 
-void WimApplyPage::Update(wchar_t* fileName)
+void WimApplyPage::Update(const wchar_t* fileName)
 {
 	int length = console->GetSize().cx;
 	int bufferSize = length + 1;
@@ -196,7 +110,8 @@ void WimApplyPage::Update(wchar_t* fileName)
 	{
 		wchar_t buffer[24];
 		fileName = PathFindFileName(fileName);
-		swprintf_s(buffer, L"│ Copying: %.12s", fileName + (lstrlenW(fileName) - 12));
+		if (lstrlenW(fileName) > 8) swprintf_s(buffer, L"│ Copying: %.6s~0.%s", fileName, fileName + (lstrlenW(fileName) - 3));
+		else swprintf_s(buffer, L"│ Copying: %.12s", fileName + (lstrlenW(fileName) - 3));
 		wmemcpy_s((wchar_t*)statusText + nameX, bufferSize - nameX, buffer, 24);
 	}
 	else 
@@ -209,26 +124,10 @@ void WimApplyPage::Update(wchar_t* fileName)
 	Redraw();
 }
 
-void WimApplyPage::ApplyImage()
-{
-	DWORD bytesCopied;
-	wchar_t fileBuffer[1024];
-	ULONGLONG ticksBefore = GetTickCount64();
-
-	DWORD dwThreadId = GetCurrentThreadId();
-	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)WimApplyThread, &dwThreadId, 0, 0);
-	WimMessageLoop();
-
-	ULONGLONG ticksAfter = GetTickCount64();
-	ULONGLONG ticksSpent = ticksAfter - ticksBefore;
-	
-	swprintf_s(fileBuffer, L"The installation has finished.\nInstallation time: %02llum:%02llus\nResult: 0x%08X\n", (ticksSpent / 1000) / 60, (ticksSpent / 1000) % 60, hResult);
-	WriteToFile(fileBuffer);
-}
-
 void WimApplyPage::Init()
 {
-	statusText = (wchar_t*)safeMalloc(WindowsSetup::GetLogger(), sizeof(wchar_t) * (console->GetSize().cx + 1));
+	statusText = (wchar_t*)malloc(sizeof(wchar_t) * (console->GetSize().cx + 1));
+	if (!statusText) return;
 	memcpy(((wchar_t*)statusText), L"  Panther2K is installing Windows...", 37 * sizeof(wchar_t));
 }
 
@@ -236,8 +135,8 @@ void WimApplyPage::Drawer()
 {
 	SIZE consoleSize = console->GetSize();
 	
-	console->SetBackgroundColor(WindowsSetup::BackgroundColor);
-	console->SetForegroundColor(WindowsSetup::ForegroundColor);
+	console->SetBackgroundColor(CONSOLE_COLOR_BG);
+	console->SetForegroundColor(CONSOLE_COLOR_FG);
 
 	console->DrawTextCenter(L"Please wait while Setup copies files to the Windows installation folders. This might take several minutes to complete.", consoleSize.cx / 3 * 2, 6);
 	
@@ -257,8 +156,8 @@ void WimApplyPage::Drawer()
 
 void WimApplyPage::Redrawer()
 {
-	console->SetBackgroundColor(WindowsSetup::BackgroundColor);
-	console->SetForegroundColor(WindowsSetup::ForegroundColor);
+	console->SetBackgroundColor(CONSOLE_COLOR_BG);
+	console->SetForegroundColor(CONSOLE_COLOR_FG);
 
 	SIZE consoleSize = console->GetSize();
 	int boxWidth = consoleSize.cx - 12;
@@ -277,9 +176,9 @@ void WimApplyPage::Redrawer()
 	console->SetPosition(boxX + 1, boxY + 1);
 	int progWidth = boxWidth - 2;
 	int interpolatedProgress = progress * progWidth / 100;
-	console->SetForegroundColor(WindowsSetup::ProgressBarColor);
+	console->SetForegroundColor(CONSOLE_COLOR_PROGBAR);
 	for (int i = 0; i < interpolatedProgress; i++)
-		console->Write(WindowsSetup::UseCp437 ? L"\xDB" : L"█");
+		console->Write(L"█");
 	for (int i = interpolatedProgress; i < progWidth; i++)
 		console->Write(L" ");
 }

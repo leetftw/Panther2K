@@ -1,5 +1,4 @@
-#include "DiskSelectionPage.h"
-#include "WindowsSetup.h"
+#include "DiskSelectionPage.h"
 #include "QuitingPage.h"
 #include "MessageBoxPage.h"
 
@@ -45,7 +44,7 @@ void DiskSelectionPage::Init()
 void DiskSelectionPage::Drawer()
 {
 	console->SetBackgroundColor(CONSOLE_COLOR_BG);
-	console->SetForegroundColor(WindowsSetup::LightForegroundColor);
+	console->SetForegroundColor(CONSOLE_COLOR_LIGHTFG);
 
 	DrawTextLeft(L"Select the disk to install Windows to.", console->GetSize().cx - 6, 4);
 
@@ -62,7 +61,9 @@ void DiskSelectionPage::Drawer()
 	int boxHeight = console->GetSize().cy - (boxY + 2);
 	DrawBox(boxX, boxY, boxWidth, boxHeight, true);
 
-	wchar_t* buffer = (wchar_t*)safeMalloc(WindowsSetup::GetLogger(), sizeof(wchar_t) * (boxWidth - 2));
+	wchar_t* buffer = (wchar_t*)malloc(sizeof(wchar_t) * (boxWidth - 2));
+	if (!buffer) return;
+
 	swprintf(buffer, boxWidth - 2, L"   Disk  Device Name                        %*sType      Disk size   ", boxWidth - 68, L"");
 	console->SetPosition(boxX + 1, boxY + 1);
 	console->Write(buffer);

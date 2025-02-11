@@ -1,5 +1,4 @@
-﻿#include "Page.h"
-#include "WindowsSetup.h"
+﻿#include "Page.h"
 
 #include <PantherVersion.h>
 
@@ -23,8 +22,8 @@ void Page::Initialize(Console* con)
 
 void Page::Draw()
 {
-	console->SetBackgroundColor(WindowsSetup::BackgroundColor);
-	console->SetForegroundColor(WindowsSetup::ForegroundColor);
+	console->SetBackgroundColor(CONSOLE_COLOR_BG);
+	console->SetForegroundColor(CONSOLE_COLOR_FG);
 
 	console->Clear();
 
@@ -39,16 +38,16 @@ void Page::Draw()
 
 void Page::Redraw(bool redraw)
 {
-	console->SetBackgroundColor(WindowsSetup::BackgroundColor);
-	console->SetForegroundColor(WindowsSetup::ForegroundColor);
+	console->SetBackgroundColor(CONSOLE_COLOR_BG);
+	console->SetForegroundColor(CONSOLE_COLOR_FG);
 
 	console->SetPosition(1, 1);
 	console->WriteLine(text);
 	for (int i = 0; i < lstrlen(text) + 2; i++)
-		console->Write(WindowsSetup::UseCp437 ? L"\xCD" : L"═");
+		console->Write(L"═");
 
-	console->SetBackgroundColor(WindowsSetup::ForegroundColor);
-	console->SetForegroundColor(WindowsSetup::DarkForegroundColor);
+	console->SetBackgroundColor(CONSOLE_COLOR_FG);
+	console->SetForegroundColor(CONSOLE_COLOR_DARKFG);
 
 	SIZE f = console->GetSize();
 	console->SetPosition(0, f.cy - 1);
@@ -83,32 +82,32 @@ void Page::DrawBox(int boxX, int boxY, int boxWidth, int boxHeight, bool useDoub
 	}
 
 	console->SetPosition(boxX, boxY);
-	console->Write(useDouble ? (WindowsSetup::UseCp437 ? L"\xC9" : L"╔") : (WindowsSetup::UseCp437 ? L"\xDA" : L"┌"));
+	console->Write(useDouble ? (L"╔") : (L"┌"));
 	console->SetPosition(boxX + (boxWidth - 1), boxY);
-	console->Write(useDouble ? (WindowsSetup::UseCp437 ? L"\xBB" : L"╗") : (WindowsSetup::UseCp437 ? L"\xBF" : L"┐"));
+	console->Write(useDouble ? (L"╗") : (L"┐"));
 	console->SetPosition(boxX, boxY + (boxHeight - 1));
-	console->Write(useDouble ? (WindowsSetup::UseCp437 ? L"\xC8" : L"╚") : (WindowsSetup::UseCp437 ? L"\xC0" : L"└"));
+	console->Write(useDouble ? (L"╚") : (L"└"));
 	console->SetPosition(boxX + (boxWidth - 1), boxY + (boxHeight - 1));
-	console->Write(useDouble ? (WindowsSetup::UseCp437 ? L"\xBC" : L"╝") : (WindowsSetup::UseCp437 ? L"\xD9" : L"┘"));
+	console->Write(useDouble ? (L"╝") : (L"┘"));
 
 	console->SetPosition(boxX + 1, boxY);
 	for (int i = 0; i < boxWidth - 2; i++)
-		console->Write(useDouble ? (WindowsSetup::UseCp437 ? L"\xCD" : L"═") : (WindowsSetup::UseCp437 ? L"\xC4" : L"─"));
+		console->Write(useDouble ? (L"═") : (L"─"));
 
 	console->SetPosition(boxX + 1, boxY + boxHeight - 1);
 	for (int i = 0; i < boxWidth - 2; i++)
-		console->Write(useDouble ? (WindowsSetup::UseCp437 ? L"\xCD" : L"═") : (WindowsSetup::UseCp437 ? L"\xC4" : L"─"));
+		console->Write(useDouble ? (L"═") : (L"─"));
 
 	for (int i = 0; i < boxHeight - 2; i++)
 	{
 		console->SetPosition(boxX, boxY + 1 + i);
-		console->Write(useDouble ? (WindowsSetup::UseCp437 ? L"\xBA" : L"║") : (WindowsSetup::UseCp437 ? L"\xB3" : L"│"));
+		console->Write(useDouble ? (L"║") : (L"│"));
 	}
 
 	for (int i = 0; i < boxHeight - 2; i++)
 	{
 		console->SetPosition(boxX + boxWidth - 1, boxY + 1 + i);
-		console->Write(useDouble ? (WindowsSetup::UseCp437 ? L"\xBA" : L"║") : (WindowsSetup::UseCp437 ? L"\xB3" : L"│"));
+		console->Write(useDouble ? (L"║") : (L"│"));
 	}
 }
 

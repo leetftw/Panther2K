@@ -1,5 +1,4 @@
-#include "MessageBoxPage.h"
-#include "WindowsSetup.h"
+#include "MessageBoxPage.h"
 
 MessageBoxPage::MessageBoxPage(const wchar_t* text, bool isError, Page* par)
 {
@@ -36,11 +35,11 @@ void MessageBoxPage::Init()
 
 	customColor = true;
 
-	back = WindowsSetup::ForegroundColor;
+	back = CONSOLE_COLOR_FG;
 	if (error)
-		fore = WindowsSetup::ErrorColor;
+		fore = CONSOLE_COLOR_ERROR;
 	else 
-		fore = WindowsSetup::DarkForegroundColor;
+		fore = CONSOLE_COLOR_DARKFG;
 }
 
 void MessageBoxPage::Drawer()

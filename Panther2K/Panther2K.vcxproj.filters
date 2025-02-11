@@ -33,9 +33,6 @@
     <ClInclude Include="Panther2K.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="WindowsSetup.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Page.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -69,9 +66,6 @@
     <ClInclude Include="wdkpartial.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PartitionSelectionPage.h">
-      <Filter>Header Files\Pages</Filter>
-    </ClInclude>
     <ClInclude Include="MessageBoxPage.h">
       <Filter>Header Files\Pages</Filter>
     </ClInclude>
@@ -96,9 +90,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Panther2K.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="WindowsSetup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Page.cpp">
@@ -126,9 +117,6 @@
       <Filter>Source Files\Pages</Filter>
     </ClCompile>
     <ClCompile Include="FinalPage.cpp">
-      <Filter>Source Files\Pages</Filter>
-    </ClCompile>
-    <ClCompile Include="PartitionSelectionPage.cpp">
       <Filter>Source Files\Pages</Filter>
     </ClCompile>
     <ClCompile Include="MessageBoxPage.cpp">
@@ -163,6 +151,12 @@
   <ItemGroup>
     <None Include="rc_data1.bin">
       <Filter>Resource Files</Filter>
+    </None>
+    <None Include="PartitionSelectionPage.cpp">
+      <Filter>Source Files\Pages</Filter>
+    </None>
+    <None Include="PartitionSelectionPage.h">
+      <Filter>Header Files\Pages</Filter>
     </None>
   </ItemGroup>
 </Project>

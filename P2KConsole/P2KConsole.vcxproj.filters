@@ -21,9 +21,6 @@
     <ClInclude Include="framework.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pch.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\PantherConsole.h">
       <Filter>Include Files</Filter>
     </ClInclude>
@@ -59,9 +56,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pch.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CustomConsole.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

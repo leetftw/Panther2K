@@ -143,7 +143,7 @@ extern "C" HRESULT _stdcall ApplyP2KLayoutToDiskGPT(Console* console, LibPanther
 	else
 		wcscpy_s(layout->Partitions[0].PartitionSize, L"150M");
 	wcscpy_s(layout->Partitions[0].FileSystem, L"FAT32");
-	layout->Partitions[0].MountPoint = (*mountPath)[0];
+	//layout->Partitions[0].MountPoint = (*mountPath)[0];
 
 	layout->Partitions[1].PartitionNumber = 2;
 	layout->Partitions[1].PartitionType = 0x0C01;
@@ -154,13 +154,13 @@ extern "C" HRESULT _stdcall ApplyP2KLayoutToDiskGPT(Console* console, LibPanther
 	layout->Partitions[2].PartitionType = 0x0700;
 	wcscpy_s(layout->Partitions[2].PartitionSize, L"100%");
 	wcscpy_s(layout->Partitions[2].FileSystem, L"NTFS");
-	layout->Partitions[2].MountPoint = (*mountPath)[1];
+	//layout->Partitions[2].MountPoint = (*mountPath)[1];
 
 	layout->Partitions[3].PartitionNumber = 4;
 	layout->Partitions[3].PartitionType = 0x0700;
 	wcscpy_s(layout->Partitions[3].PartitionSize, L"500M");
 	wcscpy_s(layout->Partitions[3].FileSystem, L"NTFS");
-	layout->Partitions[3].MountPoint = (*mountPath)[2];
+	//layout->Partitions[3].MountPoint = (*mountPath)[2];
 
 	ret = PartitionManager::ApplyPartitionLayoutGPT(layout);
 	for (int i = 0; i < 4; i++)
@@ -279,19 +279,19 @@ extern "C" HRESULT _stdcall ApplyP2KLayoutToDiskMBR(Console* console, LibPanther
 	else
 		wcscpy_s(layout->Partitions[0].PartitionSize, L"150M");
 	wcscpy_s(layout->Partitions[0].FileSystem, L"NTFS");
-	layout->Partitions[0].MountPoint = (*mountPath)[0];
+	//layout->Partitions[0].MountPoint = (*mountPath)[0];
 
 	layout->Partitions[1].PartitionNumber = 2;
 	layout->Partitions[1].PartitionType = 0x0700;
 	wcscpy_s(layout->Partitions[1].PartitionSize, L"100%");
 	wcscpy_s(layout->Partitions[1].FileSystem, L"NTFS");
-	layout->Partitions[1].MountPoint = (*mountPath)[1];
+	//layout->Partitions[1].MountPoint = (*mountPath)[1];
 
 	layout->Partitions[2].PartitionNumber = 3;
 	layout->Partitions[2].PartitionType = 0x0700;
 	wcscpy_s(layout->Partitions[2].PartitionSize, L"500M");
 	wcscpy_s(layout->Partitions[2].FileSystem, L"NTFS");
-	layout->Partitions[2].MountPoint = (*mountPath)[2];
+	//layout->Partitions[2].MountPoint = (*mountPath)[2];
 
 	ret = PartitionManager::ApplyPartitionLayoutMBR(layout);
 	volIndex = 0;

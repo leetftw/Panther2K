@@ -1,6 +1,5 @@
 #include "WinPartedDll.h"
 #include "iatpatch.h"
-#include "WindowsSetup.h"
 
 /*
 EXPORTS
@@ -99,7 +98,7 @@ HRESULT WinPartedDll::InitParted()
 	hWinParted = LoadLibraryA("WinParted.exe");
 	if (!hWinParted)
 	{
-		wlogf(WindowsSetup::GetLogger(), PANTHER_LL_BASIC, 60, L"Error occurred while loading WinParted (0x%08x).", GetLastError());
+		//wlogf(WindowsSetup::GetLogger(), PANTHER_LL_BASIC, 60, L"Error occurred while loading WinParted (0x%08x).", GetLastError());
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, GetLastError());
 	}
 
@@ -107,7 +106,7 @@ HRESULT WinPartedDll::InitParted()
 	auto initializeCRT = (InitializeCRTStub)GetProcAddress(hWinParted, ORD_InitializeCRT);
 	if (!initializeCRT) 
 	{
-		wlogf(WindowsSetup::GetLogger(), PANTHER_LL_BASIC, 80, L"Error occurred while initializing WinParted CRT runtime (0x%08x).", GetLastError());
+		//wlogf(WindowsSetup::GetLogger(), PANTHER_LL_BASIC, 80, L"Error occurred while initializing WinParted CRT runtime (0x%08x).", GetLastError());
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, GetLastError());
 	};
 

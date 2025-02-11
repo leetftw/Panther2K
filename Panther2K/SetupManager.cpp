@@ -99,6 +99,7 @@ void Leet::Panther2K::SetupManager::RunSetup()
 
             MessageBoxPage messagePage = MessageBoxPage(L"Panther2K encountered an irrecoverable error. The application cannot continue running. See debug.log for more information.", true, &page);
             messagePage.Initialize(console, &page);
+            messagePage.ShowDialog();
 
             return;
         }
@@ -259,7 +260,7 @@ StepResult Leet::Panther2K::SetupManager::LoadConfiguration()
     console->Clear();
     page.Draw();
 
-    ((CustomConsole*)console)->SetPixelScale(2);
+    //((CustomConsole*)console)->SetPixelScale(2);
 
     return StepResult::Success;
 }

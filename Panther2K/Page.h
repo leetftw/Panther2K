@@ -3,6 +3,16 @@
 #include <PantherConsole.h>
 #include "PopupPage.h"
 
+/*
+typedef enum {
+	Success,
+	Continue,
+	GoBack,
+	Fail,
+	RunTool,
+} PageResult;
+*/
+
 class Page
 {
 public:

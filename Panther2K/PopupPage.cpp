@@ -1,5 +1,4 @@
 ﻿#include "PopupPage.h"
-#include "WindowsSetup.h"
 
 void PopupPage::Initialize(Console* con, Page* par)
 {
@@ -76,12 +75,12 @@ void PopupPage::Draw()
 	}*/
 
 	console->SetPosition(boxX, boxY + boxHeight - 1 - 2);
-	console->Write(WindowsSetup::UseCp437 ? L"\xC7" : L"╟");
+	console->Write(L"╟");
 	for (int i = 0; i < width; i++)
 	{
-		console->Write(WindowsSetup::UseCp437 ? L"\xC4" : L"─");
+		console->Write(L"─");
 	}
-	console->Write(WindowsSetup::UseCp437 ? L"\xB6" : L"╢");
+	console->Write(L"╢");
 	console->SetPosition(boxX + 1, boxY + boxHeight - 1 - 1);
 	console->Write(statusText);
 

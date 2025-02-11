@@ -2,7 +2,18 @@
 #include "Page.h"
 #include <vector>
 
-typedef struct VOLUME_INFO;
+typedef struct VOLUME_INFO
+{
+	wchar_t mountPoint[MAX_PATH + 1];
+	wchar_t fileSystem[MAX_PATH + 1];
+	wchar_t name[MAX_PATH + 1];
+	wchar_t guid[MAX_PATH + 1];
+	long long totalBytes;
+	long long bytesFree;
+	int diskNumber;
+	int partitionNumber;
+	long long partOffset;
+} *PVOLUME_INFO;
 
 class PartitionSelectionPage : public Page
 {

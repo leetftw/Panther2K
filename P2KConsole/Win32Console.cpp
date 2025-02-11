@@ -1,8 +1,7 @@
-#include "pch.h"
 #include "Win32Console.h"
 #include <iostream>
 
-bool rgbMode = false;
+bool rgbMode = true;
 
 bool Win32Console::Init()
 {
@@ -145,8 +144,14 @@ void Win32Console::Clear()
     COORD scrollTarget;
     CHAR_INFO fill;
 
+    // Get console size
+    CONSOLE_SCREEN_BUFFER_INFO bufferInfo = { 0 };
+    GetConsoleScreenBufferInfo(hScreenBuffer, &bufferInfo);
+
     // Write a space to make sure the correct colors are selected
-    Write(L" ");
+    SetPosition(bufferInfo.dwSize.X - 1, bufferInfo.dwSize.Y - 1);
+    Write(L"\u001b[2J\u001b[3J");
+    return;
 
     // Get the number of character cells in the current buffer.
     if (!GetConsoleScreenBufferInfo(hScreenBuffer, &csbi))

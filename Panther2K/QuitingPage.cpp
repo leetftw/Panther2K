@@ -1,6 +1,5 @@
 #include "QuitingPage.h"
-#include "WelcomePage.h"
-#include "WindowsSetup.h"
+#include "WelcomePage.h"
 
 void QuitingPage::Init()
 {
@@ -10,8 +9,8 @@ void QuitingPage::Init()
 	statusText = L"  F3=Quit  ENTER=Continue";
 
 	customColor = true;
-	back = WindowsSetup::ForegroundColor;
-	fore = WindowsSetup::ErrorColor;
+	back = CONSOLE_COLOR_FG;
+	fore = CONSOLE_COLOR_ERROR;
 }
 
 void QuitingPage::Drawer()
@@ -32,10 +31,10 @@ void QuitingPage::Drawer()
 	console->Write(L"to run Setup again to set up Windows.");
 
 	console->SetPosition(boxX + 6, boxY + 5);
-	console->Write(WindowsSetup::UseCp437 ? L"\x07" : L"•");
+	console->Write(L"•");
 	console->Write(L" To continue Setup, press ENTER.");
 	console->SetPosition(boxX + 6, boxY + 6);
-	console->Write(WindowsSetup::UseCp437 ? L"\x07" : L"•");
+	console->Write(L"•");
 	console->Write(L" To quit Setup, press F3.");
 }
 

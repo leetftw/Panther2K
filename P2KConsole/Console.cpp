@@ -1,15 +1,8 @@
-#include "pch.h"
 #include "Console.h"
 #include <iostream>
 
-FILE* stream;
 Console::Console()
 {
-#ifdef _DEBUG
-    errno_t err = freopen_s(&stream, "libpanther.log", "w", stdout);
-    err;
-#endif
-
     if (colorTable == NULL)
     {
         colorTableSize = 6;

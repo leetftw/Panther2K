@@ -1,5 +1,4 @@
-#include "PartitionSelectionPage.h"
-#include "WindowsSetup.h"
+#include "PartitionSelectionPage.h"
 #include "QuitingPage.h"
 #include "MessageBoxPage.h"
 #include "WinPartedDll.h"
@@ -38,6 +37,7 @@ void PartitionSelectionPage::EnumeratePartitions()
 	success = (volume != INVALID_HANDLE_VALUE);
 	while (success)
 	{
+	/*
 		VOLUME_INFO vi;
 		if (!WindowsSetup::GetVolumeInfoFromName(szNextVolName, &vi))
 			goto nextVol;
@@ -49,6 +49,7 @@ void PartitionSelectionPage::EnumeratePartitions()
 		volumeInfo.push_back(vi);
 	nextVol:
 		success = FindNextVolume(volume, szNextVolName, MAX_PATH) != 0;
+		*/
 	}
 
 	Draw();
@@ -61,24 +62,18 @@ VOLUME_INFO PartitionSelectionPage::GetSelectedVolume()
 
 void PartitionSelectionPage::Init()
 {
-	wchar_t* displayName = WindowsSetup::WimImageInfos[WindowsSetup::WimImageIndex - 1].DisplayName;
-	int length = lstrlenW(displayName);
-	wchar_t* textBuffer = (wchar_t*)safeMalloc(WindowsSetup::GetLogger(), length * sizeof(wchar_t) + 14);
-	memcpy(textBuffer, displayName, length * sizeof(wchar_t));
-	memcpy(textBuffer + length, L" Setup", 14);
-	text = textBuffer;
 	statusText = L"  ENTER=Select  F8=Run WinParted  F9=Display all  ESC=Back  F3=Quit";
 }
 
 void PartitionSelectionPage::Drawer()
 {
-	console->SetBackgroundColor(WindowsSetup::BackgroundColor);
-	console->SetForegroundColor(WindowsSetup::LightForegroundColor);
+	console->SetBackgroundColor(CONSOLE_COLOR_BG);
+	console->SetForegroundColor(CONSOLE_COLOR_LIGHTFG);
 
 	DrawTextLeft(part1Strings[stringTableIndex], console->GetSize().cx - 6, 4);
 
-	console->SetBackgroundColor(WindowsSetup::BackgroundColor);
-	console->SetForegroundColor(WindowsSetup::ForegroundColor);
+	console->SetBackgroundColor(CONSOLE_COLOR_BG);
+	console->SetForegroundColor(CONSOLE_COLOR_FG);
 
 	DrawTextLeft(part2Strings[stringTableIndex], console->GetSize().cx - 6, console->GetPosition().y + 2);
 
@@ -92,7 +87,8 @@ void PartitionSelectionPage::Drawer()
 	int boxHeight = console->GetSize().cy - (boxY + 2);
 	DrawBox(boxX, boxY, boxWidth, boxHeight, true);
 
-	wchar_t* buffer = (wchar_t*)safeMalloc(WindowsSetup::GetLogger(), sizeof(wchar_t) * (boxWidth - 2));
+	wchar_t buffer[MAX_PATH];
+
 	swprintf(buffer, boxWidth - 2, L"   Disk  Partition  Volume Name%*sSize (GB)  Mount Point  ", boxWidth - 58, L"");
 	console->SetPosition(boxX + 1, boxY + 1);
 	console->Write(buffer);
@@ -101,29 +97,29 @@ void PartitionSelectionPage::Drawer()
 
 void PartitionSelectionPage::Redrawer()
 {
-	console->SetBackgroundColor(WindowsSetup::BackgroundColor);
-	console->SetForegroundColor(WindowsSetup::ForegroundColor);
+	console->SetBackgroundColor(CONSOLE_COLOR_BG);
+	console->SetForegroundColor(CONSOLE_COLOR_FG);
 
 	int boxX = 3;
 	int boxWidth = console->GetSize().cx - 6;
 	int boxHeight = console->GetSize().cy - (boxY + 2);
 	int maxItems = boxHeight - 3;
 
-	bool canScrollDown = (scrollIndex + maxItems) < WindowsSetup::WimImageCount;
+	bool canScrollDown = (scrollIndex + maxItems) < volumeInfo.size();
 	bool canScrollUp = scrollIndex != 0;
 
-	wchar_t* buffer = (wchar_t*)safeMalloc(WindowsSetup::GetLogger(), sizeof(wchar_t) * (boxWidth - 2));
+	wchar_t buffer[MAX_PATH];
 	for (int i = 0; i < min(volumeInfo.size(), maxItems); i++)
 	{
 		if (i == selectionIndex)
 		{
-			console->SetBackgroundColor(WindowsSetup::ForegroundColor);
-			console->SetForegroundColor(WindowsSetup::BackgroundColor);
+			console->SetBackgroundColor(CONSOLE_COLOR_FG);
+			console->SetForegroundColor(CONSOLE_COLOR_BG);
 		}
 		else
 		{
-			console->SetBackgroundColor(WindowsSetup::BackgroundColor);
-			console->SetForegroundColor(WindowsSetup::ForegroundColor);
+			console->SetBackgroundColor(CONSOLE_COLOR_BG);
+			console->SetForegroundColor(CONSOLE_COLOR_FG);
 		}
 
 		console->SetPosition(boxX + 4, boxY + i + 2);
@@ -160,7 +156,7 @@ bool PartitionSelectionPage::KeyHandler(WPARAM wParam)
 		AddPopup(new QuitingPage());
 		break;
 	case VK_F8:
-		WinPartedDll::RunWinParted(console, WindowsSetup::GetLogger());
+		//WinPartedDll::RunWinParted(console, WindowsSetup::GetLogger());
 		Draw();
 		break;
 	case VK_F9:
@@ -168,11 +164,8 @@ bool PartitionSelectionPage::KeyHandler(WPARAM wParam)
 		EnumeratePartitions();
 		break;
 	case VK_ESCAPE:
-		WindowsSetup::SelectNextPartition(dispIndex - 1);
 		break;
 	case VK_RETURN:
-		WindowsSetup::SelectPartition(stringTableIndex, GetSelectedVolume());
-		WindowsSetup::SelectNextPartition(dispIndex + 1);
 		break;
 	}
 	return true;

@@ -3,7 +3,6 @@
 
 #include "framework.h"
 #include "Panther2K.h"
-#include "WindowsSetup.h"
 #include <iostream>
 
 #include <PantherLogger.h>
@@ -11,39 +10,24 @@
 #include "SetupManager.h"
 
 #include <windows.h>
-#include "Gdiplus.h"
-using namespace Gdiplus;
-#pragma comment (lib,"Gdiplus.lib")
-#include <Shlwapi.h>
-#include "pathcch.h"
 
 // Command line builds (for testing and debugging)
-int wmain(int argc, wchar_t** argv) 
+int wmain(int argc, wchar_t** argv)
 {
     // Initialize GDI+.
+    printf("Panther2K Early load. Version " PANTHER_VERSION "\n");
+    /*printf("Initializing GDI+...\n");
     GdiplusStartupInput gdiplusStartupInput;
     ULONG_PTR           gdiplusToken;
     if (GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL) != Gdiplus::Ok)
     {
         MessageBoxW(NULL, L"Failed to initialize GDI+. Panther2K can not load.", L"Panther2K Early Init", MB_OK | MB_ICONERROR);
         return false;
-    }
+    }*/
 
-    // Load font
-    HRSRC res = FindResourceW(GetModuleHandleW(NULL), MAKEINTRESOURCEW(IDR_FONT_IBM), RT_RCDATA);
-    HGLOBAL mem = LoadResource(GetModuleHandleW(NULL), res);
-    void* data = LockResource(mem);
-    size_t len = SizeofResource(GetModuleHandleW(NULL), res);
-    DWORD nFonts = 0;
-    HANDLE hFontRes = AddFontMemResourceEx(data, len, NULL, &nFonts);
-    if (hFontRes == 0)
-    {
-        MessageBoxW(NULL, L"Failed to load font. Panther2K can not load.", L"Panther2K Early Init", MB_OK | MB_ICONERROR);
-        return false;
-    }
-
-    //Test();
+    printf("Creating logger...\n");
     LibPanther::Logger logger = LibPanther::Logger(L"debug.log", PANTHER_LL_VERBOSE);
+    printf("Creating console...\n");
     CustomConsole console;
     console.Init();
     ShowWindow(console.WindowHandle, SW_SHOW);
@@ -51,16 +35,16 @@ int wmain(int argc, wchar_t** argv)
     Leet::Panther2K::SetupManager setup = Leet::Panther2K::SetupManager(&console, &logger);
     setup.RunSetup();
 
-    Sleep(10000);
-
     return setup.GetResult();
 
+    /*
     if (__argc == 2 && lstrcmpiW(__wargv[1], L"--pe") == 0) 
     {
         WindowsSetup::IsWinPE = true;
     }
 
     return WindowsSetup::RunSetup();
+    */
 }
 
 // Headless builds (for releases)

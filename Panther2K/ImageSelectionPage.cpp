@@ -1,5 +1,4 @@
-﻿#include "ImageSelectionPage.h"
-#include "WindowsSetup.h"
+﻿#include "ImageSelectionPage.h"
 #include "QuitingPage.h"
 
 bool ImageSelectionPage::SetData(PantherWimInfo* wimInfo)
@@ -50,12 +49,12 @@ void ImageSelectionPage::Init()
 
 void ImageSelectionPage::Drawer()
 {
-	console->SetBackgroundColor(WindowsSetup::BackgroundColor);
-	console->SetForegroundColor(WindowsSetup::LightForegroundColor);
+	console->SetBackgroundColor(CONSOLE_COLOR_BG);
+	console->SetForegroundColor(CONSOLE_COLOR_LIGHTFG);
 	console->SetPosition(3, 4);
 	console->Write(L"Select the operating system to be installed.");
 
-	console->SetForegroundColor(WindowsSetup::ForegroundColor);
+	console->SetForegroundColor(CONSOLE_COLOR_FG);
 	DrawTextLeft(L"Multiple operating systems were detected inside the WIM or ESD image. Please select the copy of Microsoft(R) Windows(TM) you would like to install onto your computer.", console->GetSize().cx - 6, 6);
 	DrawTextLeft(L"Use the UP and DOWN arrow keys to select an operating system.", console->GetSize().cx - 6, console->GetPosition().y + 2);
 
@@ -90,27 +89,27 @@ void ImageSelectionPage::Redrawer()
 
 		if (i == selectionIndex)
 		{
-			console->SetBackgroundColor(WindowsSetup::ForegroundColor);
-			console->SetForegroundColor(WindowsSetup::BackgroundColor);
+			console->SetBackgroundColor(CONSOLE_COLOR_FG);
+			console->SetForegroundColor(CONSOLE_COLOR_BG);
 		}
 		else
 		{
-			console->SetBackgroundColor(WindowsSetup::BackgroundColor);
-			console->SetForegroundColor(WindowsSetup::ForegroundColor);
+			console->SetBackgroundColor(CONSOLE_COLOR_BG);
+			console->SetForegroundColor(CONSOLE_COLOR_FG);
 		}
 		console->SetPosition(8, boxY + 2 + i);
 		console->Write(text);
 	}
 
-	console->SetBackgroundColor(WindowsSetup::BackgroundColor);
-	console->SetForegroundColor(WindowsSetup::ForegroundColor);
+	console->SetBackgroundColor(CONSOLE_COLOR_BG);
+	console->SetForegroundColor(CONSOLE_COLOR_FG);
 
 	console->SetPosition(console->GetSize().cx - 6, boxY + boxHeight - 2);
-	if (canScrollDown) console->Write(WindowsSetup::UseCp437 ? L"\x19" : L"↓");
+	if (canScrollDown) console->Write(L"↓");
 	else console->Write(L" ");
 	
 	console->SetPosition(console->GetSize().cx - 6, boxY + 2);
-	if (canScrollUp) console->Write(WindowsSetup::UseCp437 ? L"\x18" : L"↑");
+	if (canScrollUp) console->Write(L"↑");
 	else console->Write(L" ");
 }
 
