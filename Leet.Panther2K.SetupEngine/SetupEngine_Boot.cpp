@@ -1,6 +1,6 @@
 #include "SetupEngine.h"
 
-#include <ShlObj.h>
+#include "BootSector.h"
 
 BOOL SetPrivilege(
 	HANDLE hToken,              // access token handle
@@ -189,6 +189,36 @@ bool CopyDirectoryRecursive(const wchar_t* source, const wchar_t* destination)
 	return CopyDirectoryRecursive(srcStr, dstStr);
 }
 
+HRESULT GetVolumeDiskExtents(std::wstring& volumePath, VOLUME_DISK_EXTENTS** diskExtents)
+{
+	HANDLE hVolume = CreateFileW(volumePath.c_str(), FILE_READ_ATTRIBUTES | SYNCHRONIZE | FILE_TRAVERSE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, 0);
+	if (hVolume == INVALID_HANDLE_VALUE)
+	{
+		HRESULT res = HRESULT_FROM_WIN32(GetLastError());
+		return res;
+	}
+
+	size_t size = sizeof(VOLUME_DISK_EXTENTS);
+	VOLUME_DISK_EXTENTS* extents = static_cast<VOLUME_DISK_EXTENTS*>(malloc(size));
+	if (!extents) return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, ERROR_OUTOFMEMORY);
+	BOOL ioResult = DeviceIoControl(hVolume, IOCTL_VOLUME_GET_VOLUME_DISK_EXTENTS, NULL, 0, extents, size, NULL, NULL);
+	while (!ioResult && GetLastError() == ERROR_MORE_DATA)
+	{
+		size = (extents->NumberOfDiskExtents - 1) * sizeof(DISK_EXTENT) + sizeof(VOLUME_DISK_EXTENTS);
+		extents = static_cast<VOLUME_DISK_EXTENTS*>(realloc(extents, size));
+		if (!extents) return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, ERROR_OUTOFMEMORY);
+
+		ioResult = DeviceIoControl(hVolume, IOCTL_VOLUME_GET_VOLUME_DISK_EXTENTS, NULL, 0, extents, size, NULL, NULL);
+	}
+
+	HRESULT hResult = S_OK;
+	if (!ioResult) hResult = HRESULT_FROM_WIN32(GetLastError());
+	else *diskExtents = extents;
+
+	CloseHandle(hVolume);
+	return hResult;
+}
+
 HRESULT Leet::Panther2K::SetupEngine::createBootFiles()
 {
 	installLog->Write(PANTHER_LL_NORMAL, L"[Engine/Install thread] Generating Windows Boot Manager files...");
@@ -214,65 +244,59 @@ HRESULT Leet::Panther2K::SetupEngine::createBootFiles()
 	
 	int diskNumber = -1;
 	bool singleDisk = true;
-	// TODO: In a failure case in this loop, it could be sufficient to disable VHD redirection and produce a warning
-	for (std::wstring* volumePath : { &bootVolumePath, &systemVolumePath})
+
+	VOLUME_DISK_EXTENTS* extents = nullptr;
+	HRESULT result = GetVolumeDiskExtents(bootVolumePath, &extents);
+	if (FAILED(result))
 	{
-		HANDLE hVolume = CreateFileW(volumePath->c_str(), FILE_READ_ATTRIBUTES | SYNCHRONIZE | FILE_TRAVERSE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, 0);
-		if (hVolume == INVALID_HANDLE_VALUE)
+		if (result == MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, ERROR_OUTOFMEMORY))
 		{
-			HRESULT res = HRESULT_FROM_WIN32(GetLastError());
-			wloglerr(installLog, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Engine/Install thread] Failed to read volume info. %s (0x%08X)", res);
-			return res;
+			installLog->WriteDirect(PANTHER_LL_BASIC, L"OUT OF MEMORY!!!");
+			exit(ERROR_OUTOFMEMORY);
+			return result;
 		}
 
-		size_t size = sizeof(VOLUME_DISK_EXTENTS);
-		VOLUME_DISK_EXTENTS* extents = static_cast<VOLUME_DISK_EXTENTS*>(safeMalloc(installLog, size));
-		BOOL ioResult = DeviceIoControl(hVolume, IOCTL_VOLUME_GET_VOLUME_DISK_EXTENTS, NULL, 0, extents, size, NULL, NULL);
-		while (!ioResult && GetLastError() == ERROR_MORE_DATA)
-		{
-			size = (extents->NumberOfDiskExtents - 1) * sizeof(DISK_EXTENT) + sizeof(VOLUME_DISK_EXTENTS);
-			extents = static_cast<VOLUME_DISK_EXTENTS*>(realloc(extents, size));
-			if (!extents)
-			{
-				installLog->Write(PANTHER_LL_BASIC, L"OUT OF MEMORY!!!");
-				exit(ERROR_OUTOFMEMORY);
-				return FALSE;
-			}
-			ioResult = DeviceIoControl(hVolume, IOCTL_VOLUME_GET_VOLUME_DISK_EXTENTS, NULL, 0, extents, size, NULL, NULL);
-		}
-
-		CloseHandle(hVolume);
-
-		if (!ioResult)
-		{
-			free(extents);
-
-			HRESULT res = HRESULT_FROM_WIN32(GetLastError());
-			wloglerr(installLog, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Engine/Install thread] Failed to retrieve volume extents. %s (0x%08X)", res);
-			return res;
-		}
-		
-		for (int i = 0; i < extents->NumberOfDiskExtents; i++)
-		{
-			if (diskNumber == -1)
-				diskNumber = extents->Extents[i].DiskNumber;
-			else if (diskNumber != extents->Extents[i].DiskNumber)
-				singleDisk = false;
-		}
-
-		free(extents);
-		if (!singleDisk) break;
+		wloglerr(installLog, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Engine/Install thread] Failed to retrieve volume extents. %s (0x%08X)", result);
+		return result;
 	}
 
+	if (extents->NumberOfDiskExtents != 1)
+	{
+		wloglerr(installLog, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Engine/Install thread] The operation cannot continue. The volume contains more than one extent. %s (0x%08X)", result);
+		return HRESULT_FROM_WIN32(ERROR_VOLMGR_DYNAMIC_DISK_NOT_SUPPORTED);
+	}
+
+	diskNumber = extents->Extents[0].DiskNumber;
+	free(extents);
+	extents = nullptr;
+
+	result = GetVolumeDiskExtents(systemVolumePath, &extents);
+	if (FAILED(result))
+	{
+		if (result == MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, ERROR_OUTOFMEMORY))
+		{
+			installLog->WriteDirect(PANTHER_LL_BASIC, L"OUT OF MEMORY!!!");
+			exit(ERROR_OUTOFMEMORY);
+			return result;
+		}
+
+		wloglerr(installLog, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Engine/Install thread] Failed to retrieve volume extents. %s (0x%08X)", result);
+		return result;
+	}
+
+	if (extents->NumberOfDiskExtents != 1)
+	{
+		wloglerr(installLog, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Engine/Install thread] The operation cannot continue. The volume contains more than one extent. %s (0x%08X)", result);
+		return HRESULT_FROM_WIN32(ERROR_VOLMGR_DYNAMIC_DISK_NOT_SUPPORTED);
+	}
+
+	singleDisk = extents->Extents[0].DiskNumber == diskNumber;
 	installLog->Write(PANTHER_LL_DETAILED, singleDisk ? L"[Engine/Install thread] The system will be installed on a single disk, not using VHD detection."
 		: L"[Engine/Install thread] The system will be installed on multiple disks, using VHD detection.");
-
-	installLog->Write(PANTHER_LL_VERBOSE, L"[Engine/Install thread] Initializing COM for copy operations...");
 
 	/*
 	* Copy boot files
 	*/
-
 	installLog->Write(PANTHER_LL_DETAILED, L"[Engine/Install thread] Copying boot files...");
 	swprintf_s(pathBuffers[0], bUseLegacy ? L"%s\\Windows\\Boot\\PCAT\\"
 			: L"%s\\Windows\\Boot\\EFI\\", systemVolumePath.c_str());
@@ -304,7 +328,7 @@ HRESULT Leet::Panther2K::SetupEngine::createBootFiles()
 	
 	swprintf_s(pathBuffers[0], bUseLegacy ? L"%s\\Boot\\bootmgr"
 		: L"%s\\EFI\\Microsoft\\Boot\\bootmgfw.efi", bootVolumePath.c_str());
-	swprintf_s(pathBuffers[1], bUseLegacy ? L"%s\\"
+	swprintf_s(pathBuffers[1], bUseLegacy ? L"%s\\bootmgr"
 		: L"%s\\EFI\\Boot\\bootx64.efi", bootVolumePath.c_str());
 
 	if (!CopyFileW(pathBuffers[0], pathBuffers[1], FALSE))
@@ -577,18 +601,55 @@ HRESULT Leet::Panther2K::SetupEngine::createBootFiles()
 	* Configure boot sector for Legacy
 	*/
 	if (bUseLegacy)
-	{
-		return HRESULT_FROM_WIN32(ERROR_CALL_NOT_IMPLEMENTED);
+	{	
+		// For MBR: open disk
+		wchar_t buffer[MAX_PATH];
+		swprintf_s(buffer, L"\\\\.\\PhysicalDrive%d", diskNumber);
+		HANDLE hDisk = CreateFileW(buffer, FILE_READ_DATA | FILE_READ_ATTRIBUTES | SYNCHRONIZE | FILE_TRAVERSE | FILE_WRITE_DATA | FILE_WRITE_ATTRIBUTES, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_FLAG_NO_BUFFERING | FILE_FLAG_WRITE_THROUGH, 0);
+		if (hDisk == INVALID_HANDLE_VALUE)
+		{
+			// Throw error
+			DebugBreak();
+		}
 
-		// TODO: bootsect.exe requires a drive letter, which is not available here
+		// 1. Read MBR
+		unsigned char sectorBuffer[512];
+		DWORD bytesRead;
+		if (!ReadFile(hDisk, sectorBuffer, 512, &bytesRead, NULL)
+			|| bytesRead != 512)
+		{
+			DebugBreak();
+		}
 
-		//installLog->Write(PANTHER_LL_DETAILED, L"[Engine/Install thread] Writing legacy boot sector...");
-		//swprintf_s(commandBuffer, L"bootsect /nt60 %c: /force /mbr", WindowsSetup::BootPartition.mountPoint[0]);
-		//if (int temp = _wsystem(commandBuffer))
-		//{
-			// Failed
-			//return FALSE;
-		//}
+		// 2. Copy partition table into template MBR
+		unsigned char templateMBR[512];
+		if (memcpy_s(templateMBR, 512, masterBootRecord, 512) // Get template MBR
+			|| memcpy_s(templateMBR + 440, 70, sectorBuffer + 440, 70)) // Copy signature + partition table
+		{
+			DebugBreak();
+		}
+
+		// 3. Copy back MBR
+		if (SetFilePointer(hDisk, 0, 0, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
+		{
+			DebugBreak();
+		}
+		if (!WriteFile(hDisk, templateMBR, 512, &bytesRead, NULL)
+			|| bytesRead != 512)
+		{
+			DebugBreak();
+		}
+
+		CloseHandle(hDisk);
+
+		// For NTFS:
+		// 1. Read first partition sector
+		// 2. Verify it is valid NTFS data
+		// 3. Copy boot code into NTFS data
+		// 4. Calculate the header checksum
+		// 5. Copy back NTFS header
+		// Without explicitly creating an NTFS boot sector it works fine in testing
+		// I think windows might pre-format NTFS drives with a NT60 boot sector
 	}
 
 	SetLastError(ERROR_SUCCESS);

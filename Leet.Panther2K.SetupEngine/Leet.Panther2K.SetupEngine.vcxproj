@@ -177,6 +177,7 @@
   <ItemGroup>
     <ClInclude Include="..\PugiXML\pugiconfig.hpp" />
     <ClInclude Include="..\PugiXML\pugixml.hpp" />
+    <ClInclude Include="BootSector.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="include\SetupEngineC.h" />
     <ClInclude Include="SetupEngine.h" />
@@ -186,7 +187,7 @@
     <ClCompile Include="..\PugiXML\pugixml.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="SetupEngine.cpp" />
-    <ClCompile Include="SetupCoreBoot.cpp" />
+    <ClCompile Include="SetupEngine_Boot.cpp" />
     <ClCompile Include="SetupEngineC.cpp" />
     <ClCompile Include="winmain.cpp" />
   </ItemGroup>
