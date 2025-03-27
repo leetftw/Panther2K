@@ -38,7 +38,7 @@ void PartitionCreationPage::InitPage()
 	sizeString[0] = L'\x0';
 
 	// Convert partition table into spans
-	SectorSpan* partitionSpans = (SectorSpan*)malloc(sizeof(SectorSpan) * PartitionManager::CurrentDiskPartitionCount);
+	SectorSpan* partitionSpans = (SectorSpan*)safeMalloc(nullptr, sizeof(SectorSpan) * PartitionManager::CurrentDiskPartitionCount);
 	for (int i = 0; i < PartitionManager::CurrentDiskPartitionCount; i++)
 	{
 		partitionSpans[i].startSector = PartitionManager::CurrentDiskPartitions[i].StartLBA.ULL;
@@ -61,7 +61,7 @@ void PartitionCreationPage::InitPage()
 	// U A U A .... A U
 	// As seen a above, there's always one more unallocated (U) space than allocated 
 	// spaces (A).
-	unallocatedSpans = (SectorSpan*)malloc(sizeof(SectorSpan) * (PartitionManager::CurrentDiskPartitionCount + 1));
+	unallocatedSpans = (SectorSpan*)safeMalloc(nullptr, sizeof(SectorSpan) * (PartitionManager::CurrentDiskPartitionCount + 1));
 	ZeroMemory(unallocatedSpans, sizeof(SectorSpan) * (PartitionManager::CurrentDiskPartitionCount + 1));
 
 	// Start with one span accross the entire disk
@@ -104,14 +104,14 @@ void PartitionCreationPage::InitPage()
 		}
 	}
 	unallocatedSpanCount = unallocIndex + 1;
-	free(partitionSpans);
+	safeFree(nullptr, partitionSpans);
 
 	// Space between partitions
 	// - Align span to nearest 1 MB boundaries
 	// - Add 1 MB to start and remove 1 MB to end
 	//   (1 MB seems arbitrary, but it is the value Windows uses)
 	// - If start > end remove the space
-	SectorSpan* newUnallocatedSpans = (SectorSpan*)malloc(sizeof(SectorSpan) * (PartitionManager::CurrentDiskPartitionCount + 1));
+	SectorSpan* newUnallocatedSpans = (SectorSpan*)safeMalloc(nullptr, sizeof(SectorSpan) * (PartitionManager::CurrentDiskPartitionCount + 1));
 	ZeroMemory(newUnallocatedSpans, sizeof(SectorSpan) * (PartitionManager::CurrentDiskPartitionCount + 1));
 	int newIndex = 0;
 	const unsigned long long megabyte = 1024 * 1024 / PartitionManager::CurrentDisk.SectorSize;
@@ -133,7 +133,7 @@ void PartitionCreationPage::InitPage()
 		newUnallocatedSpans[newIndex++] = unallocatedSpans[i];
 	}
 	unallocatedSpanCount = newIndex;
-	free(unallocatedSpans);
+	safeFree(nullptr, unallocatedSpans);
 	unallocatedSpans = newUnallocatedSpans;
 
 	// If there is no space on the disk (0 unallocated spans), display message box and pop
@@ -150,7 +150,7 @@ void PartitionCreationPage::DrawPage()
 	Console* console = GetConsole();
 	SIZE consoleSize = console->GetSize();
 	int bufferSize = consoleSize.cx + 1;
-	wchar_t* buffer = (wchar_t*)malloc(sizeof(wchar_t) * bufferSize);
+	wchar_t* buffer = (wchar_t*)safeMalloc(nullptr, sizeof(wchar_t) * bufferSize);
 
 	console->SetBackgroundColor(CONSOLE_COLOR_BG);
 	console->SetForegroundColor(CONSOLE_COLOR_LIGHTFG);
@@ -175,6 +175,8 @@ void PartitionCreationPage::DrawPage()
 	console->SetPosition(6, console->GetPosition().y + 1);
 	console->Write(L"\x2022  To go back to the partition information screen, press ESC");
 
+	safeFree(nullptr, buffer);
+
 	drawY = console->GetPosition().y + 2;
 }
 
@@ -184,7 +186,7 @@ void PartitionCreationPage::UpdatePage()
 	SIZE consoleSize = console->GetSize();
 
 	unsigned long long bufferSize = consoleSize.cx + 1;
-	wchar_t* buffer = (wchar_t*)malloc(sizeof(wchar_t) * bufferSize);
+	wchar_t* buffer = (wchar_t*)safeMalloc(nullptr, sizeof(wchar_t) * bufferSize);
 
 	console->SetBackgroundColor(CONSOLE_COLOR_BG);
 	console->SetForegroundColor(CONSOLE_COLOR_FG);
@@ -252,6 +254,8 @@ void PartitionCreationPage::UpdatePage()
 	console->SetPosition(3, drawY + boxHeight + 2);
 	swprintf_s(buffer, bufferSize, L"Final size for partition: %-25llu", size);
 	console->Write(buffer);
+
+	safeFree(nullptr, buffer);
 }
 
 void PartitionCreationPage::ParseSize() 

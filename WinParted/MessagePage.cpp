@@ -1,4 +1,5 @@
 #include "MessagePage.h"
+#include <PantherLogger.h>
 
 const wchar_t MessagePage::messageTypeButtons[][10] = {
 	L"",
@@ -69,7 +70,7 @@ void MessagePage::DrawPage()
 	int lineCount;
 	Console* console = GetConsole();
 	SIZE consoleSize = console->GetSize();
-	wchar_t* buffer = (wchar_t*)malloc(sizeof(wchar_t) * consoleSize.cx);
+	wchar_t* buffer = (wchar_t*)safeMalloc(nullptr, sizeof(wchar_t) * consoleSize.cx);
 	int textWidth = consoleSize.cx - (consoleSize.cx / 8 * 3);
 	wchar_t** lines = SplitStringToLines(messageText, textWidth - 2, &lineCount);
 	int textHeight = lineCount + 2;
@@ -101,7 +102,8 @@ void MessagePage::DrawPage()
 		console->Write(L"\x2500");
 	console->Write(L"\x2562");*/
 
-	free(buffer);
+	safeFree(nullptr, lines);
+	safeFree(nullptr, buffer);
 }
 
 void MessagePage::UpdatePage()

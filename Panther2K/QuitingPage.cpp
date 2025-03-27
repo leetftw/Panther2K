@@ -1,5 +1,6 @@
 #include "QuitingPage.h"
-#include "WelcomePage.h"
+#include "WelcomePage.h"
+
 
 void QuitingPage::Init()
 {

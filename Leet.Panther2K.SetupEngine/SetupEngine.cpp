@@ -33,7 +33,7 @@ Leet::Panther2K::SetupEngine::SetupEngine(LibPanther::Logger* logger)
 	dwWimImageCount = -1;
 	dwWimImageIndex = -1;
 
-	installLog->Write(PANTHER_LL_BASIC, L"Panther2K Installation Engine Initialized. Version 2.0");
+	wlogc(installLog, PANTHER_LL_BASIC, L"Panther2K Installation Engine Initialized. Version 2.0");
 }
 
 Leet::Panther2K::SetupEngine::~SetupEngine()
@@ -45,7 +45,7 @@ void Leet::Panther2K::SetupEngine::SetUseLegacy(bool useLegacy)
 {
 	HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 	const wchar_t* buffer = useLegacy ? L"[Engine] Using Legacy." : L"[Engine] Using UEFI.";
-	installLog->Write(PANTHER_LL_DETAILED, buffer);
+	wlogc(installLog, PANTHER_LL_DETAILED, buffer);
 
 	bUseLegacy = useLegacy;
 }
@@ -103,7 +103,7 @@ HRESULT Leet::Panther2K::SetupEngine::GetWimInfo(PantherWimInfo** lpWimPtr)
 	if (!hWimFile) 
 		return HRESULT_FROM_WIN32(ERROR_INVALID_STATE);
 
-	installLog->Write(PANTHER_LL_DETAILED, L"[Engine] Parsing image information...");
+	wlogc(installLog, PANTHER_LL_DETAILED, L"[Engine] Parsing image information...");
 
 	PantherWimInfo* wimInfo = static_cast<PantherWimInfo*>(safeLocalAlloc(installLog, 
 		sizeof(PantherWimInfo) + (sizeof(PantherImageInfo) * dwWimImageCount)));
@@ -249,13 +249,6 @@ HRESULT Leet::Panther2K::SetupEngine::SetSystemVolume(const std::wstring& volume
 	return res;
 }
 
-HRESULT Leet::Panther2K::SetupEngine::SetRecoveryVolume(const std::wstring& volumeGuid)
-{
-	HRESULT res = checkVolume(volumeGuid, 0ULL, 1000000000ULL, L"ntfs", nullptr);
-	if (SUCCEEDED(res)) szRecoveryPartition.assign(volumeGuid);
-	return res;
-}
-
 HRESULT Leet::Panther2K::SetupEngine::SetCallbackThread(unsigned int threadId)
 {
 	wchar_t buffer[MAX_PATH];
@@ -299,14 +292,14 @@ HRESULT Leet::Panther2K::SetupEngine::StartInstallation()
 	auto threadFunction = [](LPVOID pCode) -> DWORD WINAPI
 	{
 		SetupEngine* engine = static_cast<SetupEngine*>(pCode);
-		engine->installLog->Write(PANTHER_LL_BASIC, L"[Engine/Install thread] Starting installation.");
+		wlogc(engine->installLog, PANTHER_LL_BASIC, L"[Engine/Install thread] Starting installation.");
 
-		engine->installLog->Write(PANTHER_LL_VERBOSE, L"[Engine/Install thread] Registering internal callback...");
+		wlogc(engine->installLog, PANTHER_LL_VERBOSE, L"[Engine/Install thread] Registering internal callback...");
 		WIMRegisterMessageCallback(engine->hWimFile, (FARPROC)WimgapiCallback, pCode);
 
 		engine->hFileNameReadyEvent = CreateEventW(NULL, false, true, NULL);
 
-		engine->installLog->Write(PANTHER_LL_NORMAL, L"[Engine/Install thread] Applying system image...");
+		wlogc(engine->installLog, PANTHER_LL_NORMAL, L"[Engine/Install thread] Applying system image...");
 		std::wstring path = L"\\\\?\\Volume" + engine->szSystemPartition + L"\\";
 		BOOL result = WIMApplyImage(engine->hWimImage, path.c_str(), WIM_FLAG_FILEINFO);
 		wloglerr(engine->installLog, PANTHER_LL_DETAILED, MAX_PATH, engine->installLog->GetLogLevel() == PANTHER_LL_VERBOSE
@@ -321,12 +314,12 @@ HRESULT Leet::Panther2K::SetupEngine::StartInstallation()
 			? L"[Engine/Install thread] (createBootFiles) %s"
 			: L"[Engine/Install thread] %s", hResult);
 
-		engine->installLog->Write(PANTHER_LL_VERBOSE, L"[Engine/Install thread] Unregistering internal callback...");
+		wlogc(engine->installLog, PANTHER_LL_VERBOSE, L"[Engine/Install thread] Unregistering internal callback...");
 		WIMUnregisterMessageCallback(engine->hWimFile, (FARPROC)WimgapiCallback);
 
 		if (engine->dwCallbackThread != -1)
 		{
-			engine->installLog->Write(PANTHER_LL_DETAILED, L"[Engine/Install thread] Installation finished, notifying callback...");
+			wlogc(engine->installLog, PANTHER_LL_DETAILED, L"[Engine/Install thread] Installation finished, notifying callback...");
 			PostThreadMessageW(engine->dwCallbackThread, TM_PANTHER_FINISH, 0, 0);
 		}
 
@@ -341,7 +334,7 @@ HRESULT Leet::Panther2K::SetupEngine::StartInstallation()
 		return HRESULT_FROM_WIN32(GetLastError());
 	}
 
-	installLog->Write(PANTHER_LL_BASIC, L"[Engine] Installation thread created.");
+	wlogc(installLog, PANTHER_LL_BASIC, L"[Engine] Installation thread created.");
 	return S_OK;
 }
 

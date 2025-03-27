@@ -4,6 +4,7 @@ class MessageBoxPage : public PopupPage
 {
 public:
 	MessageBoxPage(const wchar_t* text, bool isError, Page* par);
+	~MessageBoxPage();
 	void ShowDialog();
 private:
 	const wchar_t* fullText;

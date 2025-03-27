@@ -18,6 +18,8 @@ EXPORTS
 #define ORD_SetPartType               (LPCSTR)5
 #define ORD_MountPartition            (LPCSTR)6
 #define ORD_EnumerateDisks            (LPCSTR)7
+#define ORD_PrepareDiskForWindows     (LPCSTR)8
+#define ORD_EnumVolumes               (LPCSTR)9
 
 typedef void (*InitializeCRTStub)();
 typedef int (*RunWinPartedStub)(Console*, LibPanther::Logger*);
@@ -26,7 +28,8 @@ typedef HRESULT(*ApplyP2KLayoutToDiskMBRStub)(Console*, LibPanther::Logger*, int
 typedef HRESULT(*SetPartTypeStub)(Console*, LibPanther::Logger*, int, unsigned long long, short);
 typedef HRESULT(*MountPartitionStub)(Console*, LibPanther::Logger*, int, unsigned long long, const wchar_t*);
 typedef HRESULT(*EnumerateDisksStub)(Console*, LibPanther::Logger*, DISK_INFORMATION**, int*);
-
+typedef HRESULT(*PrepareDiskForWindowsStub)(Console*, LibPanther::Logger*, const wchar_t*, bool, unsigned long long, unsigned long long, wchar_t[2][128]);
+typedef HRESULT(*EnumVolumesStub)(Console*, LibPanther::Logger*, VolumeInformation**);
 
 bool WinPartedDll::partedInitialized = false;
 HMODULE WinPartedDll::hWinParted = NULL;
@@ -88,6 +91,29 @@ HRESULT WinPartedDll::EnumerateDisks(Console* console, LibPanther::Logger* logge
 
 	auto enumerateDisks = (EnumerateDisksStub)GetProcAddress(hWinParted, ORD_EnumerateDisks);
 	return enumerateDisks(console, logger, disks, diskCount);
+}
+
+HRESULT WinPartedDll::PrepareDiskForWindows(Console* console, LibPanther::Logger* logger, const wchar_t* volumeGuid, bool useLegacy,
+	unsigned long long requiredBootSize, unsigned long long requiredRESize, wchar_t installVolumes[2][128])
+{
+	HRESULT res;
+	if (!partedInitialized && (res = InitParted()) != ERROR_SUCCESS)
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, res);
+
+	auto prepareDisk = (PrepareDiskForWindowsStub)GetProcAddress(hWinParted, ORD_PrepareDiskForWindows);
+	return prepareDisk(console, logger, volumeGuid, useLegacy, requiredBootSize, requiredRESize, installVolumes);
+}
+
+HRESULT WinPartedDll::EnumVolumes(Console* console, LibPanther::Logger* logger, VolumeInformation** volumes)
+{
+	HRESULT res;
+	if (!partedInitialized && (res = InitParted()) != ERROR_SUCCESS)
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, res);
+
+	auto enumVolumes = (EnumVolumesStub)GetProcAddress(hWinParted, ORD_EnumVolumes);
+	return enumVolumes(console, logger, volumes);
+
+	return S_OK;
 }
 
 HRESULT WinPartedDll::InitParted()

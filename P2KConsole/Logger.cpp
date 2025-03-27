@@ -78,18 +78,66 @@ namespace LibPanther
 	}
 }
 
+/*
+ * MEMORY TRACKING
+ * Terrible memory management tools
+ * Mainly to debug leaks
+ */
+
+#include <unordered_map>
+#include <mutex>
+
+typedef struct AllocationInfo
+{
+	const wchar_t* file;
+	const wchar_t* function;
+	int line;
+	size_t size;
+} AllocationInfo;
+
+std::unordered_map<void*, AllocationInfo> allocations;
+std::mutex allocMutex;
+
 // 'Safe' malloc implementation
 // Terminates any execution if memory cannot be allocated
 // If possible an error is logged
-void *safeMalloc(LibPanther::Logger* logger, size_t size)
+void *safeMallocImpl(LibPanther::Logger* logger, size_t size, const wchar_t* file, int line, const wchar_t* function)
 {
 	void *returnValue = malloc(size);
 	if (!returnValue) 
 	{
-		logger->WriteDirect(PANTHER_LL_BASIC, L"FATAL: OUT OF MEMORY.\r\n");
+		DWORD chars;
+		const wchar_t* outOfMem = L"FATAL: OUT OF MEMORY.\r\n";
+		if (logger) logger->WriteDirect(PANTHER_LL_BASIC, outOfMem);
+		else WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), outOfMem, lstrlenW(outOfMem), &chars, NULL);
 		ExitProcess(MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, ERROR_NOT_ENOUGH_MEMORY));
 	}
+
+	{
+		std::lock_guard<std::mutex> lock(allocMutex);
+		allocations[returnValue] = { file, function, line, size };
+	}
+
 	return returnValue;
+}
+
+void safeFree(LibPanther::Logger* logger, void* ptr)
+{
+	if (!ptr) return;
+	{
+		std::lock_guard<std::mutex> lock(allocMutex);
+		auto it = allocations.find(ptr);
+		if (it != allocations.end()) 
+		{
+			allocations.erase(it);
+		}
+		else if (logger) 
+		{
+			wlogc(logger, PANTHER_LL_BASIC, L"[Memory] WARNING: Attempt to free untracked pointer!");
+		}
+	}
+
+	free(ptr);
 }
 
 void* safeLocalAlloc(LibPanther::Logger* logger, size_t size)
@@ -101,4 +149,17 @@ void* safeLocalAlloc(LibPanther::Logger* logger, size_t size)
 		ExitProcess(MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, ERROR_NOT_ENOUGH_MEMORY));
 	}
 	return returnValue;
+}
+
+void __cdecl safeCleanup(LibPanther::Logger* logger)
+{
+	wlogc(logger, PANTHER_LL_BASIC, L"[Memory] Safe allocation report.");
+	wlogc(logger, PANTHER_LL_BASIC, L"================================");
+	for (const auto& alloc : allocations) 
+	{
+		void* ptr = alloc.first;
+		AllocationInfo info = alloc.second;
+
+		wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"Pointer not freed: Ptr: %016llX | Size: %08llX | Allocated at: %s:%d in function %s", (unsigned long long)ptr, info.size, info.file, info.line, info.function);
+	}
 }

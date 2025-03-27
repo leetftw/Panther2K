@@ -14,7 +14,7 @@ void PartitionInformationPage::DrawPage()
 	Console* console = GetConsole();
 	SIZE consoleSize = console->GetSize();
 	int bufferSize = consoleSize.cx + 1;
-	wchar_t* buffer = (wchar_t*)malloc(sizeof(wchar_t) * bufferSize);
+	wchar_t* buffer = (wchar_t*)safeMalloc(PartitionManager::GetLogger(), sizeof(wchar_t) * bufferSize);
 
 	wchar_t sizeBuffer[10];
 	wchar_t guidBuffer[37];

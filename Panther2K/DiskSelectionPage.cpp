@@ -1,4 +1,5 @@
-#include "DiskSelectionPage.h"
+#include "DiskSelectionPage.h"
+
 #include "QuitingPage.h"
 #include "MessageBoxPage.h"
 
@@ -46,14 +47,14 @@ void DiskSelectionPage::Drawer()
 	console->SetBackgroundColor(CONSOLE_COLOR_BG);
 	console->SetForegroundColor(CONSOLE_COLOR_LIGHTFG);
 
-	DrawTextLeft(L"Select the disk to install Windows to.", console->GetSize().cx - 6, 4);
+	console->DrawTextLeft(L"Select the disk to install Windows to.", console->GetSize().cx - 6, 4);
 
 	console->SetBackgroundColor(CONSOLE_COLOR_BG);
 	console->SetForegroundColor(CONSOLE_COLOR_FG);
 
-	DrawTextLeft(L"Windows will be installed to the disk specified. All data on the disk will be destroyed and Panther2K will create a bootable Windows installation on the disk. To install Windows without wiping a disk or while using a custom partition layout, select \"Custom\"", console->GetSize().cx - 6, console->GetPosition().y + 2);
+	console->DrawTextLeft(L"Windows will be installed to the disk specified. All data on the disk will be destroyed and Panther2K will create a bootable Windows installation on the disk. To install Windows without wiping a disk or while using a custom partition layout, select \"Custom\"", console->GetSize().cx - 6, console->GetPosition().y + 2);
 
-	DrawTextLeft(L"Use the UP and DOWN ARROW keys to select the disk.", console->GetSize().cx - 6, console->GetPosition().y + 2);
+	console->DrawTextLeft(L"Use the UP and DOWN ARROW keys to select the disk.", console->GetSize().cx - 6, console->GetPosition().y + 2);
 
 	int boxX = 3;
 	boxY = console->GetPosition().y + 2;
@@ -61,13 +62,13 @@ void DiskSelectionPage::Drawer()
 	int boxHeight = console->GetSize().cy - (boxY + 2);
 	DrawBox(boxX, boxY, boxWidth, boxHeight, true);
 
-	wchar_t* buffer = (wchar_t*)malloc(sizeof(wchar_t) * (boxWidth - 2));
+	wchar_t* buffer = (wchar_t*)safeMalloc(nullptr, sizeof(wchar_t) * (boxWidth - 2));
 	if (!buffer) return;
 
 	swprintf(buffer, boxWidth - 2, L"   Disk  Device Name                        %*sType      Disk size   ", boxWidth - 68, L"");
 	console->SetPosition(boxX + 1, boxY + 1);
 	console->Write(buffer);
-	free(buffer);
+	safeFree(nullptr, buffer);
 }
 
 void DiskSelectionPage::Redrawer()

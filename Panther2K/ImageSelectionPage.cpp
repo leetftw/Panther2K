@@ -1,4 +1,5 @@
-﻿#include "ImageSelectionPage.h"
+﻿#include "ImageSelectionPage.h"
+
 #include "QuitingPage.h"
 
 bool ImageSelectionPage::SetData(PantherWimInfo* wimInfo)
@@ -55,8 +56,8 @@ void ImageSelectionPage::Drawer()
 	console->Write(L"Select the operating system to be installed.");
 
 	console->SetForegroundColor(CONSOLE_COLOR_FG);
-	DrawTextLeft(L"Multiple operating systems were detected inside the WIM or ESD image. Please select the copy of Microsoft(R) Windows(TM) you would like to install onto your computer.", console->GetSize().cx - 6, 6);
-	DrawTextLeft(L"Use the UP and DOWN arrow keys to select an operating system.", console->GetSize().cx - 6, console->GetPosition().y + 2);
+	console->DrawTextLeft(L"Multiple operating systems were detected inside the WIM or ESD image. Please select the copy of Microsoft(R) Windows(TM) you would like to install onto your computer.", console->GetSize().cx - 6, 6);
+	console->DrawTextLeft(L"Use the UP and DOWN arrow keys to select an operating system.", console->GetSize().cx - 6, console->GetPosition().y + 2);
 
 	SIZE consoleSize = console->GetSize();
 	int boxX = 3;
@@ -66,8 +67,8 @@ void ImageSelectionPage::Drawer()
 	int maxItems = boxHeight - 3;
 	DrawBox(boxX, boxY, boxWidth, boxHeight, false);
 
-	DrawTextLeft(L"Name", console->GetSize().cx - 16, boxY + 1);
-	DrawTextRight(L"Arch   Date      ", console->GetSize().cx - 16, boxY + 1);
+	console->DrawTextLeft(L"Name", console->GetSize().cx - 16, boxY + 1);
+	console->DrawTextRight(L"Arch   Date      ", console->GetSize().cx - 16, boxY + 1);
 }
 
 void ImageSelectionPage::Redrawer()

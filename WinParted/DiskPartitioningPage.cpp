@@ -22,7 +22,7 @@ void DiskPartitioningPage::DrawPage()
 	Console* console = GetConsole();
 	SIZE consoleSize = console->GetSize();
 	int bufferSize = consoleSize.cx + 1;
-	wchar_t* buffer = (wchar_t*)malloc(sizeof(wchar_t) * bufferSize);
+	wchar_t* buffer = (wchar_t*)safeMalloc(PartitionManager::GetLogger(), sizeof(wchar_t) * bufferSize);
 
 	console->SetBackgroundColor(CONSOLE_COLOR_BG);
 	console->SetForegroundColor(CONSOLE_COLOR_LIGHTFG);
@@ -63,7 +63,7 @@ void DiskPartitioningPage::UpdatePage()
 	SIZE consoleSize = console->GetSize();
 
 	int bufferSize = consoleSize.cx - 13 + 1;
-	wchar_t* buffer = (wchar_t*)malloc(sizeof(wchar_t) * bufferSize);
+	wchar_t* buffer = (wchar_t*)safeMalloc(PartitionManager::GetLogger(), sizeof(wchar_t) * bufferSize);
 	wchar_t sizeBuffer[10];
 	for (int i = 0; i < min(PartitionManager::CurrentDiskPartitionCount, maxItems); i++)
 	{

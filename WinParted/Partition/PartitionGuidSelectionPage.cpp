@@ -29,7 +29,7 @@ void PartitionGuidSelectionPage::DrawPage()
 	Console* console = GetConsole();
 	SIZE consoleSize = console->GetSize();
 	int bufferSize = consoleSize.cx + 1;
-	wchar_t* buffer = (wchar_t*)malloc(sizeof(wchar_t) * bufferSize);
+	wchar_t* buffer = (wchar_t*)safeMalloc(PartitionManager::GetLogger(), sizeof(wchar_t) * bufferSize);
 
 	console->SetBackgroundColor(CONSOLE_COLOR_BG);
 	console->SetForegroundColor(CONSOLE_COLOR_LIGHTFG);
@@ -63,7 +63,7 @@ void PartitionGuidSelectionPage::DrawPage()
 	console->Write(L"Type ID: ");
 	textLocation = console->GetPosition();
 
-	free(buffer);
+	safeFree(PartitionManager::GetLogger(), buffer);
 }
 
 void PartitionGuidSelectionPage::UpdatePage()
@@ -71,7 +71,7 @@ void PartitionGuidSelectionPage::UpdatePage()
 	Console* console = GetConsole();
 	SIZE consoleSize = console->GetSize();
 	int bufferSize = consoleSize.cx + 1;
-	wchar_t* buffer = (wchar_t*)malloc(sizeof(wchar_t) * bufferSize);
+	wchar_t* buffer = (wchar_t*)safeMalloc(PartitionManager::GetLogger(), sizeof(wchar_t) * bufferSize);
 	wchar_t guidBuffer[37];
 
 	console->SetBackgroundColor(CONSOLE_COLOR_BG);

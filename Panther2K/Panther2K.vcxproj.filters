@@ -134,6 +134,9 @@
     <ClCompile Include="..\PugiXML\pugixml.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PartitionSelectionPage.cpp">
+      <Filter>Source Files\Pages</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Panther2K.rc">
@@ -151,9 +154,6 @@
   <ItemGroup>
     <None Include="rc_data1.bin">
       <Filter>Resource Files</Filter>
-    </None>
-    <None Include="PartitionSelectionPage.cpp">
-      <Filter>Source Files\Pages</Filter>
     </None>
     <None Include="PartitionSelectionPage.h">
       <Filter>Header Files\Pages</Filter>

@@ -1,4 +1,5 @@
-#include "MessageBoxPage.h"
+#include "MessageBoxPage.h"
+#include <PantherLogger.h>
 
 MessageBoxPage::MessageBoxPage(const wchar_t* text, bool isError, Page* par)
 {
@@ -8,6 +9,11 @@ MessageBoxPage::MessageBoxPage(const wchar_t* text, bool isError, Page* par)
 	lines = 0;
 	shown = false;
 	parent = par;
+}
+
+MessageBoxPage::~MessageBoxPage()
+{
+	safeFree(nullptr, lines);
 }
 
 void MessageBoxPage::ShowDialog()

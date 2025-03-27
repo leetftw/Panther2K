@@ -2,13 +2,6 @@
 #include "Console.h"
 #include <queue>
 
-namespace Gdiplus
-{
-	class Font;
-	class Bitmap;
-	class Graphics;
-};
-
 struct DISPLAYCHAR
 {
 	wchar_t character;
@@ -25,6 +18,7 @@ class CustomConsole : public Console
 public:
 	// Constructor
 	CustomConsole();
+	~CustomConsole();
 
 	bool Init();
 	void SetPosition(long x, long y);
@@ -80,6 +74,7 @@ private:
 	std::deque<int>* outputBuffer;
 
 	// Window
+	bool isWindowClosed;
 	static bool isWindowClassCreated;
 	static bool createWindowClass();
 	LRESULT CALLBACK WndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);

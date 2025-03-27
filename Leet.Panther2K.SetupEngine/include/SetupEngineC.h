@@ -29,7 +29,8 @@ EXPORT HRESULT PantherEngineSetWimIndex(HSetupEngine engine, int index);
 
 EXPORT HRESULT PantherEngineSetBootVolume(HSetupEngine engine, const wchar_t* volumeGuid);
 EXPORT HRESULT PantherEngineSetSystemVolume(HSetupEngine engine, const wchar_t* volumeGuid);
-EXPORT HRESULT PantherEngineSetRecoveryVolume(HSetupEngine engine, const wchar_t* volumeGuid); // optional, if set to empty value the engine will not create a recovery partition
+// Unsupported as of Panther2K 2.0b1
+// EXPORT HRESULT PantherEngineSetRecoveryVolume(HSetupEngine engine, const wchar_t* volumeGuid); 
 
 EXPORT HRESULT PantherEngineSetCallbackThread(HSetupEngine engine, unsigned int threadId);
 EXPORT HRESULT PantherEngineStartInstallation(HSetupEngine engine);

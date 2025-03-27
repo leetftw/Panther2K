@@ -36,6 +36,7 @@
 #include "DiskSelectionPage.h"
 #include "MessageBoxPage.h"
 #include "WimApplyPage.h"
+#include "PartitionSelectionPage.h"
 
 typedef struct _MOUNTMGR_MOUNT_POINT {
     ULONG  SymbolicLinkNameOffset;
@@ -86,7 +87,9 @@ void Leet::Panther2K::SetupManager::RunSetup()
     {
         auto step = setupSteps[currentStep];
         wlogf(logger, PANTHER_LL_NORMAL, MAX_PATH, L"[Client] Running step '%s'...", std::get<0>(step));
-        if ((*this.*(std::get<1>(step)))()) 
+        switch ((*this.*(std::get<1>(step)))()) 
+        {
+        case StepResult::Fail:
         {
             if (HRESULT_FACILITY(exitCode) == FACILITY_WIN32)
                 wlogerr(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Setup failed: %s (0x%08X)", HRESULT_CODE(exitCode), exitCode);
@@ -102,6 +105,13 @@ void Leet::Panther2K::SetupManager::RunSetup()
             messagePage.ShowDialog();
 
             return;
+        }
+        case StepResult::SkipNext:
+            currentStep++;
+            break;
+        case StepResult::GoBack:
+            currentStep -= 2;
+            break;
         }
     }
 
@@ -174,7 +184,7 @@ bool parseColor(const pugi::xml_node& parentNode, const std::wstring& nodeName, 
 
 StepResult Leet::Panther2K::SetupManager::LoadConfiguration()
 {
-    logger->Write(PANTHER_LL_NORMAL, L"[Client] Loading configuration...");
+    wlogc(logger, PANTHER_LL_NORMAL, L"[Client] Loading configuration...");
 
     Page page;
     page.statusText = L"  Parsing 'config.xml'...";
@@ -187,22 +197,22 @@ StepResult Leet::Panther2K::SetupManager::LoadConfiguration()
     pugi::xml_node rootNode = document.select_node(NODE("Panther2KConfig")).node();
     if (!rootNode)
     {
-        logger->Write(PANTHER_LL_BASIC, L"[Client] Failed to load config! Missing node <Panther2KConfig>.");
+        wlogc(logger, PANTHER_LL_BASIC, L"[Client] Failed to load config! Missing node <Panther2KConfig>.");
         exitCode = HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
         return StepResult::Fail;
     }
 
-    const wchar_t* query = OR(REL NODE(L"PantherConsole"), REL NODE(L"Win32Console"));
+    const wchar_t* query = REL NODE(L"Console");
     pugi::xpath_node_set consoleNodes = rootNode.select_nodes(query);
     if (consoleNodes.size() > 1)
     {
-        logger->Write(PANTHER_LL_BASIC, L"[Client] Failed to load config! More than one <PantherConsole> or <Win32Console> nodes defined.");
+        wlogc(logger, PANTHER_LL_BASIC, L"[Client] Failed to load config! More than one <Console> node defined.");
         exitCode = HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
         return StepResult::Fail;
     }
     else if (consoleNodes.size() == 0)
     {
-        logger->Write(PANTHER_LL_BASIC, L"[Client] Failed to load config! Missing node <PantherConsole> or node <Win32Console>.");
+        wlogc(logger, PANTHER_LL_BASIC, L"[Client] Failed to load config! Missing node <Console>.");
         exitCode = HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
         return StepResult::Fail;
     }
@@ -210,13 +220,10 @@ StepResult Leet::Panther2K::SetupManager::LoadConfiguration()
 
     COLOR* colors = new COLOR[6];
 
-#ifdef DIST
+#if PANTHER_RELEASE_TYPE == PANTHER_RT_RELEASE
     COLOR defColor = { 0, 0, 170 };
     if (!parseColor(consoleNode, L"BackgroundColor", defColor, logger))
         return StepResult::Fail;
-#else
-    COLOR defColor = { 170 / 3, 0, 170 / 2 };
-#endif
     colors[0] = defColor;
     defColor = { 170, 170, 170 };
     if (!parseColor(consoleNode, L"ForegroundColor", defColor, logger))
@@ -238,6 +245,15 @@ StepResult Leet::Panther2K::SetupManager::LoadConfiguration()
     if (!parseColor(consoleNode, L"DarkForegroundColor", defColor, logger))
         return StepResult::Fail;
     colors[5] = defColor;
+#else
+    colors[0] = { 170 / 3, 0, 170 / 2 };
+    colors[1] = { 170, 170, 170 };
+    colors[2] = { 170, 0, 0 };
+    colors[3] = { 255, 255, 0 };
+    colors[4] = { 255, 255, 255 };
+    colors[5] = { 0, 0, 0 };
+    wlogc(logger, PANTHER_LL_BASIC, L"[Client] Not a release build, forcing console colors.");
+#endif
     console->SetColorTable(colors, 6);
 
     pugi::xml_node columnsNode = consoleNode.child(L"Columns");
@@ -259,8 +275,6 @@ StepResult Leet::Panther2K::SetupManager::LoadConfiguration()
     console->SetSize(cols, rows);
     console->Clear();
     page.Draw();
-
-    //((CustomConsole*)console)->SetPixelScale(2);
 
     return StepResult::Success;
 }
@@ -286,7 +300,7 @@ StepResult Leet::Panther2K::SetupManager::WelcomeUser()
     page.Initialize(console);
     page.Draw();
 
-    MessageBoxPage msgBox(L"This is an alpha release of Panther2K. Going back to a previous step is not supported yet. You should expect to have some issues in certain configurations. Leet is not responsible for any damage to your system and/or personal data.", false, &page);
+    MessageBoxPage msgBox(L"This is a beta release of Panther2K. Going back to a previous step is not supported yet. You should expect to have some issues in certain configurations. Leet is not responsible for any damage to your system and/or personal data.", false, &page);
     msgBox.Initialize(console, &page);
     msgBox.ShowDialog();
     
@@ -295,8 +309,13 @@ StepResult Leet::Panther2K::SetupManager::WelcomeUser()
     for (KEY_EVENT_RECORD* record = console->Read();
         !record->bKeyDown || page.HandleKey(record->wVirtualKeyCode);
         record = console->Read()) {
-        free(record);
+        safeFree(logger, record);
     }
+
+    /*WinPartedDll::PrepareDiskForWindows(console, logger, L"\\\\?\\Volume{6aa526c2-6513-4820-a80b-87935be579b2}", false, 52428800ULL, 1048576000ULL, nullptr);
+
+    exitCode = E_NOTIMPL;
+    return StepResult::Fail;*/
 
     return StepResult::Success;
 }
@@ -341,7 +360,7 @@ StepResult Leet::Panther2K::SetupManager::SelectWIMImage()
         return StepResult::Fail;
     }
 
-    logger->Write(PANTHER_LL_DETAILED, L"[Client] Enumerating volumes...");
+    wlogc(logger, PANTHER_LL_DETAILED, L"[Client] Enumerating volumes...");
     for (int i = 0; i < mountPoints->NumberOfMountPoints; i++)
     {
         wlogf(logger, PANTHER_LL_VERBOSE, MAX_PATH * 3, L"[Client] - %.*s is mounted at path %.*s", 
@@ -361,12 +380,12 @@ StepResult Leet::Panther2K::SetupManager::SelectWIMImage()
 
     free(mountPoints);
 
-    logger->Write(PANTHER_LL_DETAILED, L"[Client] Searching for WIM file in enumerated volumes...");
+    wlogc(logger, PANTHER_LL_DETAILED, L"[Client] Searching for WIM file in enumerated volumes...");
 
     std::wstring wimPath = L"";
     for (auto& a : paths)
     {
-        logger->Write(PANTHER_LL_VERBOSE, a.c_str());
+        wlogc(logger, PANTHER_LL_VERBOSE, a.c_str());
 
         std::wstring path = a + L"\\sources\\install.wim";
         DWORD dwAttrib = GetFileAttributesW(path.c_str());
@@ -405,7 +424,7 @@ StepResult Leet::Panther2K::SetupManager::SelectWIMImage()
         return StepResult::Fail;
     }
 
-    logger->Write(PANTHER_LL_DETAILED, L"[Client] Retrieving image list...");
+    wlogc(logger, PANTHER_LL_DETAILED, L"[Client] Retrieving image list...");
     PantherWimInfo* wimInfo;
     hResult = PantherEngineGetWimInfo(engine, &wimInfo);
 
@@ -423,13 +442,13 @@ StepResult Leet::Panther2K::SetupManager::SelectWIMImage()
     }
     else
     {
-        logger->Write(PANTHER_LL_DETAILED, L"[Client] Multiple images exist, requesting choice from user.");
+        wlogc(logger, PANTHER_LL_DETAILED, L"[Client] Multiple images exist, requesting choice from user.");
         ImageSelectionPage page;
         page.Initialize(console);
         if (!page.SetData(wimInfo))
         {
             exitCode = HRESULT_FROM_WIN32(GetLastError());
-            wlogf(logger, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Client] Failed to read image list data! Tthe installation is aborted. (0x%08X)", exitCode);
+            wlogf(logger, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Client] Failed to read image list data! The installation is aborted. (0x%08X)", exitCode);
             return StepResult::Fail;
         }
         page.Draw();
@@ -438,7 +457,7 @@ StepResult Leet::Panther2K::SetupManager::SelectWIMImage()
         for (KEY_EVENT_RECORD* record = console->Read();
             !record->bKeyDown || page.HandleKey(record->wVirtualKeyCode);
             record = console->Read()) {
-            free(record);
+            safeFree(logger, record);
         }
 
         selectedIndex = page.GetResult();
@@ -464,7 +483,7 @@ StepResult Leet::Panther2K::SetupManager::SelectBootMethod()
     for (KEY_EVENT_RECORD* record = console->Read();
         !record->bKeyDown || page.HandleKey(record->wVirtualKeyCode);
         record = console->Read()) {
-        free(record);
+        safeFree(logger, record);
     }
 
     useLegacy = page.GetResult();
@@ -496,17 +515,19 @@ StepResult Leet::Panther2K::SetupManager::SelectPartMethod()
     for (KEY_EVENT_RECORD* record = console->Read();
         !record->bKeyDown || page.HandleKey(record->wVirtualKeyCode);
         record = console->Read()) {
-        free(record);
+        safeFree(logger, record);
     }
 
     int selectedDisk = page.GetResult();
     if (selectedDisk == -1)
     {
-        logger->Write(PANTHER_LL_DETAILED, L"[Client] Custom partitioning requested, unsupported.");
+        /*
+        wlogc(logger, PANTHER_LL_DETAILED, L"[Client] Custom partitioning requested, unsupported.");
         MessageBoxPage msgBox(L"Not implemented.", true, &page);
         msgBox.Initialize(console, &page);
         msgBox.ShowDialog();
-        goto userSelection;
+        goto userSelection;*/
+        return StepResult::Success;
     }
 
     wlogf(logger, PANTHER_LL_DETAILED, MAX_PATH, L"[Client] Selected disk #%d.", selectedDisk);
@@ -514,20 +535,15 @@ StepResult Leet::Panther2K::SetupManager::SelectPartMethod()
     wchar_t mountPoints[3][MAX_PATH];
     wchar_t volumes[3][MAX_PATH];
 
-    wchar_t** mountPointsPtr = (wchar_t**)safeMalloc(logger, sizeof(wchar_t*) * 3);
-    for (int i = 0; i < 3; i++)
-        mountPointsPtr[i] = mountPoints[i];
-
-    wchar_t** volumesPtr = (wchar_t**)safeMalloc(logger, sizeof(wchar_t*) * 3);
-    for (int i = 0; i < 3; i++)
+    wchar_t** volumesPtr = (wchar_t**)safeMalloc(logger, sizeof(wchar_t*) * 2);
+    for (int i = 0; i < 2; i++)
         volumesPtr[i] = volumes[i];
 
-    logger->Write(PANTHER_LL_DETAILED, L"[Client] Starting format operation on the disk...");
+    wlogc(logger, PANTHER_LL_DETAILED, L"[Client] Starting format operation on the disk...");
 
     result = (useLegacy ? WinPartedDll::ApplyP2KLayoutToDiskMBR : WinPartedDll::ApplyP2KLayoutToDiskGPT)
-        (console, logger, selectedDisk, true, &mountPointsPtr, &volumesPtr);
+        (console, logger, selectedDisk, true, nullptr, &volumesPtr);
 
-    free(mountPointsPtr);
     free(volumesPtr);
 
     if (FAILED(result))
@@ -547,11 +563,10 @@ StepResult Leet::Panther2K::SetupManager::SelectPartMethod()
         goto userSelection;
     }
 
-    logger->Write(PANTHER_LL_DETAILED, L"[Client] Passing volume information to engine...");
+    wlogc(logger, PANTHER_LL_DETAILED, L"[Client] Passing volume information to engine...");
     
     std::wstring bootPartition = std::wstring(volumes[0] + 10, 38);
     std::wstring systemPartition = std::wstring(volumes[1] + 10, 38);
-    std::wstring recoveryPartition = std::wstring(volumes[2] + 10, 38);
     
     result = PantherEngineSetBootVolume(engine, bootPartition.c_str());
     if (FAILED(result))
@@ -569,21 +584,31 @@ StepResult Leet::Panther2K::SetupManager::SelectPartMethod()
         goto userSelection;
     }
 
-    /*
-    result = PantherEngineSetRecoveryVolume(engine, recoveryPartition.c_str());
-    if (FAILED(result))
-    {
-        wlogf(logger, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Client] Failed to select the recovery volume. WinParted reported an error. The installation is not aborted. (0x%08X)", result);
-        exitCode = result;
-        goto userSelection;
-    }
-    */
-
-    return StepResult::Success;
+    return StepResult::SkipNext;
 }
 
 StepResult Leet::Panther2K::SetupManager::SelectPartitions()
 {
+    // Easy partitioning mode
+    PartitionSelectionPage page(L"NTFS", 0ULL, 0ULL, 0, 0);
+    page.Initialize(console);
+
+    page.Draw();
+    for (KEY_EVENT_RECORD* record = console->Read();
+        !record->bKeyDown || page.HandleKey(record->wVirtualKeyCode);
+        record = console->Read()) {
+        safeFree(logger, record);
+    }
+    
+    VOLUME_INFO info = page.GetSelectedVolume();
+    wchar_t volumes[2][128];
+    HRESULT result = WinPartedDll::PrepareDiskForWindows(console, logger, info.guid, useLegacy, 500000000ULL, 0ULL, volumes);
+    if (FAILED(result)) DebugBreak();
+    result = PantherEngineSetSystemVolume(engine, volumes[0]);
+    if (FAILED(result)) DebugBreak();
+    result = PantherEngineSetBootVolume(engine, volumes[1]);
+    if (FAILED(result)) DebugBreak();
+
     return StepResult::Success;
 }
 
@@ -689,7 +714,7 @@ StepResult Leet::Panther2K::SetupManager::FinalizeSetup()
     for (KEY_EVENT_RECORD* record = console->Read();
         !record->bKeyDown || page.HandleKey(record->wVirtualKeyCode);
         record = console->Read()) {
-        free(record);
+        safeFree(logger, record);
     }
 
     return StepResult::Success;

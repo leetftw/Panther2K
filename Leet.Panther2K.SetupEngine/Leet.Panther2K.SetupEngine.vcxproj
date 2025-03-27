@@ -189,6 +189,7 @@
     <ClCompile Include="SetupEngine.cpp" />
     <ClCompile Include="SetupEngine_Boot.cpp" />
     <ClCompile Include="SetupEngineC.cpp" />
+    <ClCompile Include="SetupEngine_EasyPart.cpp" />
     <ClCompile Include="winmain.cpp" />
   </ItemGroup>
   <ItemGroup>

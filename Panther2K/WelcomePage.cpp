@@ -15,19 +15,19 @@ void WelcomePage::Drawer()
 	console->Write(L"Welcome to Panther2K.");
 
 	console->SetForegroundColor(CONSOLE_COLOR_FG);
-	DrawTextLeft(L"The Setup portion of the Panther2K utility prepares Microsoft(R) Windows to run on your computer.", console->GetSize().cx - 6, 6);
+	console->DrawTextLeft(L"The Setup portion of the Panther2K utility prepares Microsoft(R) Windows to run on your computer.", console->GetSize().cx - 6, 6);
 	
 	console->SetPosition(6, console->GetPosition().y + 2);
 	console->Write(L"•");
-	DrawTextLeft(L"To launch Setup, press ENTER", console->GetSize().cx - 18, console->GetPosition().y);
+	console->DrawTextLeft(L"To launch Setup, press ENTER", console->GetSize().cx - 18, console->GetPosition().y);
 
 	console->SetPosition(6, console->GetPosition().y + 2);
 	console->Write(L"•");
-	DrawTextLeft(L"To repair a Windows installation, press R", console->GetSize().cx - 18, console->GetPosition().y);
+	console->DrawTextLeft(L"To repair a Windows installation, press R", console->GetSize().cx - 18, console->GetPosition().y);
 
 	console->SetPosition(6, console->GetPosition().y + 2);
 	console->Write(L"•");
-	DrawTextLeft(L"To quit Panther2K without installing Windows, press F3", console->GetSize().cx - 18, console->GetPosition().y);
+	console->DrawTextLeft(L"To quit Panther2K without installing Windows, press F3", console->GetSize().cx - 18, console->GetPosition().y);
 }
 
 void WelcomePage::Redrawer()

@@ -30,7 +30,8 @@ namespace Leet::Panther2K
 
 		HRESULT SetBootVolume(const std::wstring& volumeGuid);
 		HRESULT SetSystemVolume(const std::wstring& volumeGuid);
-		HRESULT SetRecoveryVolume(const std::wstring& volumeGuid); // optional, if set to empty value the engine will not create a recovery partition
+
+		HRESULT SetSystemVolumeEasy(const std::wstring& volumeGuid);
 
 		HRESULT SetCallbackThread(unsigned int threadId);
 		HRESULT StartInstallation();
@@ -56,7 +57,6 @@ namespace Leet::Panther2K
 		// PARTITION data (legacy phase 4)
 		std::wstring szBootPartition;
 		std::wstring szSystemPartition;
-		std::wstring szRecoveryPartition;
 
 		unsigned int dwCallbackThread;
 		HANDLE hFileNameReadyEvent;

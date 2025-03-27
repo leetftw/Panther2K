@@ -141,7 +141,7 @@ HRESULT PerformVdsOperation(PartitionInformation* partition, const wchar_t* file
 
 				wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"    The path of the disk is %s.", ((UNICODE_STRING*)infoBuffer)->Buffer);
 
-				if (lstrcmpW(requestedDisk, ((UNICODE_STRING*)infoBuffer)->Buffer))
+				if (lstrcmpiW(requestedDisk, ((UNICODE_STRING*)infoBuffer)->Buffer))
 					goto releaseDisk;
 
 				// From this point, no branch should continue iterating over disks
@@ -206,7 +206,7 @@ HRESULT PerformVdsOperation(PartitionInformation* partition, const wchar_t* file
 						for (int i = 0; i < fsCount; i++)
 							strLen += wcslen(formatSupport[i].wszName);
 
-						wchar_t* supportedFilesystemNames = (wchar_t*)malloc(sizeof(wchar_t) * (strLen + fsCount));
+						wchar_t* supportedFilesystemNames = (wchar_t*)safeMalloc(PartitionManager::GetLogger(), sizeof(wchar_t) * (strLen + fsCount));
 						ZeroMemory(supportedFilesystemNames, sizeof(wchar_t) * (strLen + fsCount));
 						for (int i = 0; i < fsCount; i++)
 						{
@@ -300,7 +300,7 @@ HRESULT PerformVdsOperation(PartitionInformation* partition, const wchar_t* file
 					for (int i = 0; i < fsCount; i++)
 						strLen += wcslen(formatSupport[i].wszName);
 
-					wchar_t* supportedFilesystemNames = (wchar_t*)malloc(sizeof(wchar_t) * (strLen + fsCount));
+					wchar_t* supportedFilesystemNames = (wchar_t*)safeMalloc(nullptr, sizeof(wchar_t) * (strLen + fsCount));
 					ZeroMemory(supportedFilesystemNames, sizeof(wchar_t) * (strLen + fsCount));
 					for (int i = 0; i < fsCount; i++)
 					{

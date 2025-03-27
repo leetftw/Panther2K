@@ -59,7 +59,7 @@ void DiskSelectionPage::UpdatePage()
 	SIZE consoleSize = console->GetSize();
 
 	int bufferSize = consoleSize.cx - 12;
-	wchar_t* buffer = (wchar_t*)malloc(sizeof(wchar_t) * bufferSize);
+	wchar_t* buffer = (wchar_t*)safeMalloc(nullptr, sizeof(wchar_t) * bufferSize);
 	for (int i = 0; i < min(PartitionManager::DiskInformationTableSize, maxItems); i++)
 	{
 		int j = i + scrollIndex;

@@ -1,4 +1,5 @@
-#include "BootPreparationPage.h"
+#include "BootPreparationPage.h"
+
 #include <iostream>
 #include "shlobj.h"
 #include "MessageBoxPage.h"
@@ -16,7 +17,7 @@ void BootPreparationPage::Drawer()
 	console->SetBackgroundColor(CONSOLE_COLOR_BG);
 	console->SetForegroundColor(CONSOLE_COLOR_FG);
 
-	DrawTextCenter(L"Please wait while Panther2K prepares Windows Boot Manager to boot Windows on your computer. This should not take more than a minute to complete.", cSize.cx, 6);
+	console->DrawTextCenter(L"Please wait while Panther2K prepares Windows Boot Manager to boot Windows on your computer. This should not take more than a minute to complete.", cSize.cx, 6);
 }
 
 void BootPreparationPage::Redrawer()

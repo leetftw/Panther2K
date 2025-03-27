@@ -100,15 +100,6 @@ HRESULT PantherEngineSetSystemVolume(HSetupEngine engine, const wchar_t* volumeG
 	return lpEngine->SetSystemVolume(volumeGuid);
 }
 
-HRESULT PantherEngineSetRecoveryVolume(HSetupEngine engine, const wchar_t* volumeGuid)
-{
-	if (engine == nullptr) return HRESULT_FROM_WIN32(ERROR_INVALID_PARAMETER);
-	auto iter = std::find(engines.begin(), engines.end(), engine);
-	if (iter == engines.end()) return HRESULT_FROM_WIN32(ERROR_INVALID_HANDLE);
-	Leet::Panther2K::SetupEngine* lpEngine = static_cast<Leet::Panther2K::SetupEngine*>(engine);
-	return lpEngine->SetRecoveryVolume(volumeGuid);
-}
-
 HRESULT PantherEngineSetCallbackThread(HSetupEngine engine, unsigned int threadId)
 {
 	if (engine == nullptr) return HRESULT_FROM_WIN32(ERROR_INVALID_PARAMETER);

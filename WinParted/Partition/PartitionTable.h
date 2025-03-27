@@ -68,6 +68,7 @@ struct VolumeInformation
 	wchar_t FileSystem[16];
 	wchar_t VolumeName[128];
 	wchar_t VolumeFile[128];
+	wchar_t MountPoint[MAX_PATH];
 };
 
 struct PartitionInformation

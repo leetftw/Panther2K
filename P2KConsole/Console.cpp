@@ -1,12 +1,13 @@
 #include "Console.h"
 #include <iostream>
+#include "include/PantherLogger.h"
 
 Console::Console()
 {
     if (colorTable == NULL)
     {
         colorTableSize = 6;
-        colorTable = (COLOR*)malloc(sizeof(COLOR) * colorTableSize);
+        colorTable = (COLOR*)safeMalloc(nullptr, sizeof(COLOR) * colorTableSize);
         colorTable[CONSOLE_COLOR_BG] =      COLOR{ 0, 0, 170 };
         colorTable[CONSOLE_COLOR_FG] =      COLOR{ 170, 170, 170 };
         colorTable[CONSOLE_COLOR_ERROR] =   COLOR{ 170, 0, 0 };
@@ -177,7 +178,7 @@ wchar_t* CleanString(const wchar_t* string)
     };
 
     int strLen = lstrlenW(string);
-    wchar_t* newString = (wchar_t*)malloc(sizeof(wchar_t) * (strLen + 1));
+    wchar_t* newString = (wchar_t*)safeMalloc(nullptr, sizeof(wchar_t) * (strLen + 1));
 
     int newStrPtr = 0;
     int lastNonWsp = -2;
@@ -202,8 +203,8 @@ wchar_t** SplitStringToLines(const wchar_t* string, int maxWidth, int* lineCount
     if (strLen <= 0)
         return 0;
 
-    wchar_t* wordList = (wchar_t*)malloc(sizeof(wchar_t) * (strLen + 1));
-    wchar_t* endValues = (wchar_t*)malloc(sizeof(wchar_t) * (strLen + 1));
+    wchar_t* wordList = (wchar_t*)safeMalloc(nullptr, sizeof(wchar_t) * (strLen + 1));
+    wchar_t* endValues = (wchar_t*)safeMalloc(nullptr, sizeof(wchar_t) * (strLen + 1));
     if (!wordList || !endValues)
         return 0;
     wordList[strLen] = L'\x0';
@@ -244,12 +245,12 @@ wchar_t** SplitStringToLines(const wchar_t* string, int maxWidth, int* lineCount
 
 
     // Get pointers to all strings
-    wchar_t** returnValue = (wchar_t**)malloc((*lineCount) * sizeof(wchar_t*));
+    wchar_t** returnValue = (wchar_t**)safeMalloc(nullptr, (*lineCount) * sizeof(wchar_t*));
     for (int i = 0, j = 0; i < (strLen + 1); i += lstrlenW(endValues + i) + 1, j++)
         returnValue[j] = endValues + i;
 
     // Remove temporary word list
-    free(wordList);
+    safeFree(nullptr, wordList);
 
     return returnValue;
 }
@@ -305,7 +306,7 @@ void Console::DrawTextLeft(const wchar_t* string, int cx, int y)
         Write(lines[i]);
     }
 
-    free(lines);
+    safeFree(nullptr, lines);
 }
 
 void Console::Update() { }
@@ -323,7 +324,7 @@ void Console::DrawTextRight(const wchar_t* string, int cx, int y)
         Write(lines[i]);
     }
 
-    free(lines);
+    safeFree(nullptr, lines);
 }
 
 void Console::DrawTextCenter(const wchar_t* string, int cx, int y)
@@ -339,7 +340,7 @@ void Console::DrawTextCenter(const wchar_t* string, int cx, int y)
         Write(lines[i]);
     }
     
-    free(lines);
+    safeFree(nullptr, lines);
 }
 
 void Console::UpdateColorTable()

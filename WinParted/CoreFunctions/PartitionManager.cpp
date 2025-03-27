@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "PantherLogger.h"
+#include "VdsService.h"
 
 DISK_INFORMATION* PartitionManager::DiskInformationTable = 0;
 long PartitionManager::DiskInformationTableSize = 0;
@@ -177,11 +178,7 @@ void PartitionManager::PopulateDiskInformation()
     if (DiskInformationTable != NULL)
         free(DiskInformationTable);
 
-	wchar_t* dosdevs = (wchar_t*)malloc(sizeof(wchar_t*) * 65536);
-	if (dosdevs == NULL)
-	{
-		return;
-	}
+	wchar_t* dosdevs = (wchar_t*)safeMalloc(logger, sizeof(wchar_t*) * 65536);
 	
 	QueryDosDeviceW(NULL, dosdevs, 65536);
 	int diskCount = 0;
@@ -189,11 +186,7 @@ void PartitionManager::PopulateDiskInformation()
 		if (wcsncmp(pos, L"PhysicalDrive", 13) == 0)
 			diskCount++;
 	
-	DISK_INFORMATION* diskInfos = (DISK_INFORMATION*)malloc(sizeof(DISK_INFORMATION) * diskCount);
-	if (diskInfos == NULL)
-	{
-		return;
-	}
+	DISK_INFORMATION* diskInfos = (DISK_INFORMATION*)safeMalloc(logger, sizeof(DISK_INFORMATION) * diskCount);
 
 	int i = 0;
 	for (wchar_t* pos = dosdevs; *pos; pos += lstrlenW(pos) + 1)
@@ -244,8 +237,8 @@ void PartitionManager::PopulateDiskInformation()
 				diskCount--;
 				goto clean;
 			}
-			psdd = (STORAGE_DEVICE_DESCRIPTOR*)malloc(sdd.Size);
-			if (psdd == NULL || !DeviceIoControl(diskFileHandle, IOCTL_STORAGE_QUERY_PROPERTY, &spq, sizeof(spq), psdd, sdd.Size, &byteCount, NULL))
+			psdd = (STORAGE_DEVICE_DESCRIPTOR*)safeMalloc(logger, sdd.Size);
+			if (!DeviceIoControl(diskFileHandle, IOCTL_STORAGE_QUERY_PROPERTY, &spq, sizeof(spq), psdd, sdd.Size, &byteCount, NULL))
 			{
 				diskCount--;
 				goto clean;
@@ -296,7 +289,7 @@ void PartitionManager::PopulateDiskInformation()
 			// DRIVE_LAYOUT_INFORMATION_EX 
 			// Gets the partition count according to what Windows perceives
 			dliSize = sizeof(DRIVE_LAYOUT_INFORMATION_EX) + sizeof(PARTITION_INFORMATION_EX) * (partitionCount++ - 1);
-			dli = (DRIVE_LAYOUT_INFORMATION_EX*)malloc(dliSize);
+			dli = (DRIVE_LAYOUT_INFORMATION_EX*)safeMalloc(logger, dliSize);
 			if (!dli)
 			{
 				diskCount--;
@@ -317,7 +310,7 @@ void PartitionManager::PopulateDiskInformation()
 
 				free(dli);
 				dliSize = sizeof(DRIVE_LAYOUT_INFORMATION_EX) + sizeof(PARTITION_INFORMATION_EX) * (partitionCount++ - 1);
-				dli = (DRIVE_LAYOUT_INFORMATION_EX*)malloc(dliSize);
+				dli = (DRIVE_LAYOUT_INFORMATION_EX*)safeMalloc(logger, dliSize);
 				if (!dli)
 				{
 					diskCount--;
@@ -356,7 +349,7 @@ PartitionTableType PartitionManager::GetPartitionTableType(DISK_INFORMATION* dis
 		return PartitionTableType::Unknown;
 
 	// Read in the first two sectors
-	char* header = (char*)malloc(diskInfo->SectorSize * 2);
+	char* header = (char*)safeMalloc(logger, diskInfo->SectorSize * 2);
 	ReadFile(hDisk, header, diskInfo->SectorSize * 2, NULL, NULL);
 
 	// Check if a GPT is present
@@ -447,9 +440,7 @@ bool PartitionManager::LoadDisk(DISK_INFORMATION* diskInfo, bool forceOperatingM
 	}
 
 	// Read in the first two sectors
-	char* header = (char*)malloc(CurrentDisk.SectorSize * 2);
-	if (header == NULL)
-		return false;
+	char* header = (char*)safeMalloc(logger, CurrentDisk.SectorSize * 2);
 	if (!ReadFile(hDisk, header, CurrentDisk.SectorSize * 2, NULL, NULL))
 	{
 		ShowMessagePage(L"The partition table on the disk could not be loaded because the data on the disk could not be accessed: %s", MessagePageType::OK, MessagePageUI::Error);
@@ -472,7 +463,7 @@ bool PartitionManager::LoadDisk(DISK_INFORMATION* diskInfo, bool forceOperatingM
 	{
 		int count = CurrentDiskGPT.TableEntryCount;
 		unsigned long long PartitionTableSize = CurrentDiskGPT.TableEntrySize * count;
-		CurrentDiskGPTTable = (GPT_ENTRY*)malloc(PartitionTableSize);
+		CurrentDiskGPTTable = (GPT_ENTRY*)safeMalloc(logger, PartitionTableSize);
 
 		unsigned long long newPtr = CurrentDiskGPT.TableLBA.ULL * CurrentDisk.SectorSize;
 		//SetFilePointer(hDisk, CurrentDiskGPT->StartLBA.UL[0], (PLONG)CurrentDiskGPTTable->StartLBA.UL + 1, FILE_BEGIN);
@@ -499,7 +490,7 @@ bool PartitionManager::LoadPartitionTable()
 		int count = CurrentDiskGPT.TableEntryCount;
 
 		CurrentDiskPartitionCount = 128;
-		CurrentDiskPartitions = (PartitionInformation*)malloc(sizeof(PartitionInformation) * count);
+		CurrentDiskPartitions = (PartitionInformation*)safeMalloc(logger, sizeof(PartitionInformation) * count);
 		CurrentDiskFirstAvailablePartition = -1;
 
 		GUID empty = { 0,0,0,0 }; int j = 0;
@@ -530,7 +521,7 @@ bool PartitionManager::LoadPartitionTable()
 	{
 		PartitionInformation pi;
 		CurrentDiskPartitionCount = 4;
-		CurrentDiskPartitions = (PartitionInformation*)malloc(sizeof(PartitionInformation) * CurrentDiskPartitionCount);
+		CurrentDiskPartitions = (PartitionInformation*)safeMalloc(logger, sizeof(PartitionInformation) * CurrentDiskPartitionCount);
 
 		for (int i = 0; i < 4; i++)
 		{
@@ -577,7 +568,7 @@ bool PartitionManager::SavePartitionTableToDisk()
 		LBA backupGPTTable = { 0 };
 
 		GPT_HEADER gptHeader = CurrentDiskGPT;
-		char* gptBuffer = reinterpret_cast<char*>(malloc(CurrentDisk.SectorSize));
+		char* gptBuffer = reinterpret_cast<char*>(safeMalloc(logger, CurrentDisk.SectorSize));
 
 		// Determine where the backup GPT table lies
 		if (CurrentDiskPartitionTableDestroyed)
@@ -860,7 +851,7 @@ HRESULT PartitionManager::ApplyPartitionLayoutGPT(WP_PART_LAYOUT* layout)
 	wprintf_s(L"Partition sizes of value-based-partitions in blocks:\n");
 
 	int partitionsParsed = 0;
-	PartitionInformation* partitions = reinterpret_cast<PartitionInformation*>(malloc(sizeof(PartitionInformation) * layout->PartitionCount));
+	PartitionInformation* partitions = reinterpret_cast<PartitionInformation*>(safeMalloc(logger, sizeof(PartitionInformation) * layout->PartitionCount));
 	ZeroMemory(partitions, sizeof(PartitionInformation) * layout->PartitionCount);
 	for (int i = 0; i < layout->PartitionCount; i++)
 	{
@@ -920,7 +911,7 @@ HRESULT PartitionManager::ApplyPartitionLayoutGPT(WP_PART_LAYOUT* layout)
 	unsigned long long currentSector = 2048;
 	wchar_t sizeBuffer[10];
 	if (!CurrentDiskGPTTable)
-		CurrentDiskGPTTable = reinterpret_cast<GPT_ENTRY*>(malloc(sizeof(GPT_ENTRY) * CurrentDiskGPT.TableEntryCount));
+		CurrentDiskGPTTable = reinterpret_cast<GPT_ENTRY*>(safeMalloc(logger, sizeof(GPT_ENTRY) * CurrentDiskGPT.TableEntryCount));
 	ZeroMemory(CurrentDiskGPTTable, sizeof(GPT_ENTRY) * CurrentDiskGPT.TableEntryCount);
 	for (int i = 0; i < layout->PartitionCount; i++)
 	{
@@ -971,7 +962,8 @@ HRESULT PartitionManager::ApplyPartitionLayoutGPT(WP_PART_LAYOUT* layout)
 	{
 		if (lstrcmpW(layout->Partitions[i].FileSystem, L"RAW"))
 		{
-			HRESULT res = FormatAndMountPartition(&CurrentDiskPartitions[i], layout->Partitions[i].FileSystem, layout->Partitions[i].MountPoint);
+			HRESULT res = ::FormatPartition(CurrentDiskPartitions[i].DiskNumber, CurrentDisk.SectorSize * CurrentDiskPartitions[i].StartLBA.ULL, layout->Partitions[i].FileSystem);
+			//HRESULT res = FormatAndMountPartition(&CurrentDiskPartitions[i], layout->Partitions[i].FileSystem, layout->Partitions[i].MountPoint);
 			if (res != S_OK)
 			{
 				result = res;
@@ -1027,7 +1019,7 @@ HRESULT PartitionManager::ApplyPartitionLayoutMBR(WP_PART_LAYOUT* layout)
 	wprintf_s(L"Partition sizes of value-based-partitions in blocks:\n");
 
 	int partitionsParsed = 0;
-	PartitionInformation* partitions = reinterpret_cast<PartitionInformation*>(malloc(sizeof(PartitionInformation) * layout->PartitionCount));
+	PartitionInformation* partitions = reinterpret_cast<PartitionInformation*>(safeMalloc(logger, sizeof(PartitionInformation) * layout->PartitionCount));
 	ZeroMemory(partitions, sizeof(PartitionInformation) * layout->PartitionCount);
 	for (int i = 0; i < layout->PartitionCount; i++)
 	{
@@ -1168,7 +1160,7 @@ bool PartitionManager::LoadPartition(PartitionInformation* partition)
 		goto fail;
 
 	dliSize = offsetof(DRIVE_LAYOUT_INFORMATION_EX, PartitionEntry[++partitionCount]);
-	dli = (DRIVE_LAYOUT_INFORMATION_EX*)malloc(dliSize);
+	dli = (DRIVE_LAYOUT_INFORMATION_EX*)safeMalloc(logger, dliSize);
 	res = DeviceIoControl(hDisk, IOCTL_DISK_GET_DRIVE_LAYOUT_EX, NULL, 0, dli, dliSize, NULL, NULL);
 	while (!res)
 	{
@@ -1199,7 +1191,7 @@ bool PartitionManager::LoadPartition(PartitionInformation* partition)
 		// Check if extents match
 		// DeviceIoControl(IOCTL_VOLUME_GET_VOLUME_DISK_EXTENTS)
 		DWORD vdeSize = sizeof(VOLUME_DISK_EXTENTS);
-		VOLUME_DISK_EXTENTS* vde = (VOLUME_DISK_EXTENTS*)malloc(vdeSize);
+		VOLUME_DISK_EXTENTS* vde = (VOLUME_DISK_EXTENTS*)safeMalloc(logger, vdeSize);
 		res = DeviceIoControl(hVolume, IOCTL_VOLUME_GET_VOLUME_DISK_EXTENTS, NULL, 0, vde, vdeSize, NULL, NULL);
 		while (!res)
 		{

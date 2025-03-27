@@ -1,6 +1,7 @@
 #include "CustomConsole.h"
 #include <iostream>
 #include "Win32Console.h"
+#include "include/PantherLogger.h"
 
 #define IDR_FONT_IBM                    3
 
@@ -67,7 +68,7 @@ void CustomConsole::ConsoleMessageLoop()
 			if (!console->WindowHandle)
 				break;;
 
-			console->screenBuffer = (DISPLAYCHAR*)malloc(sizeof(DISPLAYCHAR) * console->columns * console->rows);
+			console->screenBuffer = (DISPLAYCHAR*)safeMalloc(nullptr, sizeof(DISPLAYCHAR) * console->columns * console->rows);
 			ZeroMemory(console->screenBuffer, sizeof(DISPLAYCHAR) * console->columns * console->rows);
 			//ShowWindow(console->WindowHandle, SW_SHOW);
 			PostMessageW(console->WindowHandle, WM_KEYDOWN, VK_HOME, 0);
@@ -83,6 +84,12 @@ CustomConsole::CustomConsole() : Console()
 {
 	inputBuffer = new std::queue<KEY_EVENT_RECORD>();
 	outputBuffer = new std::deque<int>();
+	isWindowClosed = true;
+}
+
+CustomConsole::~CustomConsole()
+{
+	if (WindowHandle) CloseWindow(WindowHandle);
 }
 
 bool CustomConsole::Init()
@@ -97,11 +104,11 @@ bool CustomConsole::Init()
 	if (!isThreadRunning)
 	{
 		event = CreateEventW(NULL, TRUE, FALSE, NULL);
-		if (event == INVALID_HANDLE_VALUE)
+		if (!event)
 			return false;
 
 		HANDLE hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)ConsoleThreadProc, event, 0, &consoleThreadId);
-		if (hThread == INVALID_HANDLE_VALUE)
+		if (!hThread)
 			return false;
 
 		WaitForSingleObject(event, INFINITE);
@@ -109,7 +116,7 @@ bool CustomConsole::Init()
 	}
 
 	event = CreateEventW(NULL, TRUE, FALSE, NULL);
-	if (event == INVALID_HANDLE_VALUE)
+	if (!event)
 		return false;
 
 	PostThreadMessageW(consoleThreadId, WM_CREATECONSOLE, (WPARAM)this, (LPARAM)event);
@@ -260,7 +267,7 @@ void CustomConsole::Write(const wchar_t* string)
 		incrementX();
 	}
 
-	free(characters);
+	safeFree(nullptr, characters);
 
 	PostMessageW(WindowHandle, WM_UPDATECONSOLE, 0, 0);
 }
@@ -276,7 +283,7 @@ KEY_EVENT_RECORD* CustomConsole::Read(int count)
 	MSG msg;
 	while (inputBuffer->size() < count) { Sleep(10); }
 
-	KEY_EVENT_RECORD* buffer = (KEY_EVENT_RECORD*)malloc(sizeof(KEY_EVENT_RECORD) * count);
+	KEY_EVENT_RECORD* buffer = (KEY_EVENT_RECORD*)safeMalloc(nullptr, sizeof(KEY_EVENT_RECORD) * count);
 	if (!buffer)
 		return NULL;
 
@@ -399,7 +406,7 @@ LRESULT CALLBACK CustomConsole::WndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPAR
 	{
 	case WM_CLOSE:
 		PostQuitMessage(0);
-		exit(0);
+		break;
 	case WM_CREATE:
 	case WM_CREATEBUFFER:
 		hdc = BeginPaint(hWnd, &ps);
@@ -519,8 +526,8 @@ LRESULT CALLBACK CustomConsole::WndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPAR
 		SIZE* consoleSize = (SIZE*)wParam;
 		columns = consoleSize->cx;
 		rows = consoleSize->cy;
-		if (screenBuffer) free(screenBuffer);
-		screenBuffer = (DISPLAYCHAR*)malloc(sizeof(DISPLAYCHAR) * columns * rows); 
+		if (screenBuffer) safeFree(nullptr, screenBuffer);
+		screenBuffer = (DISPLAYCHAR*)safeMalloc(nullptr, sizeof(DISPLAYCHAR) * columns * rows); 
 		ZeroMemory(screenBuffer, sizeof(DISPLAYCHAR) * columns * rows);
 		SendMessageW(WindowHandle, WM_CREATEBUFFER, VK_HOME, 0);
 		break;
@@ -560,8 +567,8 @@ LRESULT CALLBACK CustomConsole::WndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPAR
 		}*/
 		if (!brushesCreated)
 		{
-			if (brushes) free(brushes);
-			brushes = (HBRUSH*)malloc(sizeof(HBRUSH) * colorTableSize);
+			if (brushes) safeFree(nullptr, brushes);
+			brushes = (HBRUSH*)safeMalloc(nullptr, sizeof(HBRUSH) * colorTableSize);
 			for (int i = 0; i < colorTableSize; i++)
 			{
 				COLORREF ref = colorTable[i].ToColor();
@@ -647,7 +654,7 @@ DISPLAYCHAR* CustomConsole::WcharPointerToDisplayCharPointer(const wchar_t* stri
 	if (length <= 0)
 		return NULL;
 
-	DISPLAYCHAR* displayCharPointer = (DISPLAYCHAR*)malloc(sizeof(DISPLAYCHAR) * length);
+	DISPLAYCHAR* displayCharPointer = (DISPLAYCHAR*)safeMalloc(nullptr, sizeof(DISPLAYCHAR) * length);
 	ZeroMemory(displayCharPointer, sizeof(DISPLAYCHAR) * length);
 
 	if (displayCharPointer == 0)

@@ -1,6 +1,7 @@
 ﻿#include "WimApplyPage.h"
 
 #include "MessageBoxPage.h"
+#include <PantherLogger.h>
 
 /*
 DWORD __stdcall MessageCallback(IN DWORD Msg, IN WPARAM wParam, IN LPARAM lParam, IN PDWORD dwThreadId)
@@ -126,7 +127,7 @@ void WimApplyPage::Update(const wchar_t* fileName)
 
 void WimApplyPage::Init()
 {
-	statusText = (wchar_t*)malloc(sizeof(wchar_t) * (console->GetSize().cx + 1));
+	statusText = (wchar_t*)safeMalloc(nullptr, sizeof(wchar_t) * (console->GetSize().cx + 1));
 	if (!statusText) return;
 	memcpy(((wchar_t*)statusText), L"  Panther2K is installing Windows...", 37 * sizeof(wchar_t));
 }

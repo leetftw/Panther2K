@@ -18,11 +18,32 @@ do { \
 	while (trim_crlf_len > 0 && (buffer[trim_crlf_len - 1] == L'\n' || buffer[trim_crlf_len - 1] == L'\r')) \
 		buffer[--trim_crlf_len] = L'\0'; } while(0)
 
+#ifdef _DEBUG
+#define wlogf(logger, level, buffersize, message, ...) \
+do { \
+	wchar_t wlogbuffer[buffersize]; \
+	swprintf_s(wlogbuffer, message, __VA_ARGS__); \
+	wchar_t wlogbuffer2[buffersize]; \
+	swprintf_s(wlogbuffer2, L"%s [%s]", wlogbuffer, __FUNCTIONW__); \
+	logger->Write(level, wlogbuffer2); } while(0)
+#define wlogc(logger, level, message)  \
+do { \
+	const wchar_t* functionName = __FUNCTIONW__; \
+	int bufferSize = (lstrlenW(message) + lstrlenW(functionName) + 4); \
+	wchar_t* wlogbuffer = static_cast<wchar_t*>(safeMalloc(logger, bufferSize * sizeof(wchar_t))); \
+	swprintf_s(wlogbuffer, bufferSize, L"%s [%s]", message, functionName); \
+	logger->Write(level, wlogbuffer); \
+	safeFree(logger, wlogbuffer); \
+} while (0)
+
+#else
+#define wlogc(logger, level, message) logger->Write(level, message);
 #define wlogf(logger, level, buffersize, message, ...) \
 do { \
 	wchar_t wlogbuffer[buffersize]; \
 	swprintf_s(wlogbuffer, message, __VA_ARGS__); \
 	logger->Write(level, wlogbuffer); } while(0)
+#endif
 
 #define wlogerr(logger, level, buffersize, format, code, ...) \
 do { \
@@ -67,5 +88,9 @@ namespace LibPanther
 	};
 }
 
-void* __cdecl safeMalloc(LibPanther::Logger* logger, size_t size);
+void* __cdecl safeMallocImpl(LibPanther::Logger* logger, size_t size, const wchar_t* file, int line, const wchar_t* function);
+#define safeMalloc(logger, size) safeMallocImpl(logger, size, __FILEW__, __LINE__, __FUNCTIONW__)
 void* __cdecl safeLocalAlloc(LibPanther::Logger* logger, size_t size);
+
+void __cdecl safeFree(LibPanther::Logger* logger, void* ptr);
+void __cdecl safeCleanup(LibPanther::Logger* logger);

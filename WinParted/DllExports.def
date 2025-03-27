@@ -6,3 +6,5 @@ EXPORTS
    SetPartType   @5
    MountPartition   @6
    EnumerateDisks   @7
+   PrepareDiskForWindows  @8
+   EnumVolumes  @9

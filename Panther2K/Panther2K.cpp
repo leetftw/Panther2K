@@ -10,41 +10,35 @@
 #include "SetupManager.h"
 
 #include <windows.h>
+#include "WinPartedDll.h"
 
 // Command line builds (for testing and debugging)
 int wmain(int argc, wchar_t** argv)
 {
-    // Initialize GDI+.
     printf("Panther2K Early load. Version " PANTHER_VERSION "\n");
-    /*printf("Initializing GDI+...\n");
-    GdiplusStartupInput gdiplusStartupInput;
-    ULONG_PTR           gdiplusToken;
-    if (GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL) != Gdiplus::Ok)
-    {
-        MessageBoxW(NULL, L"Failed to initialize GDI+. Panther2K can not load.", L"Panther2K Early Init", MB_OK | MB_ICONERROR);
-        return false;
-    }*/
 
     printf("Creating logger...\n");
     LibPanther::Logger logger = LibPanther::Logger(L"debug.log", PANTHER_LL_VERBOSE);
-    printf("Creating console...\n");
-    CustomConsole console;
-    console.Init();
-    ShowWindow(console.WindowHandle, SW_SHOW);
 
-    Leet::Panther2K::SetupManager setup = Leet::Panther2K::SetupManager(&console, &logger);
-    setup.RunSetup();
-
-    return setup.GetResult();
-
-    /*
-    if (__argc == 2 && lstrcmpiW(__wargv[1], L"--pe") == 0) 
+    // Separate stack frame to perform deinitialization
+    HRESULT result;
     {
-        WindowsSetup::IsWinPE = true;
+        printf("Creating console...\n");
+        CustomConsole console;
+        console.Init();
+        ShowWindow(console.WindowHandle, SW_SHOW);
+
+        //WinPartedDll::EnumVolumes(&console, &logger, nullptr);
+        
+        Leet::Panther2K::SetupManager setup = Leet::Panther2K::SetupManager(&console, &logger);
+        setup.RunSetup();
+        result = setup.GetResult();
     }
 
-    return WindowsSetup::RunSetup();
-    */
+    // List unfreed memory
+    safeCleanup(&logger);
+
+    return result;
 }
 
 // Headless builds (for releases)

@@ -21,7 +21,7 @@ void PartitionTypeSelectionPage::DrawPage()
 	Console* console = GetConsole();
 	SIZE consoleSize = console->GetSize();
 	int bufferSize = consoleSize.cx + 1;
-	wchar_t* buffer = (wchar_t*)malloc(sizeof(wchar_t) * bufferSize);
+	wchar_t* buffer = (wchar_t*)safeMalloc(PartitionManager::GetLogger(), sizeof(wchar_t) * bufferSize);
 
 	console->SetBackgroundColor(CONSOLE_COLOR_BG);
 	console->SetForegroundColor(CONSOLE_COLOR_LIGHTFG);
@@ -77,11 +77,11 @@ void PartitionTypeSelectionPage::UpdatePage()
 	Console* console = GetConsole();
 	SIZE consoleSize = console->GetSize();
 	int bufferSize = consoleSize.cx + 1;
-	wchar_t* buffer = (wchar_t*)malloc(sizeof(wchar_t) * bufferSize);
+	wchar_t* buffer = (wchar_t*)safeMalloc(PartitionManager::GetLogger(), sizeof(wchar_t) * bufferSize);
 	wchar_t guidBuffer[37];
 
 	int selbufferSize = consoleSize.cx - 12 + 1;
-	wchar_t* selbuffer = (wchar_t*)malloc(sizeof(wchar_t) * bufferSize);
+	wchar_t* selbuffer = (wchar_t*)safeMalloc(PartitionManager::GetLogger(), sizeof(wchar_t) * bufferSize);
 	for (int i = 0; i < min(totalItems, maxItems); i++)
 	{
 		int j = i + scrollIndex;

@@ -1,3 +1,9 @@
 #pragma once
-#define PANTHER_VERSION "2.0.0 Alpha 2"
+
+#define PANTHER_RT_ALPHA 0
+#define PANTHER_RT_BETA 1
+#define PANTHER_RT_RELEASE 2
+
+#define PANTHER_VERSION "2.0.0b1"
+#define PANTHER_RELEASE_TYPE PANTHER_RT_BETA
 #define WINPARTED_VERSION "14"

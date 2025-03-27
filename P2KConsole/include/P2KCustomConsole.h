@@ -25,6 +25,7 @@ class CustomConsole : public Console
 public:
 	// Constructor
 	CustomConsole();
+	~CustomConsole();
 
 	bool Init();
 	void SetPosition(long x, long y);

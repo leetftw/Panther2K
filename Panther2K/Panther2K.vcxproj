@@ -236,6 +236,7 @@
     <ClCompile Include="BootPreparationPage.cpp" />
     <ClCompile Include="DiskSelectionPage.cpp" />
     <ClCompile Include="FinalPage.cpp" />
+    <ClCompile Include="PartitionSelectionPage.cpp" />
     <ClCompile Include="SetupManager.cpp" />
     <ClCompile Include="WinPartedDll.cpp" />
     <ClInclude Include="iatpatch.h" />
@@ -256,9 +257,6 @@
     <Image Include="small.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="PartitionSelectionPage.cpp">
-      <FileType>CppCode</FileType>
-    </None>
     <None Include="PartitionSelectionPage.h" />
     <None Include="rc_data1.bin" />
   </ItemGroup>

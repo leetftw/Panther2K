@@ -199,8 +199,8 @@ HRESULT GetVolumeDiskExtents(std::wstring& volumePath, VOLUME_DISK_EXTENTS** dis
 	}
 
 	size_t size = sizeof(VOLUME_DISK_EXTENTS);
-	VOLUME_DISK_EXTENTS* extents = static_cast<VOLUME_DISK_EXTENTS*>(malloc(size));
-	if (!extents) return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, ERROR_OUTOFMEMORY);
+	VOLUME_DISK_EXTENTS* extents = static_cast<VOLUME_DISK_EXTENTS*>(safeMalloc(nullptr, size));
+	//if (!extents) return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, ERROR_OUTOFMEMORY);
 	BOOL ioResult = DeviceIoControl(hVolume, IOCTL_VOLUME_GET_VOLUME_DISK_EXTENTS, NULL, 0, extents, size, NULL, NULL);
 	while (!ioResult && GetLastError() == ERROR_MORE_DATA)
 	{
@@ -226,7 +226,6 @@ HRESULT Leet::Panther2K::SetupEngine::createBootFiles()
 	wchar_t pathBuffers[2][MAX_PATH];
 	std::wstring systemVolumePath = L"\\\\?\\Volume" + szSystemPartition;
 	std::wstring bootVolumePath = L"\\\\?\\Volume" + szBootPartition;
-	std::wstring recoveryVolumePath = L"\\\\?\\Volume" + szRecoveryPartition;
 
 	/*
 	* Determine if all partitions are on the same disk
@@ -504,18 +503,6 @@ HRESULT Leet::Panther2K::SetupEngine::createBootFiles()
 	{
 		wlogerr(installLog, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Engine/Install thread] Failed to set BCD display order. %s (0x%08X)", temp, temp);
 		return temp;
-	}
-
-	/*
-	* TODO: SETUP WINDOWS RECOVERY ENVIRONMENT
-	* 1. Create files
-	* 2. Create recovery entry
-	* 3. Configure using reagentc
-	* 4. Set partition type to recovery
-	*/
-	if (false)
-	{
-
 	}
 
 	/*

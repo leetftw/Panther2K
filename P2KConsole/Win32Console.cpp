@@ -1,5 +1,6 @@
 #include "Win32Console.h"
 #include <iostream>
+#include "include/PantherLogger.h"
 
 bool rgbMode = true;
 
@@ -73,7 +74,7 @@ void Win32Console::SetCursor(bool enabled, bool blinking)
 void Win32Console::Write(const wchar_t* string)
 {
     int strlen = lstrlenW(string);
-    wchar_t* stringwithcolorescape = (wchar_t*)malloc(sizeof(wchar_t) * (lstrlenW(string) + 40 + 1));
+    wchar_t* stringwithcolorescape = (wchar_t*)safeMalloc(nullptr, sizeof(wchar_t) * (lstrlenW(string) + 40 + 1));
 
     if (rgbMode) 
     {
@@ -92,7 +93,7 @@ void Win32Console::Write(const wchar_t* string)
 
 void Win32Console::WriteLine(const wchar_t* string)
 {
-	wchar_t* stringwithlinebreak = (wchar_t*)malloc(sizeof(wchar_t) * (lstrlenW(string) + 2));
+	wchar_t* stringwithlinebreak = (wchar_t*)safeMalloc(nullptr, sizeof(wchar_t) * (lstrlenW(string) + 2));
 
 	memcpy(stringwithlinebreak, string, sizeof(wchar_t) * lstrlenW(string));
     stringwithlinebreak[lstrlenW(string)] = L'\n';
@@ -104,7 +105,7 @@ void Win32Console::WriteLine(const wchar_t* string)
 
 KEY_EVENT_RECORD* Win32Console::Read(int count)
 {
-    KEY_EVENT_RECORD* keys = (KEY_EVENT_RECORD*)malloc(sizeof(KEY_EVENT_RECORD) * count);
+    KEY_EVENT_RECORD* keys = (KEY_EVENT_RECORD*)safeMalloc(nullptr, sizeof(KEY_EVENT_RECORD) * count);
     if (!keys)
         return NULL;
 

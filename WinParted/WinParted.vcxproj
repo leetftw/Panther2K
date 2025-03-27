@@ -169,6 +169,7 @@
   <ItemGroup>
     <ClCompile Include="CoreFunctions\DllExports.cpp" />
     <ClCompile Include="CoreFunctions\VdsFunctions.cpp" />
+    <ClCompile Include="CoreFunctions\VdsService.cpp" />
     <ClCompile Include="DiskPartitioningPage.cpp" />
     <ClCompile Include="Partition\PartitionFormatPage.cpp" />
     <ClCompile Include="Partition\PartitionCreationPage.cpp" />
@@ -183,6 +184,7 @@
     <ClCompile Include="WinParted.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CoreFunctions\VdsService.h" />
     <ClInclude Include="DiskPartitioningPage.h" />
     <ClInclude Include="Partition\PartitionFormatPage.h" />
     <ClInclude Include="Partition\PartitionCreationPage.h" />

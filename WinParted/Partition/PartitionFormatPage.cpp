@@ -41,7 +41,7 @@ void PartitionFormatPage::InitPage()
 	while (token != NULL)
 	{
 		int tokenSize = lstrlenW(token);
-		supportedFileSystems[supportedFsCount] = (wchar_t*)malloc(tokenSize + 1);
+		supportedFileSystems[supportedFsCount] = (wchar_t*)safeMalloc(PartitionManager::GetLogger(), tokenSize + 1);
 		if (!supportedFileSystems[supportedFsCount])
 			continue;
 		wcscpy_s(supportedFileSystems[supportedFsCount++], tokenSize + 1, token);
@@ -57,7 +57,7 @@ void PartitionFormatPage::DrawPage()
 	Console* console = GetConsole();
 	SIZE consoleSize = console->GetSize();
 	int bufferSize = consoleSize.cx + 1;
-	wchar_t* buffer = (wchar_t*)malloc(sizeof(wchar_t) * bufferSize);
+	wchar_t* buffer = (wchar_t*)safeMalloc(PartitionManager::GetLogger(), sizeof(wchar_t) * bufferSize);
 
 	console->SetBackgroundColor(CONSOLE_COLOR_BG);
 	console->SetForegroundColor(CONSOLE_COLOR_LIGHTFG);
@@ -90,6 +90,8 @@ void PartitionFormatPage::DrawPage()
 	console->SetPosition(6, console->GetPosition().y + 1);
 	console->Write(L"\x2022  To go back to the partition information screen, press ESC");
 
+	safeFree(PartitionManager::GetLogger(), buffer);
+
 	drawY = console->GetPosition().y + 2;
 }
 
@@ -99,7 +101,7 @@ void PartitionFormatPage::UpdatePage()
 	SIZE consoleSize = console->GetSize();
 
 	unsigned long long bufferSize = consoleSize.cx + 1;
-	wchar_t* buffer = (wchar_t*)malloc(sizeof(wchar_t) * bufferSize);
+	wchar_t* buffer = (wchar_t*)safeMalloc(nullptr, sizeof(wchar_t) * bufferSize);
 
 	console->SetBackgroundColor(CONSOLE_COLOR_BG);
 	console->SetForegroundColor(CONSOLE_COLOR_FG);

@@ -1,4 +1,5 @@
-#include "PartitionSelectionPage.h"
+#include "PartitionSelectionPage.h"
+
 #include "QuitingPage.h"
 #include "MessageBoxPage.h"
 #include "WinPartedDll.h"
@@ -62,7 +63,7 @@ VOLUME_INFO PartitionSelectionPage::GetSelectedVolume()
 
 void PartitionSelectionPage::Init()
 {
-	statusText = L"  ENTER=Select  F8=Run WinParted  F9=Display all  ESC=Back  F3=Quit";
+	statusText = L"  ENTER=Select  F8=WinParted  F9=DiskPart  F10=Show all  ESC=Back  F3=Quit";
 }
 
 void PartitionSelectionPage::Drawer()
@@ -70,16 +71,16 @@ void PartitionSelectionPage::Drawer()
 	console->SetBackgroundColor(CONSOLE_COLOR_BG);
 	console->SetForegroundColor(CONSOLE_COLOR_LIGHTFG);
 
-	DrawTextLeft(part1Strings[stringTableIndex], console->GetSize().cx - 6, 4);
+	console->DrawTextLeft(part1Strings[stringTableIndex], console->GetSize().cx - 6, 4);
 
 	console->SetBackgroundColor(CONSOLE_COLOR_BG);
 	console->SetForegroundColor(CONSOLE_COLOR_FG);
 
-	DrawTextLeft(part2Strings[stringTableIndex], console->GetSize().cx - 6, console->GetPosition().y + 2);
+	console->DrawTextLeft(part2Strings[stringTableIndex], console->GetSize().cx - 6, console->GetPosition().y + 2);
 
-	DrawTextLeft(L"Use the UP and DOWN ARROW keys to select the partition.", console->GetSize().cx - 6, console->GetPosition().y + 2);
+	console->DrawTextLeft(L"Use the UP and DOWN ARROW keys to select the partition.", console->GetSize().cx - 6, console->GetPosition().y + 2);
 
-	DrawTextLeft(L"Press F8 to modify your partition layout using DiskPart.", console->GetSize().cx - 6, console->GetPosition().y + 1);
+	console->DrawTextLeft(L"Press F8 to modify your partition layout using DiskPart.", console->GetSize().cx - 6, console->GetPosition().y + 1);
 
 	int boxX = 3;
 	boxY = console->GetPosition().y + 2;
@@ -156,10 +157,16 @@ bool PartitionSelectionPage::KeyHandler(WPARAM wParam)
 		AddPopup(new QuitingPage());
 		break;
 	case VK_F8:
-		//WinPartedDll::RunWinParted(console, WindowsSetup::GetLogger());
+	{
+		LibPanther::Logger pantherLogger(L"winparted.log", PANTHER_LL_VERBOSE);
+		WinPartedDll::RunWinParted(console, &pantherLogger);
+	}
 		Draw();
 		break;
 	case VK_F9:
+		ShellExecuteW(NULL, L"open", L"diskpart", L"", NULL, SW_SHOW);
+		break;
+	case VK_F10:
 		showAll = !showAll;
 		EnumeratePartitions();
 		break;

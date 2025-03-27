@@ -42,7 +42,7 @@ void BootMethodSelectionPage::Drawer()
 	console->Write(L"•");
 	console->SetForegroundColor(legacy ? CONSOLE_COLOR_FG : CONSOLE_COLOR_BG);
 	console->SetBackgroundColor(legacy ? CONSOLE_COLOR_BG : CONSOLE_COLOR_FG);
-	DrawTextLeft(L"UEFI (Recommended): Modern method of booting. Uses a separate partition to store files required for booting the computer. (Required for Windows 11 and up)", console->GetSize().cx - 18, console->GetPosition().y);
+	console->DrawTextLeft(L"UEFI (Recommended): Modern method of booting. Uses a separate partition to store files required for booting the computer. (Required for Windows 11 and up)", console->GetSize().cx - 18, console->GetPosition().y);
 
 	console->SetForegroundColor(CONSOLE_COLOR_FG);
 	console->SetBackgroundColor(CONSOLE_COLOR_BG);
@@ -50,14 +50,14 @@ void BootMethodSelectionPage::Drawer()
 	console->Write(L"•");
 	console->SetForegroundColor(legacy ? CONSOLE_COLOR_BG : CONSOLE_COLOR_FG);
 	console->SetBackgroundColor(legacy ? CONSOLE_COLOR_FG : CONSOLE_COLOR_BG);
-	DrawTextLeft(L"Legacy/BIOS: Traditional method of booting. Uses the first sector of your hard drive to store code for loading Windows.", console->GetSize().cx - 18, console->GetPosition().y);
+	console->DrawTextLeft(L"Legacy/BIOS: Traditional method of booting. Uses the first sector of your hard drive to store code for loading Windows.", console->GetSize().cx - 18, console->GetPosition().y);
 
 	console->SetForegroundColor(CONSOLE_COLOR_FG);
 	console->SetBackgroundColor(CONSOLE_COLOR_BG);
-	DrawTextLeft(L"To select the boot method, use the UP and DOWN arrow keys.", console->GetSize().cx - 6, console->GetPosition().y + 2);
+	console->DrawTextLeft(L"To select the boot method, use the UP and DOWN arrow keys.", console->GetSize().cx - 6, console->GetPosition().y + 2);
 	console->SetForegroundColor(CONSOLE_COLOR_FG);
 	console->SetBackgroundColor(CONSOLE_COLOR_BG);
-	DrawTextLeft(L"To continue with the installation, press Enter.", console->GetSize().cx - 6, console->GetPosition().y + 2);
+	console->DrawTextLeft(L"To continue with the installation, press Enter.", console->GetSize().cx - 6, console->GetPosition().y + 2);
 }
 
 void BootMethodSelectionPage::Redrawer()
@@ -68,7 +68,7 @@ void BootMethodSelectionPage::Redrawer()
 	console->Write(L"•");
 	console->SetForegroundColor(legacy ? CONSOLE_COLOR_FG : CONSOLE_COLOR_BG);
 	console->SetBackgroundColor(legacy ? CONSOLE_COLOR_BG : CONSOLE_COLOR_FG);
-	DrawTextLeft(L"UEFI (Recommended): Modern method of booting. Uses a separate partition to store files required for booting the computer. (Required for Windows 11 and up)", console->GetSize().cx - 18, console->GetPosition().y);
+	console->DrawTextLeft(L"UEFI (Recommended): Modern method of booting. Uses a separate partition to store files required for booting the computer. (Required for Windows 11 and up)", console->GetSize().cx - 18, console->GetPosition().y);
 
 	console->SetForegroundColor(CONSOLE_COLOR_FG);
 	console->SetBackgroundColor(CONSOLE_COLOR_BG);
@@ -76,7 +76,7 @@ void BootMethodSelectionPage::Redrawer()
 	console->Write(L"•");
 	console->SetForegroundColor(legacy ? CONSOLE_COLOR_BG : CONSOLE_COLOR_FG);
 	console->SetBackgroundColor(legacy ? CONSOLE_COLOR_FG : CONSOLE_COLOR_BG);
-	DrawTextLeft(L"Legacy/BIOS: Traditional method of booting. Uses the first sector of your hard drive to store code for loading Windows.", console->GetSize().cx - 18, console->GetPosition().y);
+	console->DrawTextLeft(L"Legacy/BIOS: Traditional method of booting. Uses the first sector of your hard drive to store code for loading Windows.", console->GetSize().cx - 18, console->GetPosition().y);
 }
 
 bool BootMethodSelectionPage::KeyHandler(WPARAM wParam)
