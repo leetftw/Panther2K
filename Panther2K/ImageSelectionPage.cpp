@@ -1,6 +1,6 @@
 ﻿#include "ImageSelectionPage.h"
 
-#include "QuitingPage.h"
+#include "QuittingPage.h"
 
 bool ImageSelectionPage::SetData(PantherWimInfo* wimInfo)
 {
@@ -114,7 +114,7 @@ void ImageSelectionPage::Redrawer()
 	else console->Write(L" ");
 }
 
-bool ImageSelectionPage::KeyHandler(WPARAM wParam)
+PageResult ImageSelectionPage::KeyHandler(WPARAM wParam)
 {
 	SIZE consoleSize = console->GetSize();
 	int boxHeight = consoleSize.cy - boxY - 2;
@@ -138,15 +138,12 @@ bool ImageSelectionPage::KeyHandler(WPARAM wParam)
 		Redraw();
 		break;
 	case VK_RETURN:
-		//WindowsSetup::WimImageIndex = scrollIndex + selectionIndex + 1;
-		//WindowsSetup::LoadPhase(3);
-		return false;
+		return PageContinue;
 	case VK_F3:
-		AddPopup(new QuitingPage());
+		AddPopup(new QuittingPage());
 		break;
 	case VK_ESCAPE:
-		//WindowsSetup::LoadPhase(1);
-		break;
+		return PageGoBack;
 	}
-	return true;
+	return PageSuccess;
 }

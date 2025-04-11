@@ -45,7 +45,7 @@
     <ClInclude Include="..\rapidxml.1.13.0\build\native\include\rapidxml\rapidxml.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="QuitingPage.h">
+    <ClInclude Include="QuittingPage.h">
       <Filter>Header Files\Pages</Filter>
     </ClInclude>
     <ClInclude Include="ImageSelectionPage.h">
@@ -98,7 +98,7 @@
     <ClCompile Include="PopupPage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="QuitingPage.cpp">
+    <ClCompile Include="QuittingPage.cpp">
       <Filter>Source Files\Pages</Filter>
     </ClCompile>
     <ClCompile Include="WelcomePage.cpp">

@@ -56,6 +56,23 @@ typedef struct _MOUNTMGR_MOUNT_POINTS {
     MOUNTMGR_MOUNT_POINT MountPoints[1];
 } MOUNTMGR_MOUNT_POINTS, * PMOUNTMGR_MOUNT_POINTS;
 
+
+
+PageResult ShowPageModal(Console* console, LibPanther::Logger* logger, Page* page)
+{
+    PageResult result;
+    KEY_EVENT_RECORD* record = console->Read();
+    while (!record->bKeyDown || (result = page->HandleKey(record->wVirtualKeyCode)) == PageSuccess)
+    {
+        safeFree(logger, record);
+        record = console->Read();
+    }
+    safeFree(logger, record);
+
+    return result;
+}
+
+
 void Leet::Panther2K::SetupManager::PreviousStep()
 {
     currentStep -= 2;
@@ -89,6 +106,15 @@ void Leet::Panther2K::SetupManager::RunSetup()
         wlogf(logger, PANTHER_LL_NORMAL, MAX_PATH, L"[Client] Running step '%s'...", std::get<0>(step));
         switch ((*this.*(std::get<1>(step)))()) 
         {
+        case StepResult::Exit:
+        {
+            wlogc(logger, PANTHER_LL_BASIC, L"[Client] Exit requested, stopping installation...");
+            if (SUCCEEDED(exitCode)) 
+            {
+                exitCode = HRESULT_FROM_WIN32(ERROR_CANCELLED);
+                return;
+            }
+        }
         case StepResult::Fail:
         {
             if (HRESULT_FACILITY(exitCode) == FACILITY_WIN32)
@@ -305,17 +331,8 @@ StepResult Leet::Panther2K::SetupManager::WelcomeUser()
     msgBox.ShowDialog();
     
     page.Draw();
-
-    for (KEY_EVENT_RECORD* record = console->Read();
-        !record->bKeyDown || page.HandleKey(record->wVirtualKeyCode);
-        record = console->Read()) {
-        safeFree(logger, record);
-    }
-
-    /*WinPartedDll::PrepareDiskForWindows(console, logger, L"\\\\?\\Volume{6aa526c2-6513-4820-a80b-87935be579b2}", false, 52428800ULL, 1048576000ULL, nullptr);
-
-    exitCode = E_NOTIMPL;
-    return StepResult::Fail;*/
+    PageResult result = ShowPageModal(console, logger, &page);
+    if (result == PageExit) return StepResult::Exit;
 
     return StepResult::Success;
 }
@@ -355,7 +372,7 @@ StepResult Leet::Panther2K::SetupManager::SelectWIMImage()
     CloseHandle(hMPM);
     if (!bResult)
     {
-        free(mountPoints);
+        safeFree(logger, mountPoints);
         exitCode = HRESULT_FROM_WIN32(GetLastError());
         return StepResult::Fail;
     }
@@ -378,7 +395,7 @@ StepResult Leet::Panther2K::SetupManager::SelectWIMImage()
         paths.push_back(std::wstring(symlink, length));
     }
 
-    free(mountPoints);
+    safeFree(logger, mountPoints);
 
     wlogc(logger, PANTHER_LL_DETAILED, L"[Client] Searching for WIM file in enumerated volumes...");
 
@@ -454,11 +471,9 @@ StepResult Leet::Panther2K::SetupManager::SelectWIMImage()
         page.Draw();
         LocalFree(wimInfo);
 
-        for (KEY_EVENT_RECORD* record = console->Read();
-            !record->bKeyDown || page.HandleKey(record->wVirtualKeyCode);
-            record = console->Read()) {
-            safeFree(logger, record);
-        }
+        PageResult result = ShowPageModal(console, logger, &page);
+        if (result == PageGoBack) return StepResult::GoBack;
+        else if (result == PageExit) return StepResult::Exit;
 
         selectedIndex = page.GetResult();
     }
@@ -480,11 +495,9 @@ StepResult Leet::Panther2K::SetupManager::SelectBootMethod()
     page.Initialize(console);
     page.Draw();
 
-    for (KEY_EVENT_RECORD* record = console->Read();
-        !record->bKeyDown || page.HandleKey(record->wVirtualKeyCode);
-        record = console->Read()) {
-        safeFree(logger, record);
-    }
+    PageResult pageResult = ShowPageModal(console, logger, &page);
+    if (pageResult == PageGoBack) return StepResult::GoBack;
+    else if (pageResult == PageExit) return StepResult::Exit;
 
     useLegacy = page.GetResult();
     HRESULT result = PantherEngineSetUseLegacy(engine, useLegacy);
@@ -512,17 +525,15 @@ StepResult Leet::Panther2K::SetupManager::SelectPartMethod()
 
     userSelection:
     page.Draw();
-    for (KEY_EVENT_RECORD* record = console->Read();
-        !record->bKeyDown || page.HandleKey(record->wVirtualKeyCode);
-        record = console->Read()) {
-        safeFree(logger, record);
-    }
+    PageResult pageResult = ShowPageModal(console, logger, &page);
+    if (pageResult == PageGoBack) return StepResult::GoBack;
+    else if (pageResult == PageExit) return StepResult::Exit;
 
     int selectedDisk = page.GetResult();
     if (selectedDisk == -1)
     {
+        wlogc(logger, PANTHER_LL_DETAILED, L"[Client] Custom partitioning requested, entering Easy Part Mode.");
         /*
-        wlogc(logger, PANTHER_LL_DETAILED, L"[Client] Custom partitioning requested, unsupported.");
         MessageBoxPage msgBox(L"Not implemented.", true, &page);
         msgBox.Initialize(console, &page);
         msgBox.ShowDialog();
@@ -544,7 +555,7 @@ StepResult Leet::Panther2K::SetupManager::SelectPartMethod()
     result = (useLegacy ? WinPartedDll::ApplyP2KLayoutToDiskMBR : WinPartedDll::ApplyP2KLayoutToDiskGPT)
         (console, logger, selectedDisk, true, nullptr, &volumesPtr);
 
-    free(volumesPtr);
+    safeFree(logger, volumesPtr);
 
     if (FAILED(result))
     {
@@ -553,7 +564,7 @@ StepResult Leet::Panther2K::SetupManager::SelectPartMethod()
         wchar_t displayMessage[MAX_PATH * 2];
         wchar_t errorMessage[MAX_PATH];
         FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, NULL, result, NULL, errorMessage, MAX_PATH, NULL);
-        swprintf_s(displayMessage, L"An error occurred while preparing the disk. %s", errorMessage);
+        swprintf_s(displayMessage, L"An error occurred while preparing the disk. WinParted reported an error: %s", errorMessage);
 
         MessageBoxPage* msgBox = new MessageBoxPage(displayMessage, false, &page);
         msgBox->Initialize(console, &page);
@@ -571,16 +582,36 @@ StepResult Leet::Panther2K::SetupManager::SelectPartMethod()
     result = PantherEngineSetBootVolume(engine, bootPartition.c_str());
     if (FAILED(result))
     {
-        wlogf(logger, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Client] Failed to select the boot volume. WinParted reported an error. The installation is not aborted. (0x%08X)", result);
-        exitCode = result;
+        wlogf(logger, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Client] Failed to select the boot volume (DiskPartitioning). The engine reported an error. The installation is not aborted. (0x%08X)", result);
+        
+        wchar_t displayMessage[MAX_PATH * 2];
+        wchar_t errorMessage[MAX_PATH];
+        FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, NULL, result, NULL, errorMessage, MAX_PATH, NULL);
+        swprintf_s(displayMessage, L"An error occurred while selecting the prepared boot volume. The engine reported an error: %s", errorMessage);
+
+        MessageBoxPage* msgBox = new MessageBoxPage(displayMessage, false, &page);
+        msgBox->Initialize(console, &page);
+        msgBox->ShowDialog();
+        delete msgBox;
+
         goto userSelection;
     }
 
     result = PantherEngineSetSystemVolume(engine, systemPartition.c_str()); 
     if (FAILED(result))
     {
-        wlogf(logger, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Client] Failed to select the system volume. WinParted reported an error. The installation is not aborted. (0x%08X)", result);
-        exitCode = result;
+        wlogf(logger, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Client] Failed to select the system volume (DiskPartitioning). The engine reported an error. The installation is not aborted. (0x%08X)", result);
+        
+        wchar_t displayMessage[MAX_PATH * 2];
+        wchar_t errorMessage[MAX_PATH];
+        FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, NULL, result, NULL, errorMessage, MAX_PATH, NULL);
+        swprintf_s(displayMessage, L"An error occurred while selecting the prepared system volume. The engine reported an error: %s", errorMessage);
+
+        MessageBoxPage* msgBox = new MessageBoxPage(displayMessage, false, &page);
+        msgBox->Initialize(console, &page);
+        msgBox->ShowDialog();
+        delete msgBox;
+
         goto userSelection;
     }
 
@@ -590,24 +621,77 @@ StepResult Leet::Panther2K::SetupManager::SelectPartMethod()
 StepResult Leet::Panther2K::SetupManager::SelectPartitions()
 {
     // Easy partitioning mode
-    PartitionSelectionPage page(L"NTFS", 0ULL, 0ULL, 0, 0);
+    VolumeSelectionPage page(L"NTFS", 0ULL, 0ULL, 0, 0);
     page.Initialize(console);
 
+    VolumeInformation* volumeInfos; int count;
+    HRESULT result = WinPartedDll::EnumVolumes(console, logger, &volumeInfos, false, &count);
+    if (FAILED(result)) DebugBreak();
+    page.SetVolumeList(volumeInfos, count);
+
+    userSelection:
     page.Draw();
-    for (KEY_EVENT_RECORD* record = console->Read();
-        !record->bKeyDown || page.HandleKey(record->wVirtualKeyCode);
-        record = console->Read()) {
-        safeFree(logger, record);
-    }
+    PageResult pageResult = ShowPageModal(console, logger, &page);
+    if (pageResult == PageGoBack) return StepResult::GoBack;
+    else if (pageResult == PageExit) return StepResult::Exit;
     
-    VOLUME_INFO info = page.GetSelectedVolume();
+    VolumeInformation info = page.GetSelectedVolume();
     wchar_t volumes[2][128];
-    HRESULT result = WinPartedDll::PrepareDiskForWindows(console, logger, info.guid, useLegacy, 500000000ULL, 0ULL, volumes);
-    if (FAILED(result)) DebugBreak();
-    result = PantherEngineSetSystemVolume(engine, volumes[0]);
-    if (FAILED(result)) DebugBreak();
-    result = PantherEngineSetBootVolume(engine, volumes[1]);
-    if (FAILED(result)) DebugBreak();
+    result = WinPartedDll::PrepareDiskForWindows(console, logger, info.VolumeFile, useLegacy, 500000000ULL, 0ULL, volumes);
+    if (FAILED(result))
+    {
+        wlogf(logger, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Client] Failed to select the system volume (EasyPartitioning). WinParted reported an error. The installation is not aborted. (0x%08X)", result);
+        
+        wchar_t displayMessage[MAX_PATH * 2];
+        wchar_t errorMessage[MAX_PATH];
+        FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, NULL, result, NULL, errorMessage, MAX_PATH, NULL);
+        swprintf_s(displayMessage, L"An error occurred while preparing the selected system volume. WinParted reported an error: %s", errorMessage);
+
+        MessageBoxPage* msgBox = new MessageBoxPage(displayMessage, false, &page);
+        msgBox->Initialize(console, &page);
+        msgBox->ShowDialog();
+        delete msgBox;
+
+        goto userSelection;
+    }
+
+    // \\?\Volume{aabbccdd-aabb-ccdd-eeff-gghhaabbccdd}\
+    // needs to be in format {aabbccdd-aabb-ccdd-eeff-gghhaabbccdd}
+    volumes[0][48] = 0; volumes[1][48] = 0;
+    result = PantherEngineSetSystemVolume(engine, volumes[0] + 10);
+    if (FAILED(result))
+    {
+        wlogf(logger, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Client] Failed to select the system volume (EasyPartitioning). The engine reported an error. The installation is not aborted. (0x%08X)", result);
+        
+        wchar_t displayMessage[MAX_PATH * 2];
+        wchar_t errorMessage[MAX_PATH];
+        FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, NULL, result, NULL, errorMessage, MAX_PATH, NULL);
+        swprintf_s(displayMessage, L"An error occurred while selecting the prepared system volume. The engine reported an error: %s", errorMessage);
+
+        MessageBoxPage* msgBox = new MessageBoxPage(displayMessage, false, &page);
+        msgBox->Initialize(console, &page);
+        msgBox->ShowDialog();
+        delete msgBox;
+
+        goto userSelection;
+    }
+    result = PantherEngineSetBootVolume(engine, volumes[1] + 10);
+    if (FAILED(result))
+    {
+        wlogf(logger, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Client] Failed to select the boot volume (EasyPartitioning). The engine reported an error. The installation is not aborted. (0x%08X)", result);
+
+        wchar_t displayMessage[MAX_PATH * 2];
+        wchar_t errorMessage[MAX_PATH];
+        FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, NULL, result, NULL, errorMessage, MAX_PATH, NULL);
+        swprintf_s(displayMessage, L"An error occurred while selecting the prepared boot volume. The engine reported an error: %s", errorMessage);
+
+        MessageBoxPage* msgBox = new MessageBoxPage(displayMessage, false, &page);
+        msgBox->Initialize(console, &page);
+        msgBox->ShowDialog();
+        delete msgBox;
+
+        goto userSelection;
+    }
 
     return StepResult::Success;
 }
@@ -711,11 +795,6 @@ StepResult Leet::Panther2K::SetupManager::FinalizeSetup()
     page.Initialize(console);
     page.Draw();
 
-    for (KEY_EVENT_RECORD* record = console->Read();
-        !record->bKeyDown || page.HandleKey(record->wVirtualKeyCode);
-        record = console->Read()) {
-        safeFree(logger, record);
-    }
-
+    ShowPageModal(console, logger, &page);
     return StepResult::Success;
 }

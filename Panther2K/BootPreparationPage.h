@@ -6,6 +6,6 @@ protected:
 	virtual void Init() override;
 	virtual void Drawer() override;
 	virtual void Redrawer() override;
-	virtual bool KeyHandler(WPARAM wParam) override;
+	virtual PageResult KeyHandler(WPARAM wParam) override;
 };
 

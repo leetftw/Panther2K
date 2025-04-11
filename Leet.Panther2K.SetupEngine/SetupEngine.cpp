@@ -237,6 +237,7 @@ HRESULT checkVolume(const std::wstring& volumeGuid, unsigned long long minSize, 
 
 HRESULT Leet::Panther2K::SetupEngine::SetBootVolume(const std::wstring& volumeGuid)
 {
+	// TODO: hardcoded limit?
 	HRESULT res = checkVolume(volumeGuid, 50000000ULL, 0ULL, L"ntfs", L"fat32", nullptr);
 	if (SUCCEEDED(res)) szBootPartition.assign(volumeGuid);
 	return res;
@@ -244,6 +245,7 @@ HRESULT Leet::Panther2K::SetupEngine::SetBootVolume(const std::wstring& volumeGu
 
 HRESULT Leet::Panther2K::SetupEngine::SetSystemVolume(const std::wstring& volumeGuid)
 {
+	// TODO: hardcoded limit?
 	HRESULT res = checkVolume(volumeGuid, 0ULL, 21474836480ULL, L"ntfs", nullptr);
 	if (SUCCEEDED(res)) szSystemPartition.assign(volumeGuid);
 	return res;

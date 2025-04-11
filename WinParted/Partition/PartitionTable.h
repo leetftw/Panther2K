@@ -69,6 +69,10 @@ struct VolumeInformation
 	wchar_t VolumeName[128];
 	wchar_t VolumeFile[128];
 	wchar_t MountPoint[MAX_PATH];
+	unsigned long long TotalSize;
+	unsigned long long SpaceFree;
+	unsigned int DiskNumber;
+	unsigned int PartitionNumber;
 };
 
 struct PartitionInformation

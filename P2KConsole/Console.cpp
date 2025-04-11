@@ -17,6 +17,11 @@ Console::Console()
     }
 }
 
+Console::~Console()
+{
+    safeFree(nullptr, colorTable);
+}
+
 COLOR ParseColor(const wchar_t* text, bool* success)
 {
     unsigned char rgb[3] = { 0 };
@@ -159,7 +164,7 @@ COLOR Console::GetForegroundColor()
 
 void Console::SetColorTable(COLOR* colorTable, int colorTableSize)
 {
-    if (this->colorTable) free(this->colorTable);
+    if (this->colorTable) safeFree(nullptr, this->colorTable);
     this->colorTable = colorTable;
     this->colorTableSize = colorTableSize;
     UpdateColorTable();

@@ -15,10 +15,9 @@ void FinalPage::Drawer()
 
 	console->SetForegroundColor(CONSOLE_COLOR_FG);
 
-	console->SetPosition(3, 6);
-	console->Write(L"Setup has finished installing Windows onto your computer. The Windows Out-Of-Box Experience (OOBE) will guide you through the rest of the installation.");
+	console->DrawTextLeft(L"Setup has finished installing Windows onto your computer. The Windows Out-Of-Box Experience (OOBE) will guide you through the rest of the installation.", console->GetSize().cx - 6, 6);
 
-	console->SetPosition(3, 10);
+	console->SetPosition(3, console->GetPosition().y + 2);
 	console->Write(L"To exit Panther2K, press the ENTER key.");
 }
 
@@ -27,7 +26,7 @@ void FinalPage::Redrawer()
 
 }
 
-bool FinalPage::KeyHandler(WPARAM wParam)
+PageResult FinalPage::KeyHandler(WPARAM wParam)
 {
-	return wParam != VK_RETURN;
+	return wParam == VK_RETURN ? PageContinue : PageSuccess;
 }

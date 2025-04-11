@@ -15,6 +15,7 @@ typedef enum {
     Fail,
     SkipNext,
     GoBack,
+    Exit,
 } StepResult;
 
 namespace Leet

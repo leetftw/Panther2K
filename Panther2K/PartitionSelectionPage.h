@@ -1,36 +1,24 @@
 #pragma once
 #include "Page.h"
 #include <vector>
+#include "WinPartedDll.h"
 
-typedef struct VOLUME_INFO
-{
-	wchar_t mountPoint[MAX_PATH + 1];
-	wchar_t fileSystem[MAX_PATH + 1];
-	wchar_t name[MAX_PATH + 1];
-	wchar_t guid[MAX_PATH + 1];
-	long long totalBytes;
-	long long bytesFree;
-	int diskNumber;
-	int partitionNumber;
-	long long partOffset;
-} *PVOLUME_INFO;
-
-class PartitionSelectionPage : public Page
+class VolumeSelectionPage : public Page
 {
 public:
-	PartitionSelectionPage(const wchar_t* fileSystem, long long minimumSize, long long minimumBytesAvailable, int stringIndex, int displayIndex);
-	void EnumeratePartitions();
-	VOLUME_INFO GetSelectedVolume();
+	VolumeSelectionPage(const wchar_t* fileSystem, long long minimumSize, long long minimumBytesAvailable, int stringIndex, int displayIndex);
+	void SetVolumeList(VolumeInformation* volumes, int count);
+	VolumeInformation GetSelectedVolume();
 protected:
 	virtual void Init() override;
 	virtual void Drawer() override;
 	virtual void Redrawer() override;
-	virtual bool KeyHandler(WPARAM wParam) override;
+	virtual PageResult KeyHandler(WPARAM wParam) override;
 private:
 	int boxY = 0;
 	int selectionIndex = 0;
 	int scrollIndex = 0;
-	std::vector<VOLUME_INFO> volumeInfo;
+	std::vector<VolumeInformation> volumeInfo;
 	int stringTableIndex;
 	int dispIndex;
 	bool showAll = false;

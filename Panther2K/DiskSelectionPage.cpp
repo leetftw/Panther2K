@@ -1,6 +1,6 @@
 #include "DiskSelectionPage.h"
 
-#include "QuitingPage.h"
+#include "QuittingPage.h"
 #include "MessageBoxPage.h"
 
 void GetSizeStringFromBytes(unsigned long long bytes, wchar_t buffer[10])
@@ -114,7 +114,7 @@ void DiskSelectionPage::Redrawer()
 	}
 }
 
-bool DiskSelectionPage::KeyHandler(WPARAM wParam)
+PageResult DiskSelectionPage::KeyHandler(WPARAM wParam)
 {
 	int boxX = 3;
 	int boxWidth = console->GetSize().cx - 6;
@@ -137,20 +137,12 @@ bool DiskSelectionPage::KeyHandler(WPARAM wParam)
 		Redraw();
 		break;
 	case VK_ESCAPE:
-		//WindowsSetup::LoadPhase(3);
-		break;
+		return PageGoBack;
 	case VK_RETURN:
-		/*if (selectionIndex == diskCount)
-			WindowsSetup::SelectNextPartition(0);
-		else
-		{
-			if (WindowsSetup::SelectPartitionsWithDisk(diskInfo[selectionIndex].DiskNumber))
-				WindowsSetup::LoadPhase(5);
-		}*/
-		return false;
+		return PageContinue;
 	case VK_F3:
-		AddPopup(new QuitingPage());
+		AddPopup(new QuittingPage());
 		break;
 	}
-	return true;
+	return PageSuccess;
 }

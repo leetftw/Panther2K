@@ -22,7 +22,7 @@ void MessageBoxPage::ShowDialog()
 	parent->AddPopup(this);
 
 	for (KEY_EVENT_RECORD* record = console->Read();
-		!record->bKeyDown || HandleKey(record->wVirtualKeyCode);
+		!record->bKeyDown || HandleKey(record->wVirtualKeyCode) == PageSuccess;
 		record = console->Read()) {
 	}
 
@@ -64,9 +64,7 @@ void MessageBoxPage::Drawer()
 	}
 }
 
-bool MessageBoxPage::KeyHandler(WPARAM wParam)
+PageResult MessageBoxPage::KeyHandler(WPARAM wParam)
 {
-	if (wParam == VK_RETURN)
-		return false;
-	return true;
+	return wParam == VK_RETURN ? PageContinue : PageSuccess;
 }

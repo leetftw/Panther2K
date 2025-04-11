@@ -69,7 +69,7 @@ void PartitionTypeSelectionPage::DrawPage()
 		L"Type GUID                             Name                    Code" : 
 		L"Type Code  Name");
 
-	free(buffer);
+	safeFree(PartitionManager::GetLogger(), buffer);
 }
 
 void PartitionTypeSelectionPage::UpdatePage()
@@ -143,7 +143,8 @@ void PartitionTypeSelectionPage::UpdatePage()
 	console->SetPosition(textLocation.x + inputIndex, textLocation.y);
 	console->SetCursor(inputSelected, inputSelected);
 
-	free(buffer);
+	safeFree(PartitionManager::GetLogger(), buffer);
+	safeFree(PartitionManager::GetLogger(), selbuffer);
 }
 
 void PartitionTypeSelectionPage::RunPage()

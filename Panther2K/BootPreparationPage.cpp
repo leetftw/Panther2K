@@ -24,7 +24,7 @@ void BootPreparationPage::Redrawer()
 {
 }
 
-bool BootPreparationPage::KeyHandler(WPARAM wParam)
+PageResult BootPreparationPage::KeyHandler(WPARAM wParam)
 {
-	return true;
+	return PageResult::PageSuccess;
 }

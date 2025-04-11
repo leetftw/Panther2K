@@ -90,7 +90,7 @@ void PopupPage::Draw()
 	console->SetForegroundColor(b);
 }
 
-bool PopupPage::HandleKey(WPARAM wParam)
+PageResult PopupPage::HandleKey(WPARAM wParam)
 {
 	return KeyHandler(wParam);
 }
@@ -103,7 +103,7 @@ void PopupPage::Drawer()
 {
 }
 
-bool PopupPage::KeyHandler(WPARAM wParam)
+PageResult PopupPage::KeyHandler(WPARAM wParam)
 {
-	return true;
+	return PageSuccess;
 }

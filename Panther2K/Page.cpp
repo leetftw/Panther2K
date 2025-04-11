@@ -1,6 +1,6 @@
 ﻿#include "Page.h"
-
 #include <PantherVersion.h>
+#include "PopupPage.h"
 
 Page::Page()
 {
@@ -62,7 +62,7 @@ void Page::Redraw(bool redraw)
 	//	console->RedrawImmediately();
 }
 
-bool Page::HandleKey(WPARAM wParam)
+PageResult Page::HandleKey(WPARAM wParam)
 {
 	if (wParam == VK_F5)
 		Draw();
@@ -136,7 +136,7 @@ void Page::Redrawer()
 {
 }
 
-bool Page::KeyHandler(WPARAM wParam)
+PageResult Page::KeyHandler(WPARAM wParam)
 {
-	return true;
+	return PageSuccess;
 }

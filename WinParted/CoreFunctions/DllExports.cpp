@@ -376,7 +376,7 @@ HRESULT GetVolumeDiskExtents(const wchar_t* volumePath, VOLUME_DISK_EXTENTS** di
 	{
 		size = (extents->NumberOfDiskExtents - 1) * sizeof(DISK_EXTENT) + sizeof(VOLUME_DISK_EXTENTS);
 		extents = static_cast<VOLUME_DISK_EXTENTS*>(realloc(extents, size));
-		if (!extents) return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, ERROR_OUTOFMEMORY);
+		if (!extents) return HRESULT_FROM_WIN32(ERROR_OUTOFMEMORY);
 
 		ioResult = DeviceIoControl(hVolume, IOCTL_VOLUME_GET_VOLUME_DISK_EXTENTS, NULL, 0, extents, size, NULL, NULL);
 	}
@@ -476,7 +476,6 @@ extern "C" HRESULT _stdcall PrepareDiskForWindows(Console* console, LibPanther::
 	PartitionManager::SetConsole(console);
 	PartitionManager::SetLogger(logger);
 	PartitionManager::ShowNoInfoDialogs = true;
-	HRESULT hResult = S_OK;
 
 	PartitionManager::CurrentPage = new Page();
 	PartitionManager::CurrentPage->SetStatusText(L"The partition manager is preparing the disk for installation...");
@@ -487,9 +486,13 @@ extern "C" HRESULT _stdcall PrepareDiskForWindows(Console* console, LibPanther::
 	wlogf(logger, PANTHER_LL_VERBOSE, MAX_PATH, L"[WinPartedDll] The GUID of the volume is %s", volumeGuid);
 	wlogc(logger, PANTHER_LL_VERBOSE, L"[WinPartedDll] Determining on which disk the volume resides...");
 
+	wchar_t volumeBuffer[128];
+	wcscpy_s(volumeBuffer, volumeGuid);
+	volumeBuffer[lstrlenW(volumeBuffer) - 1] = 0;
+
 	VOLUME_DISK_EXTENTS* extents;
-	HRESULT result = GetVolumeDiskExtents(volumeGuid, &extents);
-	if (FAILED(hResult)) return hResult;
+	HRESULT result = GetVolumeDiskExtents(volumeBuffer, &extents);
+	if (FAILED(result)) return result;
 
 	// Volume must be basic
 	// Also get the partition corresponding to the volume
@@ -693,16 +696,16 @@ extern "C" HRESULT _stdcall PrepareDiskForWindows(Console* console, LibPanther::
 	for (int i = 0; i < PartitionManager::CurrentDiskPartitionCount; i++)
 		if (PartitionManager::CurrentDiskPartitions[i].StartLBA.ULL == bootOffset)
 			bootIndex = i;
-	if (!PartitionManager::LoadPartition(&PartitionManager::CurrentDiskPartitions[systemIndex]))
+	if (!PartitionManager::LoadPartition(&PartitionManager::CurrentDiskPartitions[bootIndex]))
 	{
 		DebugBreak();
 	}
 	wcscpy_s(installVolumes[1], PartitionManager::CurrentPartition.VolumeInformation.VolumeFile);
 
-	return hResult;
+	return S_OK;
 }
 
-extern "C" HRESULT _stdcall EnumVolumes(Console* console, LibPanther::Logger* logger, VolumeInformation** volumes) 
+extern "C" HRESULT _stdcall EnumVolumes(Console* console, LibPanther::Logger* logger, VolumeInformation** volumes, bool includeDynamic, int* count) 
 {
 	PartitionManager::SetConsole(console);
 	PartitionManager::SetLogger(logger);
@@ -718,6 +721,7 @@ extern "C" HRESULT _stdcall EnumVolumes(Console* console, LibPanther::Logger* lo
 	wchar_t volumePath[MAX_PATH];
 	HANDLE searchHandle = FindFirstVolumeW(volumePath, MAX_PATH);
 
+	ULARGE_INTEGER freeBytesAvailable, totalNumberOfBytes, totalNumberOfFreeBytes;
 	std::vector<VolumeInformation> volumeVec;
 	VolumeInformation volumeInfo;
 	DWORD charsRead;
@@ -746,7 +750,63 @@ extern "C" HRESULT _stdcall EnumVolumes(Console* console, LibPanther::Logger* lo
 
 		wlogf(logger, PANTHER_LL_VERBOSE, MAX_PATH, L"[WinPartedDll]  |   Mount:        %s", volumeInfo.MountPoint);
 
+		if (!GetDiskFreeSpaceExW(volumePath, NULL, reinterpret_cast<PULARGE_INTEGER>(&volumeInfo.TotalSize), reinterpret_cast<PULARGE_INTEGER>(&volumeInfo.SpaceFree)))
+		{
+			wlogc(logger, PANTHER_LL_BASIC, L"[WinPartedDll] Failed to retrieve volume space information!");
+			searchHandle = NULL;
+			continue;
+		}
+
+		wlogf(logger, PANTHER_LL_VERBOSE, MAX_PATH, L"[WinPartedDll]  |   Size:         %llu bytes", volumeInfo.TotalSize);
+		wlogf(logger, PANTHER_LL_VERBOSE, MAX_PATH, L"[WinPartedDll]  |   Free space:   %llu bytes", volumeInfo.SpaceFree);
+
 		wcscpy_s(volumeInfo.VolumeFile, volumePath);
+		volumePath[lstrlenW(volumePath) - 1] = 0;
+
+		VOLUME_DISK_EXTENTS* extents;
+		HRESULT result = GetVolumeDiskExtents(volumePath, &extents);
+		// TODO: if 'Incorrect function' do not show bc its probably DVD
+		if (FAILED(result) && HRESULT_CODE(result) != ERROR_INVALID_FUNCTION)
+		{
+			wlogc(logger, PANTHER_LL_BASIC, L"[WinPartedDll] Failed to retrieve volume partition information!", result);
+			SetLastError(HRESULT_CODE(result));
+			searchHandle = NULL;
+			continue;
+		}
+
+		// Optical media does not have extents
+		if (extents)
+		{
+			if (extents->NumberOfDiskExtents == 1)
+			{
+				volumeInfo.DiskNumber = extents->Extents[0].DiskNumber;
+				volumeInfo.PartitionNumber = 69;
+
+				//HANDLE hVolume = CreateFileW(volumePath, FILE_READ_ATTRIBUTES | SYNCHRONIZE | FILE_TRAVERSE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, 0);
+				//if (hVolume == INVALID_HANDLE_VALUE)
+				//{
+				//	HRESULT res = HRESULT_FROM_WIN32(GetLastError());
+				//	return res;
+				//}
+
+				//PARTITION_INFORMATION_EX partInfo;
+				//BOOL ioResult = DeviceIoControl(hVolume, IOCTL_DISK_GET_PARTITION_INFO_EX, NULL, 0, &partInfo, sizeof(PARTITION_INFORMATION_EX), NULL, NULL);
+
+				//// If DeviceIoControl fails here, retrieving this info can just be skipped
+				//if (ioResult)
+				//{
+				//	
+				//}
+
+				//CloseHandle(hVolume);
+			}
+			else if (!includeDynamic)
+			{
+				safeFree(PartitionManager::GetLogger(), extents);
+				continue;
+			}
+		}
+
 		volumeVec.push_back(volumeInfo);
 
 		if (!FindNextVolumeW(searchHandle, volumePath, MAX_PATH))
@@ -762,8 +822,9 @@ extern "C" HRESULT _stdcall EnumVolumes(Console* console, LibPanther::Logger* lo
 	*volumes = (VolumeInformation*)safeMalloc(logger, sizeof(VolumeInformation) * volumeVec.size());
 	for (int i = 0; i < volumeVec.size(); i++)
 	{
-		
+		(*volumes)[i] = volumeVec[i];
 	}
+	*count = volumeVec.size();
 
 	return S_OK;
 }

@@ -266,7 +266,7 @@ HRESULT Leet::Panther2K::SetupEngine::createBootFiles()
 	}
 
 	diskNumber = extents->Extents[0].DiskNumber;
-	free(extents);
+	safeFree(installLog, extents);
 	extents = nullptr;
 
 	result = GetVolumeDiskExtents(systemVolumePath, &extents);
@@ -550,8 +550,7 @@ HRESULT Leet::Panther2K::SetupEngine::createBootFiles()
 	{
 		// TODO: this one might be redundant
 		int res = HRESULT_FROM_WIN32(status);
-		wlogerr(installLog, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Engine/Install thread] Failed to delete BCD FirmwareModified value. %s (0x%08X)", res, res);
-		return res;
+		wlogerr(installLog, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Engine/Install thread] Warning: Failed to delete BCD FirmwareModified value. %s (0x%08X)", res, res);
 	}
 	DWORD value = 1;
 	status = RegSetKeyValueW(bcdKey, L"Description", L"System", REG_DWORD, &value, sizeof(DWORD));

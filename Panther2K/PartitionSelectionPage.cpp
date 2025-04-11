@@ -1,6 +1,6 @@
 #include "PartitionSelectionPage.h"
 
-#include "QuitingPage.h"
+#include "QuittingPage.h"
 #include "MessageBoxPage.h"
 #include "WinPartedDll.h"
 
@@ -19,7 +19,7 @@ const wchar_t* const part2Strings[] =
 	L"Panther2K will use this partition to store the files required for booting into the Windows Recovery Environment (WinRE). WinRE can be used whenever Windows fails to load, for example due to an incompatible driver update."
 };
 
-PartitionSelectionPage::PartitionSelectionPage(const wchar_t* fileSystem, long long minimumSize, long long minimumBytesAvailable, int stringIndex, int displayIndex)
+VolumeSelectionPage::VolumeSelectionPage(const wchar_t* fileSystem, long long minimumSize, long long minimumBytesAvailable, int stringIndex, int displayIndex)
 {
 	requirements.fileSystem = fileSystem;
 	requirements.partitionSize = minimumSize;
@@ -28,45 +28,23 @@ PartitionSelectionPage::PartitionSelectionPage(const wchar_t* fileSystem, long l
 	dispIndex = displayIndex;
 }
 
-void PartitionSelectionPage::EnumeratePartitions()
+void VolumeSelectionPage::SetVolumeList(VolumeInformation* volumes, int count)
 {
-	BOOL success;
-	wchar_t szNextVolName[MAX_PATH + 1];
-	HANDLE volume;
-	
-	volume = FindFirstVolume(szNextVolName, MAX_PATH);
-	success = (volume != INVALID_HANDLE_VALUE);
-	while (success)
-	{
-	/*
-		VOLUME_INFO vi;
-		if (!WindowsSetup::GetVolumeInfoFromName(szNextVolName, &vi))
-			goto nextVol;
-		if (!showAll && !WindowsSetup::AllowSmallVolumes && (vi.bytesFree < requirements.partitionFree || vi.totalBytes < requirements.partitionSize))
-			goto nextVol;
-		if (!showAll && !WindowsSetup::AllowOtherFileSystems && lstrcmpW(vi.fileSystem, requirements.fileSystem) != 0)
-			goto nextVol;
-
-		volumeInfo.push_back(vi);
-	nextVol:
-		success = FindNextVolume(volume, szNextVolName, MAX_PATH) != 0;
-		*/
-	}
-
-	Draw();
+	for (int i = 0; i < count; i++)
+		volumeInfo.push_back(volumes[i]);
 }
 
-VOLUME_INFO PartitionSelectionPage::GetSelectedVolume()
+VolumeInformation VolumeSelectionPage::GetSelectedVolume()
 {
 	return volumeInfo[scrollIndex + selectionIndex];
 }
 
-void PartitionSelectionPage::Init()
+void VolumeSelectionPage::Init()
 {
 	statusText = L"  ENTER=Select  F8=WinParted  F9=DiskPart  F10=Show all  ESC=Back  F3=Quit";
 }
 
-void PartitionSelectionPage::Drawer()
+void VolumeSelectionPage::Drawer()
 {
 	console->SetBackgroundColor(CONSOLE_COLOR_BG);
 	console->SetForegroundColor(CONSOLE_COLOR_LIGHTFG);
@@ -89,14 +67,12 @@ void PartitionSelectionPage::Drawer()
 	DrawBox(boxX, boxY, boxWidth, boxHeight, true);
 
 	wchar_t buffer[MAX_PATH];
-
 	swprintf(buffer, boxWidth - 2, L"   Disk  Partition  Volume Name%*sSize (GB)  Mount Point  ", boxWidth - 58, L"");
 	console->SetPosition(boxX + 1, boxY + 1);
 	console->Write(buffer);
-	free(buffer);
 }
 
-void PartitionSelectionPage::Redrawer()
+void VolumeSelectionPage::Redrawer()
 {
 	console->SetBackgroundColor(CONSOLE_COLOR_BG);
 	console->SetForegroundColor(CONSOLE_COLOR_FG);
@@ -124,13 +100,12 @@ void PartitionSelectionPage::Redrawer()
 		}
 
 		console->SetPosition(boxX + 4, boxY + i + 2);
-		swprintf(buffer, boxWidth - 2, L"%4d  %-9d  %-*s%10.1F  %-11s", volumeInfo[i].diskNumber, volumeInfo[i].partitionNumber, boxWidth - 48, volumeInfo[i].name, static_cast<float>(volumeInfo[i].totalBytes / 1000) / 1000.0, volumeInfo[i].mountPoint);
+		swprintf(buffer, boxWidth - 2, L"%4d  %-9d  %-*s%10.1F  %-11s", volumeInfo[i].DiskNumber, volumeInfo[i].PartitionNumber, boxWidth - 48, volumeInfo[i].VolumeName, static_cast<float>(volumeInfo[i].TotalSize / 1000) / 1000.0, volumeInfo[i].MountPoint);
 		console->Write(buffer);
 	}
-	free(buffer);
 }
 
-bool PartitionSelectionPage::KeyHandler(WPARAM wParam)
+PageResult VolumeSelectionPage::KeyHandler(WPARAM wParam)
 {
 	int boxX = 3;
 	int boxWidth = console->GetSize().cx - 6;
@@ -154,7 +129,7 @@ bool PartitionSelectionPage::KeyHandler(WPARAM wParam)
 		Redraw();
 		break;
 	case VK_F3:
-		AddPopup(new QuitingPage());
+		AddPopup(new QuittingPage());
 		break;
 	case VK_F8:
 	{
@@ -168,12 +143,11 @@ bool PartitionSelectionPage::KeyHandler(WPARAM wParam)
 		break;
 	case VK_F10:
 		showAll = !showAll;
-		EnumeratePartitions();
 		break;
 	case VK_ESCAPE:
-		break;
+		return PageGoBack;
 	case VK_RETURN:
-		break;
+		return PageContinue;
 	}
-	return true;
+	return PageSuccess;
 }

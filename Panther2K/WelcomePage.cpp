@@ -1,5 +1,5 @@
 #include "WelcomePage.h"
-#include "QuitingPage.h"
+#include "QuittingPage.h"
 #include "ImageSelectionPage.h"
 
 void WelcomePage::Init()
@@ -34,18 +34,16 @@ void WelcomePage::Redrawer()
 {
 }
 
-bool WelcomePage::KeyHandler(WPARAM wParam)
+PageResult WelcomePage::KeyHandler(WPARAM wParam)
 {
 	switch (wParam) 
 	{
 	case VK_RETURN:
-		statusText = L"  Please wait while Panther2K loads data...";
-		Redraw();
-		return false;
+		return PageContinue;
 	case VK_ESCAPE:
 	case VK_F3:
-		AddPopup(new QuitingPage());
+		AddPopup(new QuittingPage());
 		break;
 	}
-	return true;
+	return PageSuccess;
 }

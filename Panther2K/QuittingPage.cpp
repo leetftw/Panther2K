@@ -1,8 +1,8 @@
-#include "QuitingPage.h"
+#include "QuittingPage.h"
 #include "WelcomePage.h"
 
 
-void QuitingPage::Init()
+void QuittingPage::Init()
 {
 	width = 52;
 	height = 8;
@@ -14,7 +14,7 @@ void QuitingPage::Init()
 	fore = CONSOLE_COLOR_ERROR;
 }
 
-void QuitingPage::Drawer()
+void QuittingPage::Drawer()
 {
 	int boxWidth = width + 2;
 	int boxHeight = height + 2;
@@ -39,7 +39,7 @@ void QuitingPage::Drawer()
 	console->Write(L" To quit Setup, press F3.");
 }
 
-bool QuitingPage::KeyHandler(WPARAM wParam)
+PageResult QuittingPage::KeyHandler(WPARAM wParam)
 {
 	switch (wParam)
 	{
@@ -47,7 +47,7 @@ bool QuitingPage::KeyHandler(WPARAM wParam)
 		parent->RemovePopup();
 		break;
 	case VK_F3:
-		return false;
+		return PageExit;
 	}
-	return true;
+	return PageSuccess;
 }

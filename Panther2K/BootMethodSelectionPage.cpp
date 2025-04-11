@@ -1,5 +1,5 @@
 #include "BootMethodSelectionPage.h"
-#include "QuitingPage.h"
+#include "QuittingPage.h"
 
 BootMethodSelectionPage::~BootMethodSelectionPage()
 {
@@ -79,7 +79,7 @@ void BootMethodSelectionPage::Redrawer()
 	console->DrawTextLeft(L"Legacy/BIOS: Traditional method of booting. Uses the first sector of your hard drive to store code for loading Windows.", console->GetSize().cx - 18, console->GetPosition().y);
 }
 
-bool BootMethodSelectionPage::KeyHandler(WPARAM wParam)
+PageResult BootMethodSelectionPage::KeyHandler(WPARAM wParam)
 {
 	switch (wParam)
 	{
@@ -89,12 +89,12 @@ bool BootMethodSelectionPage::KeyHandler(WPARAM wParam)
 		Redraw();
 		break;
 	case VK_ESCAPE:
-		break;
+		return PageGoBack;
 	case VK_RETURN:
-		return false;
+		return PageContinue;
 	case VK_F3:
-		AddPopup(new QuitingPage());
+		AddPopup(new QuittingPage());
 		break;
 	}
-	return true;
+	return PageSuccess;
 }

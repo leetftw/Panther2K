@@ -133,7 +133,7 @@ void safeFree(LibPanther::Logger* logger, void* ptr)
 		}
 		else if (logger) 
 		{
-			wlogc(logger, PANTHER_LL_BASIC, L"[Memory] WARNING: Attempt to free untracked pointer!");
+			logger->Write(PANTHER_LL_BASIC, L"[Memory] WARNING: Attempt to free untracked pointer!");
 		}
 	}
 

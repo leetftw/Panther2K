@@ -29,6 +29,7 @@ class Console
 {
 public:
 	Console();
+	~Console();
 	virtual bool Init();
 
 	virtual void SetPosition(long x, long y);

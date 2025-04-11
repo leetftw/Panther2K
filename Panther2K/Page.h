@@ -1,17 +1,15 @@
 #pragma once
 
 #include <PantherConsole.h>
-#include "PopupPage.h"
 
-/*
 typedef enum {
-	Success,
-	Continue,
-	GoBack,
-	Fail,
-	RunTool,
+	PageSuccess,
+	PageContinue,
+	PageGoBack,
+	PageExit,
 } PageResult;
-*/
+
+class PopupPage;
 
 class Page
 {
@@ -20,7 +18,7 @@ public:
 	void Initialize(Console* con);
 	void Draw();
 	void Redraw(bool redraw = true);
-	bool HandleKey(WPARAM wParam);
+	PageResult HandleKey(WPARAM wParam);
 	void AddPopup(PopupPage* popup);
 	void RemovePopup();
 	
@@ -33,7 +31,7 @@ private:
 	virtual void Init();
 	virtual void Drawer();
 	virtual void Redrawer();
-	virtual bool KeyHandler(WPARAM wParam);
+	virtual PageResult KeyHandler(WPARAM wParam);
 protected:
 	PopupPage* page;
 };

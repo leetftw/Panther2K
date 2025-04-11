@@ -18,6 +18,11 @@ struct VolumeInformation
 	wchar_t FileSystem[16];
 	wchar_t VolumeName[128];
 	wchar_t VolumeFile[128];
+	wchar_t MountPoint[MAX_PATH];
+	unsigned long long TotalSize;
+	unsigned long long SpaceFree;
+	unsigned int DiskNumber;
+	unsigned int PartitionNumber;
 };
 
 class WinPartedDll 
@@ -31,7 +36,7 @@ public:
 	static HRESULT EnumerateDisks(Console* console, LibPanther::Logger* logger, DISK_INFORMATION** disks, int* diskCount);
 	static HRESULT PrepareDiskForWindows(Console* console, LibPanther::Logger* logger, const wchar_t* volumeGuid, bool useLegacy,
 		unsigned long long requiredBootSize, unsigned long long requiredRESize, wchar_t installVolumes[2][128]);
-	static HRESULT EnumVolumes(Console* console, LibPanther::Logger* logger, VolumeInformation** volumes);
+	static HRESULT EnumVolumes(Console* console, LibPanther::Logger* logger, VolumeInformation** volumes, bool includeDynamic, int* count);
 
 private:
 	static HMODULE hWinParted;

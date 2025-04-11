@@ -184,7 +184,12 @@ void WimApplyPage::Redrawer()
 		console->Write(L" ");
 }
 
-bool WimApplyPage::KeyHandler(WPARAM wParam)
+PageResult WimApplyPage::KeyHandler(WPARAM wParam)
 {
-	return true;
+	if (wParam == VK_F3)
+	{
+		// TODO: request exit
+	}
+
+	return PageResult::PageSuccess;
 }
