@@ -4,6 +4,8 @@
 #include "Partition\PartitionCreationPage.h"
 #include "Partition\PartitionTypeSelectionPage.h"
 
+using namespace Leet::WinParted;
+
 void DiskPartitioningPage::InitPage()
 {
 	if (PartitionManager::CurrentDiskPartitions == NULL)
@@ -19,7 +21,7 @@ void DiskPartitioningPage::InitPage()
 
 void DiskPartitioningPage::DrawPage()
 {
-	Console* console = GetConsole();
+	Leet::Panther2K::Util::Console* console = GetConsole();
 	SIZE consoleSize = console->GetSize();
 	int bufferSize = consoleSize.cx + 1;
 	wchar_t* buffer = (wchar_t*)safeMalloc(PartitionManager::GetLogger(), sizeof(wchar_t) * bufferSize);
@@ -59,7 +61,7 @@ void DiskPartitioningPage::DrawPage()
 
 void DiskPartitioningPage::UpdatePage()
 {
-	Console* console = GetConsole();
+	Leet::Panther2K::Util::Console* console = GetConsole();
 	SIZE consoleSize = console->GetSize();
 
 	int bufferSize = consoleSize.cx - 13 + 1;
@@ -124,7 +126,7 @@ void DiskPartitioningPage::UpdatePage()
 
 void DiskPartitioningPage::RunPage()
 {
-	Console* console = GetConsole();
+	Leet::Panther2K::Util::Console* console = GetConsole();
 
 	while (KEY_EVENT_RECORD* key = console->Read())
 	{

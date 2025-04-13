@@ -26,7 +26,7 @@ DiskSelectionPage::~DiskSelectionPage()
 	if (diskInfo) LocalFree(diskInfo);
 }
 
-HRESULT DiskSelectionPage::LoadData(Console* console, LibPanther::Logger* logger)
+HRESULT DiskSelectionPage::LoadData(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger)
 {
 	return WinPartedDll::EnumerateDisks(console, logger, &diskInfo, &diskCount);
 }

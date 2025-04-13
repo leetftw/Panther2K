@@ -2,6 +2,8 @@
 #include "CoreFunctions\PartitionManager.h"
 #include "DiskPartitioningPage.h"
 
+using namespace Leet::WinParted;
+
 void DiskSelectionPage::InitPage()
 {
 	if (PartitionManager::DiskInformationTable == NULL)
@@ -17,7 +19,7 @@ void DiskSelectionPage::InitPage()
 
 void DiskSelectionPage::DrawPage()
 {
-	Console* console = GetConsole();
+	Leet::Panther2K::Util::Console* console = GetConsole();
 	SIZE consoleSize = console->GetSize();
 
 	console->SetBackgroundColor(CONSOLE_COLOR_BG);
@@ -55,7 +57,7 @@ void DiskSelectionPage::DrawPage()
 
 void DiskSelectionPage::UpdatePage()
 {
-	Console* console = GetConsole();
+	Leet::Panther2K::Util::Console* console = GetConsole();
 	SIZE consoleSize = console->GetSize();
 
 	int bufferSize = consoleSize.cx - 12;
@@ -103,7 +105,7 @@ void DiskSelectionPage::UpdatePage()
 
 void DiskSelectionPage::RunPage()
 {
-	Console* console = GetConsole();
+	Leet::Panther2K::Util::Console* console = GetConsole();
 
 	while (KEY_EVENT_RECORD* key = console->Read())
 	{

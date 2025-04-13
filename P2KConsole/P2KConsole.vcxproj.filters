@@ -27,31 +27,16 @@
     <ClInclude Include="include\P2KCustomConsole.h">
       <Filter>Include Files</Filter>
     </ClInclude>
-    <ClInclude Include="CustomConsole.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Console.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\P2KBaseConsole.h">
       <Filter>Include Files</Filter>
     </ClInclude>
-    <ClInclude Include="Win32Console.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\P2KWin32Console.h">
       <Filter>Include Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Logger.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\PantherLogger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\PantherVersion.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Version.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

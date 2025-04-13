@@ -1,4 +1,4 @@
-#include "Logger.h"
+#include "include/PantherLogger.h"
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,72 +10,71 @@ const wchar_t* levelNames[4] = {
 	L"VERBOSE"
 };
 
-namespace LibPanther 
+using namespace Leet::Panther2K::Util;
+
+Logger::Logger(const wchar_t* fileName, int outputLevel)
 {
-	Logger::Logger(const wchar_t* fileName, int outputLevel)
+	DWORD chars;
+	dwLogLevel = outputLevel;
+	wcscpy_s(szLogFile, fileName);
+	//lstrcpyW(szLogFile, fileName);
+
+	hLogFile = CreateFileW(szLogFile, GENERIC_WRITE | FILE_GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hLogFile == INVALID_HANDLE_VALUE)
 	{
-		DWORD chars;
-		dwLogLevel = outputLevel;
-		wcscpy_s(szLogFile, fileName);
-		//lstrcpyW(szLogFile, fileName);
-
-		hLogFile = CreateFileW(szLogFile, GENERIC_WRITE | FILE_GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-		if (hLogFile == INVALID_HANDLE_VALUE)
-		{
-			const wchar_t* output = L"Logger failed to initialize.";
-			WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), output, lstrlenW(output), &chars, NULL);
-			return;
-		}
-
-		InitializeCriticalSection(&cs);
-
-		// Write LE UTF-16 byte order mark
-		WriteFile(hLogFile, "ÿþ", 2, &chars, NULL);
+		const wchar_t* output = L"Logger failed to initialize.";
+		WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), output, lstrlenW(output), &chars, NULL);
+		return;
 	}
 
-	Logger::~Logger()
-	{
-		if (hLogFile != INVALID_HANDLE_VALUE)
-			CloseHandle(hLogFile);
-		DeleteCriticalSection(&cs);
-	}
+	InitializeCriticalSection(&cs);
 
-	void Logger::Write(int level, const wchar_t* message)
-	{
-		if (dwLogLevel < level)
-			return;
-		
-		//formatTime();
-		swprintf(messageBuffer, 512, L"%s[%s] %s\r\n", timeBuffer, levelNames[level], message);
-		WriteDirect(level, messageBuffer);
-	}
-	
-	void Logger::WriteDirect(int level, const wchar_t* message)
-	{
-		DWORD chars;
-		if (dwLogLevel < level)
-			return;
+	// Write LE UTF-16 byte order mark
+	WriteFile(hLogFile, "ÿþ", 2, &chars, NULL);
+}
 
-		EnterCriticalSection(&cs);
+Logger::~Logger()
+{
+	if (hLogFile != INVALID_HANDLE_VALUE)
+		CloseHandle(hLogFile);
+	DeleteCriticalSection(&cs);
+}
 
-		WriteFile(hLogFile, message, lstrlenW(message) * sizeof(wchar_t), &chars, NULL);
-		WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), message, lstrlenW(message), &chars, NULL);
+void Logger::Write(int level, const wchar_t* message)
+{
+	if (dwLogLevel < level)
+		return;
 
-		LeaveCriticalSection(&cs);
-	}
+	//formatTime();
+	swprintf(messageBuffer, 512, L"%s[%s] %s\r\n", timeBuffer, levelNames[level], message);
+	WriteDirect(level, messageBuffer);
+}
 
-	int Logger::GetLogLevel()
-	{
-		return dwLogLevel;
-	}
+void Logger::WriteDirect(int level, const wchar_t* message)
+{
+	DWORD chars;
+	if (dwLogLevel < level)
+		return;
 
-	void Logger::formatTime()
-	{
-		time_t tTime = time(NULL);
-		tm lTime;
-		localtime_s(&lTime, &tTime);
-		wcsftime(timeBuffer, 100, L"", &lTime);
-	}
+	EnterCriticalSection(&cs);
+
+	WriteFile(hLogFile, message, lstrlenW(message) * sizeof(wchar_t), &chars, NULL);
+	WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), message, lstrlenW(message), &chars, NULL);
+
+	LeaveCriticalSection(&cs);
+}
+
+int Logger::GetLogLevel()
+{
+	return dwLogLevel;
+}
+
+void Logger::formatTime()
+{
+	time_t tTime = time(NULL);
+	tm lTime;
+	localtime_s(&lTime, &tTime);
+	wcsftime(timeBuffer, 100, L"", &lTime);
 }
 
 /*
@@ -101,7 +100,7 @@ std::mutex allocMutex;
 // 'Safe' malloc implementation
 // Terminates any execution if memory cannot be allocated
 // If possible an error is logged
-void *safeMallocImpl(LibPanther::Logger* logger, size_t size, const wchar_t* file, int line, const wchar_t* function)
+void *safeMallocImpl(Logger* logger, size_t size, const wchar_t* file, int line, const wchar_t* function)
 {
 	void *returnValue = malloc(size);
 	if (!returnValue) 
@@ -121,7 +120,7 @@ void *safeMallocImpl(LibPanther::Logger* logger, size_t size, const wchar_t* fil
 	return returnValue;
 }
 
-void safeFree(LibPanther::Logger* logger, void* ptr)
+void safeFree(Logger* logger, void* ptr)
 {
 	if (!ptr) return;
 	{
@@ -133,14 +132,14 @@ void safeFree(LibPanther::Logger* logger, void* ptr)
 		}
 		else if (logger) 
 		{
-			logger->Write(PANTHER_LL_BASIC, L"[Memory] WARNING: Attempt to free untracked pointer!");
+			logger->Write(PANTHER_LL_BASIC, L"[Memory Manager] WARNING: Attempt to free untracked pointer!");
 		}
 	}
 
 	free(ptr);
 }
 
-void* safeLocalAlloc(LibPanther::Logger* logger, size_t size)
+void* safeLocalAlloc(Logger* logger, size_t size)
 {
 	void* returnValue = LocalAlloc(LPTR, size);
 	if (!returnValue)
@@ -151,10 +150,10 @@ void* safeLocalAlloc(LibPanther::Logger* logger, size_t size)
 	return returnValue;
 }
 
-void __cdecl safeCleanup(LibPanther::Logger* logger)
+void __cdecl safeCleanup(Logger* logger)
 {
-	wlogc(logger, PANTHER_LL_BASIC, L"[Memory] Safe allocation report.");
-	wlogc(logger, PANTHER_LL_BASIC, L"================================");
+	wlogc(logger, PANTHER_LL_BASIC, L"[Memory Manager] Safe allocation report");
+	wlogc(logger, PANTHER_LL_BASIC, L"========================================");
 	for (const auto& alloc : allocations) 
 	{
 		void* ptr = alloc.first;

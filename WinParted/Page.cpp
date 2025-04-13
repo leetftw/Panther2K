@@ -7,13 +7,13 @@ Page::Page()
 {
 	console = 0;
 	statusText = L"WinParted is inspecting your computer's hardware configuration...";
-	text = L"WinParted milestone " WINPARTED_VERSION " (LibPanther " PANTHER_VERSION ")";
+	text = WINPARTED_VER_STRING;
 	drawHeader = true;
 	drawStatus = true;
 	drawClear = true;
 }
 
-void Page::Initialize(Console* con)
+void Page::Initialize(Leet::Panther2K::Util::Console* con)
 {
 	console = con;
 
@@ -103,7 +103,7 @@ void Page::RunPage()
 	//console->Read(1);
 }
 
-Console* Page::GetConsole()
+Leet::Panther2K::Util::Console* Page::GetConsole()
 {
 	return console;
 }

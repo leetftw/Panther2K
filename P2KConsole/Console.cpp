@@ -1,19 +1,21 @@
-#include "Console.h"
+#include "include/P2KBaseConsole.h"
 #include <iostream>
 #include "include/PantherLogger.h"
+
+using namespace Leet::Panther2K::Util;
 
 Console::Console()
 {
     if (colorTable == NULL)
     {
         colorTableSize = 6;
-        colorTable = (COLOR*)safeMalloc(nullptr, sizeof(COLOR) * colorTableSize);
-        colorTable[CONSOLE_COLOR_BG] =      COLOR{ 0, 0, 170 };
-        colorTable[CONSOLE_COLOR_FG] =      COLOR{ 170, 170, 170 };
-        colorTable[CONSOLE_COLOR_ERROR] =   COLOR{ 170, 0, 0 };
-        colorTable[CONSOLE_COLOR_PROGBAR] = COLOR{ 255, 255, 0 };
-        colorTable[CONSOLE_COLOR_LIGHTFG] = COLOR{ 255, 255, 255 };
-        colorTable[CONSOLE_COLOR_DARKFG] =  COLOR{ 0, 0, 0 };
+        colorTable = (CONSOLE_COLOR*)safeMalloc(nullptr, sizeof(CONSOLE_COLOR) * colorTableSize);
+        colorTable[CONSOLE_COLOR_BG] =      CONSOLE_COLOR{ 0, 0, 170 };
+        colorTable[CONSOLE_COLOR_FG] =      CONSOLE_COLOR{ 170, 170, 170 };
+        colorTable[CONSOLE_COLOR_ERROR] =   CONSOLE_COLOR{ 170, 0, 0 };
+        colorTable[CONSOLE_COLOR_PROGBAR] = CONSOLE_COLOR{ 255, 255, 0 };
+        colorTable[CONSOLE_COLOR_LIGHTFG] = CONSOLE_COLOR{ 255, 255, 255 };
+        colorTable[CONSOLE_COLOR_DARKFG] =  CONSOLE_COLOR{ 0, 0, 0 };
     }
 }
 
@@ -22,11 +24,11 @@ Console::~Console()
     safeFree(nullptr, colorTable);
 }
 
-COLOR ParseColor(const wchar_t* text, bool* success)
+CONSOLE_COLOR ParseColor(const wchar_t* text, bool* success)
 {
     unsigned char rgb[3] = { 0 };
     *success = swscanf_s(text, L"%hhu,%hhu,%hhu", &rgb[0], &rgb[1], &rgb[2]) == 3;
-    return COLOR{ rgb[0], rgb[1], rgb[2] };
+    return CONSOLE_COLOR{ rgb[0], rgb[1], rgb[2] };
 }
 
 bool Console::Init()
@@ -122,12 +124,12 @@ KEY_EVENT_RECORD* Console::Read(int count) { return NULL; }
 KEY_EVENT_RECORD* Console::ReadLine() { return NULL; }
 void Console::Clear() { }
 
-void Console::SetColors(COLOR* colorTable)
+void Console::SetColors(CONSOLE_COLOR* colorTable)
 {
     this->colorTable = colorTable;
 }
 
-void Console::SetBackgroundColor(COLOR color)
+void Console::SetBackgroundColor(CONSOLE_COLOR color)
 {
     backColor = color;
     backColorIndex = -1;
@@ -140,12 +142,12 @@ void Console::SetBackgroundColor(int index)
     //wprintf(L"Backcolor index: %d\n", backColorIndex);
 }
 
-COLOR Console::GetBackgroundColor()
+CONSOLE_COLOR Console::GetBackgroundColor()
 {
     return backColor;
 }
 
-void Console::SetForegroundColor(COLOR color)
+void Console::SetForegroundColor(CONSOLE_COLOR color)
 {
     foreColor = color;
     foreColorIndex = -1;
@@ -157,12 +159,12 @@ void Console::SetForegroundColor(int index)
     foreColorIndex = min(index, colorTableSize - 1);
 }
 
-COLOR Console::GetForegroundColor()
+CONSOLE_COLOR Console::GetForegroundColor()
 {
     return foreColor;
 }
 
-void Console::SetColorTable(COLOR* colorTable, int colorTableSize)
+void Console::SetColorTable(CONSOLE_COLOR* colorTable, int colorTableSize)
 {
     if (this->colorTable) safeFree(nullptr, this->colorTable);
     this->colorTable = colorTable;

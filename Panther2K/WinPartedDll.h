@@ -28,15 +28,15 @@ struct VolumeInformation
 class WinPartedDll 
 {
 public:
-	static int RunWinParted(Console*, LibPanther::Logger*);
-	static HRESULT ApplyP2KLayoutToDiskGPT(Console*, LibPanther::Logger*, int, bool, wchar_t***, wchar_t***);
-	static HRESULT ApplyP2KLayoutToDiskMBR(Console*, LibPanther::Logger*, int, bool, wchar_t***, wchar_t***);
-	static HRESULT SetPartType(Console*, LibPanther::Logger*, int, unsigned long long, short);
-	static HRESULT MountPartition(Console*, LibPanther::Logger*, int, unsigned long long, const wchar_t*);
-	static HRESULT EnumerateDisks(Console* console, LibPanther::Logger* logger, DISK_INFORMATION** disks, int* diskCount);
-	static HRESULT PrepareDiskForWindows(Console* console, LibPanther::Logger* logger, const wchar_t* volumeGuid, bool useLegacy,
+	static int RunWinParted(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*);
+	static HRESULT ApplyP2KLayoutToDiskGPT(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, int, bool, wchar_t***, wchar_t***);
+	static HRESULT ApplyP2KLayoutToDiskMBR(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, int, bool, wchar_t***, wchar_t***);
+	static HRESULT SetPartType(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, int, unsigned long long, short);
+	static HRESULT MountPartition(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, int, unsigned long long, const wchar_t*);
+	static HRESULT EnumerateDisks(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger, DISK_INFORMATION** disks, int* diskCount);
+	static HRESULT PrepareDiskForWindows(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger, const wchar_t* volumeGuid, bool useLegacy,
 		unsigned long long requiredBootSize, unsigned long long requiredRESize, wchar_t installVolumes[2][128]);
-	static HRESULT EnumVolumes(Console* console, LibPanther::Logger* logger, VolumeInformation** volumes, bool includeDynamic, int* count);
+	static HRESULT EnumVolumes(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger, VolumeInformation** volumes, bool includeDynamic, int* count);
 
 private:
 	static HMODULE hWinParted;

@@ -1,6 +1,8 @@
 #include "PartitionGuidSelectionPage.h"
 #include "..\CoreFunctions\PartitionManager.h"
 
+using namespace Leet::WinParted;
+
 void PartitionGuidSelectionPage::InitPage()
 {
 	// This is what a GUID looks like.
@@ -26,7 +28,7 @@ void PartitionGuidSelectionPage::InitPage()
 
 void PartitionGuidSelectionPage::DrawPage()
 {
-	Console* console = GetConsole();
+	Leet::Panther2K::Util::Console* console = GetConsole();
 	SIZE consoleSize = console->GetSize();
 	int bufferSize = consoleSize.cx + 1;
 	wchar_t* buffer = (wchar_t*)safeMalloc(PartitionManager::GetLogger(), sizeof(wchar_t) * bufferSize);
@@ -68,7 +70,7 @@ void PartitionGuidSelectionPage::DrawPage()
 
 void PartitionGuidSelectionPage::UpdatePage()
 {
-	Console* console = GetConsole();
+	Leet::Panther2K::Util::Console* console = GetConsole();
 	SIZE consoleSize = console->GetSize();
 	int bufferSize = consoleSize.cx + 1;
 	wchar_t* buffer = (wchar_t*)safeMalloc(PartitionManager::GetLogger(), sizeof(wchar_t) * bufferSize);
@@ -99,7 +101,7 @@ void PartitionGuidSelectionPage::UpdatePage()
 
 void PartitionGuidSelectionPage::RunPage()
 {
-	Console* console = GetConsole();
+	Leet::Panther2K::Util::Console* console = GetConsole();
 
 	while (KEY_EVENT_RECORD* key = console->Read())
 	{

@@ -15,7 +15,7 @@ class Page
 {
 public:
 	Page();
-	void Initialize(Console* con);
+	void Initialize(Leet::Panther2K::Util::Console* con);
 	void Draw();
 	void Redraw(bool redraw = true);
 	PageResult HandleKey(WPARAM wParam);
@@ -26,7 +26,7 @@ public:
 
 	const wchar_t* text;
 	const wchar_t* statusText;
-	Console* console;
+	Leet::Panther2K::Util::Console* console;
 private:
 	virtual void Init();
 	virtual void Drawer();

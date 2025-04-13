@@ -10,6 +10,8 @@
 #include <winternl.h>
 #include <vds.h>
 
+using namespace Leet::WinParted;
+
 HRESULT PerformVdsOperation(PartitionInformation* partition, const wchar_t* fileSystem, const wchar_t* mountPoint, const wchar_t* volumeName, wchar_t** query)
 {
 	if (!fileSystem && !mountPoint && !query)

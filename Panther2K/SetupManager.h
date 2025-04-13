@@ -27,15 +27,15 @@ namespace Leet
         public:
             void PreviousStep();
 
-            SetupManager(Console* console, LibPanther::Logger* logger);
+            SetupManager(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger);
             void RunSetup();
 
             HRESULT GetResult();
 
         private:
             int currentStep = 0;
-            Console* console = nullptr;
-            LibPanther::Logger* logger = nullptr;
+            Leet::Panther2K::Util::Console* console = nullptr;
+            Leet::Panther2K::Util::Logger* logger = nullptr;
             std::vector<std::tuple<const wchar_t*, StepResult(SetupManager::*)()>> setupSteps = { };
             HRESULT exitCode = S_OK;
 

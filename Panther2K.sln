@@ -9,7 +9,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Leet.Panther2K.SetupUI", "P
 		{E999838A-4F2D-4748-A038-39E2BDB49722} = {E999838A-4F2D-4748-A038-39E2BDB49722}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WinParted", "WinParted\WinParted.vcxproj", "{E999838A-4F2D-4748-A038-39E2BDB49722}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Leet.WinParted.PartitionManager", "WinParted\WinParted.vcxproj", "{E999838A-4F2D-4748-A038-39E2BDB49722}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Leet.Panther2K.Util", "P2KConsole\P2KConsole.vcxproj", "{A3DD51CE-63AB-4189-9D8A-3111288A3463}"
 EndProject
@@ -17,6 +17,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Leet.Panther2K.SetupEngine"
 	ProjectSection(ProjectDependencies) = postProject
 		{A3DD51CE-63AB-4189-9D8A-3111288A3463} = {A3DD51CE-63AB-4189-9D8A-3111288A3463}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Leet.WinParted.Bootstrap", "Leet.WinParted.Bootstrap\Leet.WinParted.Bootstrap.vcxproj", "{35B2ABD8-666F-4B2F-92FD-EA49E55E7FE0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -58,6 +60,14 @@ Global
 		{3E61BD60-CA66-4FFD-8864-AD2C550DAABA}.Release|x64.Build.0 = Release|x64
 		{3E61BD60-CA66-4FFD-8864-AD2C550DAABA}.Release|x86.ActiveCfg = Release|Win32
 		{3E61BD60-CA66-4FFD-8864-AD2C550DAABA}.Release|x86.Build.0 = Release|Win32
+		{35B2ABD8-666F-4B2F-92FD-EA49E55E7FE0}.Debug|x64.ActiveCfg = Debug|x64
+		{35B2ABD8-666F-4B2F-92FD-EA49E55E7FE0}.Debug|x64.Build.0 = Debug|x64
+		{35B2ABD8-666F-4B2F-92FD-EA49E55E7FE0}.Debug|x86.ActiveCfg = Debug|Win32
+		{35B2ABD8-666F-4B2F-92FD-EA49E55E7FE0}.Debug|x86.Build.0 = Debug|Win32
+		{35B2ABD8-666F-4B2F-92FD-EA49E55E7FE0}.Release|x64.ActiveCfg = Release|x64
+		{35B2ABD8-666F-4B2F-92FD-EA49E55E7FE0}.Release|x64.Build.0 = Release|x64
+		{35B2ABD8-666F-4B2F-92FD-EA49E55E7FE0}.Release|x86.ActiveCfg = Release|Win32
+		{35B2ABD8-666F-4B2F-92FD-EA49E55E7FE0}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

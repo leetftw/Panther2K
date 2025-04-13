@@ -11,7 +11,6 @@ EXPORTS
    ORD_MountPartition   @6
 */
 
-#define ORD_InitializeCRT             (LPCSTR)1
 #define ORD_RunWinParted              (LPCSTR)2
 #define ORD_ApplyP2KLayoutToDiskGPT   (LPCSTR)3
 #define ORD_ApplyP2KLayoutToDiskMBR   (LPCSTR)4
@@ -21,20 +20,19 @@ EXPORTS
 #define ORD_PrepareDiskForWindows     (LPCSTR)8
 #define ORD_EnumVolumes               (LPCSTR)9
 
-typedef void (*InitializeCRTStub)();
-typedef int (*RunWinPartedStub)(Console*, LibPanther::Logger*);
-typedef HRESULT(*ApplyP2KLayoutToDiskGPTStub)(Console*, LibPanther::Logger*, int, bool, wchar_t***, wchar_t***);
-typedef HRESULT(*ApplyP2KLayoutToDiskMBRStub)(Console*, LibPanther::Logger*, int, bool, wchar_t***, wchar_t***);
-typedef HRESULT(*SetPartTypeStub)(Console*, LibPanther::Logger*, int, unsigned long long, short);
-typedef HRESULT(*MountPartitionStub)(Console*, LibPanther::Logger*, int, unsigned long long, const wchar_t*);
-typedef HRESULT(*EnumerateDisksStub)(Console*, LibPanther::Logger*, DISK_INFORMATION**, int*);
-typedef HRESULT(*PrepareDiskForWindowsStub)(Console*, LibPanther::Logger*, const wchar_t*, bool, unsigned long long, unsigned long long, wchar_t[2][128]);
-typedef HRESULT(*EnumVolumesStub)(Console*, LibPanther::Logger*, VolumeInformation**, bool, int*);
+typedef int (*RunWinPartedStub)(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*);
+typedef HRESULT(*ApplyP2KLayoutToDiskGPTStub)(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, int, bool, wchar_t***, wchar_t***);
+typedef HRESULT(*ApplyP2KLayoutToDiskMBRStub)(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, int, bool, wchar_t***, wchar_t***);
+typedef HRESULT(*SetPartTypeStub)(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, int, unsigned long long, short);
+typedef HRESULT(*MountPartitionStub)(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, int, unsigned long long, const wchar_t*);
+typedef HRESULT(*EnumerateDisksStub)(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, DISK_INFORMATION**, int*);
+typedef HRESULT(*PrepareDiskForWindowsStub)(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, const wchar_t*, bool, unsigned long long, unsigned long long, wchar_t[2][128]);
+typedef HRESULT(*EnumVolumesStub)(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, VolumeInformation**, bool, int*);
 
 bool WinPartedDll::partedInitialized = false;
 HMODULE WinPartedDll::hWinParted = NULL;
 
-int WinPartedDll::RunWinParted(Console* console, LibPanther::Logger* logger)
+int WinPartedDll::RunWinParted(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger)
 {
 	if (!partedInitialized && InitParted() != ERROR_SUCCESS)
 		return ERROR_BAD_FORMAT;
@@ -42,7 +40,7 @@ int WinPartedDll::RunWinParted(Console* console, LibPanther::Logger* logger)
 	return runWinParted(console, logger);
 }
 
-HRESULT WinPartedDll::ApplyP2KLayoutToDiskGPT(Console* console, LibPanther::Logger* logger, int diskNumber, bool letters, wchar_t*** mountPath, wchar_t*** volumeList)
+HRESULT WinPartedDll::ApplyP2KLayoutToDiskGPT(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger, int diskNumber, bool letters, wchar_t*** mountPath, wchar_t*** volumeList)
 {
 	HRESULT res;
 	if (!partedInitialized && (res = InitParted()) != ERROR_SUCCESS)
@@ -52,7 +50,7 @@ HRESULT WinPartedDll::ApplyP2KLayoutToDiskGPT(Console* console, LibPanther::Logg
 	return applyP2kLayout(console, logger, diskNumber, letters, mountPath, volumeList);
 }
 
-HRESULT WinPartedDll::ApplyP2KLayoutToDiskMBR(Console* console, LibPanther::Logger* logger, int diskNumber, bool letters, wchar_t*** mountPath, wchar_t*** volumeList)
+HRESULT WinPartedDll::ApplyP2KLayoutToDiskMBR(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger, int diskNumber, bool letters, wchar_t*** mountPath, wchar_t*** volumeList)
 {
 	HRESULT res;
 	if (!partedInitialized && (res = InitParted()) != ERROR_SUCCESS)
@@ -62,7 +60,7 @@ HRESULT WinPartedDll::ApplyP2KLayoutToDiskMBR(Console* console, LibPanther::Logg
 	return applyP2kLayout(console, logger, diskNumber, letters, mountPath, volumeList);
 }
 
-HRESULT WinPartedDll::SetPartType(Console* console, LibPanther::Logger* logger, int diskNumber, unsigned long long partOffset, short partType)
+HRESULT WinPartedDll::SetPartType(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger, int diskNumber, unsigned long long partOffset, short partType)
 {
 	HRESULT res;
 	if (!partedInitialized && (res = InitParted()) != ERROR_SUCCESS)
@@ -72,7 +70,7 @@ HRESULT WinPartedDll::SetPartType(Console* console, LibPanther::Logger* logger, 
 	return setPartType(console, logger, diskNumber, partOffset, partType);
 }
 
-HRESULT WinPartedDll::MountPartition(Console* console, LibPanther::Logger* logger, int diskNumber, unsigned long long partOffset, const wchar_t* mountPoint)
+HRESULT WinPartedDll::MountPartition(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger, int diskNumber, unsigned long long partOffset, const wchar_t* mountPoint)
 {
 
 	HRESULT res;
@@ -83,7 +81,7 @@ HRESULT WinPartedDll::MountPartition(Console* console, LibPanther::Logger* logge
 	return mountPartition(console, logger, diskNumber, partOffset, mountPoint);
 }
 
-HRESULT WinPartedDll::EnumerateDisks(Console* console, LibPanther::Logger* logger, DISK_INFORMATION** disks, int* diskCount)
+HRESULT WinPartedDll::EnumerateDisks(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger, DISK_INFORMATION** disks, int* diskCount)
 {
 	HRESULT res;
 	if (!partedInitialized && (res = InitParted()) != ERROR_SUCCESS)
@@ -93,7 +91,7 @@ HRESULT WinPartedDll::EnumerateDisks(Console* console, LibPanther::Logger* logge
 	return enumerateDisks(console, logger, disks, diskCount);
 }
 
-HRESULT WinPartedDll::PrepareDiskForWindows(Console* console, LibPanther::Logger* logger, const wchar_t* volumeGuid, bool useLegacy,
+HRESULT WinPartedDll::PrepareDiskForWindows(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger, const wchar_t* volumeGuid, bool useLegacy,
 	unsigned long long requiredBootSize, unsigned long long requiredRESize, wchar_t installVolumes[2][128])
 {
 	HRESULT res;
@@ -104,7 +102,7 @@ HRESULT WinPartedDll::PrepareDiskForWindows(Console* console, LibPanther::Logger
 	return prepareDisk(console, logger, volumeGuid, useLegacy, requiredBootSize, requiredRESize, installVolumes);
 }
 
-HRESULT WinPartedDll::EnumVolumes(Console* console, LibPanther::Logger* logger, VolumeInformation** volumes, bool includeDynamic, int* count)
+HRESULT WinPartedDll::EnumVolumes(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger, VolumeInformation** volumes, bool includeDynamic, int* count)
 {
 	HRESULT res;
 	if (!partedInitialized && (res = InitParted()) != ERROR_SUCCESS)
@@ -121,23 +119,13 @@ HRESULT WinPartedDll::InitParted()
 	if (partedInitialized) return ERROR_SUCCESS;
 
 	// Try loading WinParted
-	hWinParted = LoadLibraryA("WinParted.exe");
+	hWinParted = LoadLibraryA("Leet.WinParted.PartitionManager.dll");
 	if (!hWinParted)
 	{
 		//wlogf(WindowsSetup::GetLogger(), PANTHER_LL_BASIC, 60, L"Error occurred while loading WinParted (0x%08x).", GetLastError());
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, GetLastError());
 	}
-
-	ParseIAT(hWinParted);
-	auto initializeCRT = (InitializeCRTStub)GetProcAddress(hWinParted, ORD_InitializeCRT);
-	if (!initializeCRT) 
-	{
-		//wlogf(WindowsSetup::GetLogger(), PANTHER_LL_BASIC, 80, L"Error occurred while initializing WinParted CRT runtime (0x%08x).", GetLastError());
-		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, GetLastError());
-	};
-
-	initializeCRT();
-
+	
 	partedInitialized = true;
 	return ERROR_SUCCESS;
 }

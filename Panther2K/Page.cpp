@@ -10,11 +10,11 @@ Page::Page()
 	text = 0;
 }
 
-void Page::Initialize(Console* con)
+void Page::Initialize(Leet::Panther2K::Util::Console* con)
 {
 	console = con;
 
-	text = L"Panther2K " PANTHER_VERSION;
+	text = PANTHER_VER_STRING;
 
 	Init();
 	Draw();

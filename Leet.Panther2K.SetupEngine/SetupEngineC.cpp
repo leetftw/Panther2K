@@ -18,13 +18,13 @@ HRESULT PantherCreateEngine(HSetupEngine* engine, const wchar_t* loggerFile, int
 {
 	if (engine == nullptr) return HRESULT_FROM_WIN32(ERROR_INVALID_PARAMETER);
 
-	LibPanther::Logger* logger = nullptr;
+	Leet::Panther2K::Util::Logger* logger = nullptr;
 	DWORD dwAttrib = GetFileAttributes(loggerFile);
 	if (!loggerFile || (dwAttrib & FILE_ATTRIBUTE_DIRECTORY))
 	{
 		return HRESULT_FROM_WIN32(GetLastError());
 	}
-	logger = new LibPanther::Logger(loggerFile, logLevel);
+	logger = new Leet::Panther2K::Util::Logger(loggerFile, logLevel);
 	return PantherCreateEngine(engine, logger);
 }
 
@@ -32,7 +32,7 @@ HRESULT PantherCreateEngine(HSetupEngine* engine, void* logger)
 {
 	if (engine == nullptr) return HRESULT_FROM_WIN32(ERROR_INVALID_PARAMETER);
 
-	*engine = new Leet::Panther2K::SetupEngine(static_cast<LibPanther::Logger*>(logger));
+	*engine = new Leet::Panther2K::SetupEngine(static_cast<Leet::Panther2K::Util::Logger*>(logger));
 	engines.push_back(*engine);
 	return S_OK;
 }

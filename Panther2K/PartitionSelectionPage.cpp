@@ -133,7 +133,7 @@ PageResult VolumeSelectionPage::KeyHandler(WPARAM wParam)
 		break;
 	case VK_F8:
 	{
-		LibPanther::Logger pantherLogger(L"winparted.log", PANTHER_LL_VERBOSE);
+		Leet::Panther2K::Util::Logger pantherLogger(L"winparted.log", PANTHER_LL_VERBOSE);
 		WinPartedDll::RunWinParted(console, &pantherLogger);
 	}
 		Draw();

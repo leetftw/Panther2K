@@ -6,23 +6,23 @@
 
 #include "VdsService.h"
 
+using namespace Leet::WinParted;
+
 // TODO: Make all exports return HRESULT codes
 
-EXTERN_C BOOL WINAPI _CRT_INIT(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved);
-extern "C" void _stdcall InitializeCRT()
+extern "C" int _stdcall PartedEntryPoint()
 {
-	HINSTANCE instance = GetModuleHandleA("WinParted.exe");
-	_CRT_INIT(instance, DLL_PROCESS_ATTACH, NULL);
+	return PartitionManager::RunWinParted(NULL);
 };
 
-extern "C" int _stdcall RunWinParted(Console* console, LibPanther::Logger* logger)
+extern "C" int _stdcall RunWinParted(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger)
 {
 	PartitionManager::SetLogger(logger);
 	int result = PartitionManager::RunWinParted(console);
 	return result;
 };
 
-extern "C" HRESULT _stdcall EnumerateDisks(Console* console, LibPanther::Logger* logger, DISK_INFORMATION** disks, int* diskCount)
+extern "C" HRESULT _stdcall EnumerateDisks(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger, DISK_INFORMATION** disks, int* diskCount)
 {
 	PartitionManager::ShowNoInfoDialogs = true;
 	PartitionManager::SetConsole(console);
@@ -43,7 +43,7 @@ extern "C" HRESULT _stdcall EnumerateDisks(Console* console, LibPanther::Logger*
 // TODO: Cleanup this mess
 // TODO: Merge GPT and MBR into a single function with a flag
 // TODO: Move partition layout information to Panther2K
-extern "C" HRESULT _stdcall ApplyP2KLayoutToDiskGPT(Console* console, LibPanther::Logger* logger, int diskNumber, bool letters, wchar_t*** mountPath, wchar_t*** volumeList)
+extern "C" HRESULT _stdcall ApplyP2KLayoutToDiskGPT(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger, int diskNumber, bool letters, wchar_t*** mountPath, wchar_t*** volumeList)
 {
 	HRESULT ret;
 	HRESULT hResult;
@@ -176,7 +176,7 @@ exit:
 	return ret;
 }
 
-extern "C" HRESULT _stdcall ApplyP2KLayoutToDiskMBR(Console* console, LibPanther::Logger* logger, int diskNumber, bool letters, wchar_t*** mountPath, wchar_t*** volumeList)
+extern "C" HRESULT _stdcall ApplyP2KLayoutToDiskMBR(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger, int diskNumber, bool letters, wchar_t*** mountPath, wchar_t*** volumeList)
 {
 	HRESULT ret;
 	HRESULT hResult;
@@ -322,7 +322,7 @@ bool LoadPartitionFromOffset(int diskNumber, unsigned long long partOffset)
 	return false;
 }
 
-extern "C" HRESULT _stdcall SetPartType(Console* console, LibPanther::Logger* logger, int diskNumber, unsigned long long partOffset, short partType)
+extern "C" HRESULT _stdcall SetPartType(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger, int diskNumber, unsigned long long partOffset, short partType)
 {
 	PartitionManager::SetConsole(console);
 	PartitionManager::SetLogger(logger);
@@ -343,7 +343,7 @@ retFalse:
 	return returnValue;
 }
 
-extern "C" HRESULT _stdcall MountPartition(Console * console, LibPanther::Logger * logger, int diskNumber, unsigned long long partOffset, const wchar_t* mountPoint)
+extern "C" HRESULT _stdcall MountPartition(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger, int diskNumber, unsigned long long partOffset, const wchar_t* mountPoint)
 {
 	PartitionManager::SetConsole(console);
 	PartitionManager::SetLogger(logger);
@@ -470,7 +470,7 @@ public:
 	}
 };
 
-extern "C" HRESULT _stdcall PrepareDiskForWindows(Console* console, LibPanther::Logger* logger, const wchar_t* volumeGuid, bool useLegacy,
+extern "C" HRESULT _stdcall PrepareDiskForWindows(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger, const wchar_t* volumeGuid, bool useLegacy,
 	unsigned long long requiredBootSize, unsigned long long requiredRESize, wchar_t installVolumes[2][128])
 {
 	PartitionManager::SetConsole(console);
@@ -705,7 +705,7 @@ extern "C" HRESULT _stdcall PrepareDiskForWindows(Console* console, LibPanther::
 	return S_OK;
 }
 
-extern "C" HRESULT _stdcall EnumVolumes(Console* console, LibPanther::Logger* logger, VolumeInformation** volumes, bool includeDynamic, int* count) 
+extern "C" HRESULT _stdcall EnumVolumes(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger, VolumeInformation** volumes, bool includeDynamic, int* count)
 {
 	PartitionManager::SetConsole(console);
 	PartitionManager::SetLogger(logger);

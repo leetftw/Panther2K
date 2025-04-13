@@ -37,10 +37,10 @@ class MessagePage : private Page
 {
 public:
 	MessagePage();
-	MessagePage(Console* console);
-	MessagePage(Console* console, const wchar_t* message);
-	MessagePage(Console* console, const wchar_t* message, MessagePageType type);
-	MessagePage(Console* console, const wchar_t* message, MessagePageType type, MessagePageUI uiType);
+	MessagePage(Leet::Panther2K::Util::Console* console);
+	MessagePage(Leet::Panther2K::Util::Console* console, const wchar_t* message);
+	MessagePage(Leet::Panther2K::Util::Console* console, const wchar_t* message, MessagePageType type);
+	MessagePage(Leet::Panther2K::Util::Console* console, const wchar_t* message, MessagePageType type, MessagePageUI uiType);
 	MessagePageResult ShowDialog();
 private:
 	const wchar_t* messageText;

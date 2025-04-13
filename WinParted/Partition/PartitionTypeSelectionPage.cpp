@@ -1,5 +1,7 @@
 #include "PartitionTypeSelectionPage.h"
 
+using namespace Leet::WinParted;
+
 void PartitionTypeSelectionPage::InitPage()
 {
 	SetStatusText(L"");
@@ -18,7 +20,7 @@ void PartitionTypeSelectionPage::InitPage()
 
 void PartitionTypeSelectionPage::DrawPage()
 {
-	Console* console = GetConsole();
+	Leet::Panther2K::Util::Console* console = GetConsole();
 	SIZE consoleSize = console->GetSize();
 	int bufferSize = consoleSize.cx + 1;
 	wchar_t* buffer = (wchar_t*)safeMalloc(PartitionManager::GetLogger(), sizeof(wchar_t) * bufferSize);
@@ -74,7 +76,7 @@ void PartitionTypeSelectionPage::DrawPage()
 
 void PartitionTypeSelectionPage::UpdatePage()
 {
-	Console* console = GetConsole();
+	Leet::Panther2K::Util::Console* console = GetConsole();
 	SIZE consoleSize = console->GetSize();
 	int bufferSize = consoleSize.cx + 1;
 	wchar_t* buffer = (wchar_t*)safeMalloc(PartitionManager::GetLogger(), sizeof(wchar_t) * bufferSize);
@@ -149,7 +151,7 @@ void PartitionTypeSelectionPage::UpdatePage()
 
 void PartitionTypeSelectionPage::RunPage()
 {
-	Console* console = GetConsole();
+	Leet::Panther2K::Util::Console* console = GetConsole();
 
 	while (KEY_EVENT_RECORD* key = console->Read())
 	{

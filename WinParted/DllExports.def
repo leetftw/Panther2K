@@ -1,5 +1,4 @@
 EXPORTS
-   InitializeCRT   @1
    RunWinParted   @2
    ApplyP2KLayoutToDiskGPT   @3
    ApplyP2KLayoutToDiskMBR   @4

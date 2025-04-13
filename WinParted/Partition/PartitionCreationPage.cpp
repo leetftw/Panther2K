@@ -2,33 +2,7 @@
 #include "PartitionTypeSelectionPage.h"
 #include "..\CoreFunctions\PartitionManager.h"
 
-/*
-
- WinParted 1.2.0m12
-========================
-
-   Partitioning Disk 0. (AMD-RAID Array)
-
-   Creating new partition.
-
-   Please select one of the free spaces of the disk below, and specify the
-   size of the partition.
-
-   ╔════════════════════════════════════════════════════════════════════════╗
-   ║  Location                        Start        End          Available   ║
-   ║ *At the start of the disk        2048                      500MB       ║
-   ║  Before partition 1                           1026047      500MB       ║
-   ║  After partition 1               2052096                   400GB       ║
-   ║  At the end of the disk                       1232896000   400GB       ║
-   ║                                                                        ║
-   ║                                                                        ║
-   ╚════════════════════════════════════════════════════════════════════════╝
-
-   Size: 250_
-   [S] [KB] [MB] [GB] [TB]
-
-████████████████████████████████████████████████████████████████████████████████
-*/
+using namespace Leet::WinParted;
 
 void PartitionCreationPage::InitPage()
 {
@@ -147,7 +121,7 @@ void PartitionCreationPage::InitPage()
 
 void PartitionCreationPage::DrawPage()
 {
-	Console* console = GetConsole();
+	Leet::Panther2K::Util::Console* console = GetConsole();
 	SIZE consoleSize = console->GetSize();
 	int bufferSize = consoleSize.cx + 1;
 	wchar_t* buffer = (wchar_t*)safeMalloc(nullptr, sizeof(wchar_t) * bufferSize);
@@ -182,7 +156,7 @@ void PartitionCreationPage::DrawPage()
 
 void PartitionCreationPage::UpdatePage()
 {
-	Console* console = GetConsole();
+	Leet::Panther2K::Util::Console* console = GetConsole();
 	SIZE consoleSize = console->GetSize();
 
 	unsigned long long bufferSize = consoleSize.cx + 1;
@@ -275,7 +249,7 @@ void PartitionCreationPage::ParseSize()
 
 void PartitionCreationPage::RunPage()
 {
-	Console* console = GetConsole();
+	Leet::Panther2K::Util::Console* console = GetConsole();
 	char keyChar = 0;
 
 	while (KEY_EVENT_RECORD* key = console->Read())

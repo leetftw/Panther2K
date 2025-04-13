@@ -1,6 +1,8 @@
 ﻿#include "PartitionFormatPage.h"
 #include "..\CoreFunctions\PartitionManager.h"
 
+using namespace Leet::WinParted;
+
 /*
 
  WinParted 1.2.0m12
@@ -54,7 +56,7 @@ void PartitionFormatPage::InitPage()
 
 void PartitionFormatPage::DrawPage()
 {
-	Console* console = GetConsole();
+	Leet::Panther2K::Util::Console* console = GetConsole();
 	SIZE consoleSize = console->GetSize();
 	int bufferSize = consoleSize.cx + 1;
 	wchar_t* buffer = (wchar_t*)safeMalloc(PartitionManager::GetLogger(), sizeof(wchar_t) * bufferSize);
@@ -97,7 +99,7 @@ void PartitionFormatPage::DrawPage()
 
 void PartitionFormatPage::UpdatePage()
 {
-	Console* console = GetConsole();
+	Leet::Panther2K::Util::Console* console = GetConsole();
 	SIZE consoleSize = console->GetSize();
 
 	unsigned long long bufferSize = consoleSize.cx + 1;
@@ -150,7 +152,7 @@ void PartitionFormatPage::UpdatePage()
 
 void PartitionFormatPage::RunPage()
 {
-	Console* console = GetConsole();
+	Leet::Panther2K::Util::Console* console = GetConsole();
 	bool holdingShift;
 
 	while (KEY_EVENT_RECORD* key = console->Read())
@@ -171,7 +173,7 @@ void PartitionFormatPage::RunPage()
 				break;
 			nameString[index] = key->wVirtualKeyCode;
 			nameString[index + 1] = 0;
-
+			
 			Update();
 		}
 		else switch (key->wVirtualKeyCode) 

@@ -58,7 +58,7 @@ typedef struct _MOUNTMGR_MOUNT_POINTS {
 
 
 
-PageResult ShowPageModal(Console* console, LibPanther::Logger* logger, Page* page)
+PageResult ShowPageModal(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger, Page* page)
 {
     PageResult result;
     KEY_EVENT_RECORD* record = console->Read();
@@ -78,7 +78,7 @@ void Leet::Panther2K::SetupManager::PreviousStep()
     currentStep -= 2;
 }
 
-Leet::Panther2K::SetupManager::SetupManager(Console* console, LibPanther::Logger* logger)
+Leet::Panther2K::SetupManager::SetupManager(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger)
 {
     this->console = console;
     this->logger = logger;
@@ -159,7 +159,7 @@ StepResult Leet::Panther2K::SetupManager::Initialize()
     return StepResult::Success;
 }
 
-bool parseColor(const pugi::xml_node& parentNode, const std::wstring& nodeName, COLOR& color, LibPanther::Logger* logger) 
+bool parseColor(const pugi::xml_node& parentNode, const std::wstring& nodeName, Leet::Panther2K::Util::CONSOLE_COLOR& color, Leet::Panther2K::Util::Logger* logger) 
 {
     pugi::xml_node colorNode = parentNode.child(nodeName.c_str());
     if (!colorNode)
@@ -244,7 +244,7 @@ StepResult Leet::Panther2K::SetupManager::LoadConfiguration()
     }
     pugi::xml_node consoleNode = consoleNodes.first().node();
 
-    COLOR* colors = new COLOR[6];
+    Leet::Panther2K::Util::CONSOLE_COLOR* colors = new Leet::Panther2K::Util::CONSOLE_COLOR[6];
 
 #if PANTHER_RELEASE_TYPE == PANTHER_RT_RELEASE
     COLOR defColor = { 0, 0, 170 };

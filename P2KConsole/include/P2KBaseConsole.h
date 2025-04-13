@@ -11,60 +11,70 @@
 #define CONSOLE_COLOR_LIGHTFG 4
 #define CONSOLE_COLOR_DARKFG 5
 
-struct COLOR
-{
-	unsigned char R, G, B;
-
-	COLORREF ToColor()
-	{
-		return RGB(R, G, B);
-	}
-};
-
 wchar_t* CleanString(const wchar_t* string);
 wchar_t** SplitStringToLines(const wchar_t* string, int maxWidth, int* lineCount);
 
-class Console
+namespace Leet 
 {
-public:
-	Console();
-	virtual bool Init();
+	namespace Panther2K 
+	{
+		namespace Util 
+		{
+			struct CONSOLE_COLOR
+			{
+				unsigned char R, G, B;
 
-	virtual void SetPosition(long x, long y);
-	virtual POINT GetPosition();
-	virtual void SetSize(long columns, long rows);
-	virtual SIZE GetSize();
+				COLORREF ToColor()
+				{
+					return RGB(R, G, B);
+				}
+			};
 
-	void SetColors(COLOR* colorTable);
-	void SetBackgroundColor(COLOR color);
-	void SetBackgroundColor(int index);
-	COLOR GetBackgroundColor();
-	void SetForegroundColor(COLOR color);
-	void SetForegroundColor(int index);
-	COLOR GetForegroundColor();
+			class Console
+			{
+			public:
+				Console();
+				~Console();
+				virtual bool Init();
 
-	void SetColorTable(COLOR* colorTable, int colorTableSize);
+				virtual void SetPosition(long x, long y);
+				virtual POINT GetPosition();
+				virtual void SetSize(long columns, long rows);
+				virtual SIZE GetSize();
 
-	virtual void SetCursor(bool enabled, bool blinking);
+				void SetColors(CONSOLE_COLOR* colorTable);
+				void SetBackgroundColor(CONSOLE_COLOR color);
+				void SetBackgroundColor(int index);
+				CONSOLE_COLOR GetBackgroundColor();
+				void SetForegroundColor(CONSOLE_COLOR color);
+				void SetForegroundColor(int index);
+				CONSOLE_COLOR GetForegroundColor();
 
-	virtual void Write(const wchar_t* string);
-	virtual void WriteLine(const wchar_t* string);
-	virtual KEY_EVENT_RECORD* Read(int count = 1);
-	virtual KEY_EVENT_RECORD* ReadLine();
-	virtual void Update();
-	virtual void Clear();
+				void SetColorTable(CONSOLE_COLOR* colorTable, int colorTableSize);
 
-	void DrawBox(int boxX, int boxY, int boxWidth, int boxHeight, bool useDouble);
-	void DrawTextLeft(const wchar_t* string, int cx, int y);
-	void DrawTextRight(const wchar_t* string, int cx, int y);
-	void DrawTextCenter(const wchar_t* string, int cx, int y);
-protected:
-	int backColorIndex;
-	int foreColorIndex;
-	COLOR backColor;
-	COLOR foreColor;
-	COLOR* colorTable;
-	int colorTableSize;
+				virtual void SetCursor(bool enabled, bool blinking);
 
-	virtual void UpdateColorTable();
-};
+				virtual void Write(const wchar_t* string);
+				virtual void WriteLine(const wchar_t* string);
+				virtual KEY_EVENT_RECORD* Read(int count = 1);
+				virtual KEY_EVENT_RECORD* ReadLine();
+				virtual void Update();
+				virtual void Clear();
+
+				void DrawBox(int boxX, int boxY, int boxWidth, int boxHeight, bool useDouble);
+				void DrawTextLeft(const wchar_t* string, int cx, int y);
+				void DrawTextRight(const wchar_t* string, int cx, int y);
+				void DrawTextCenter(const wchar_t* string, int cx, int y);
+			protected:
+				int backColorIndex;
+				int foreColorIndex;
+				CONSOLE_COLOR backColor;
+				CONSOLE_COLOR foreColor;
+				CONSOLE_COLOR* colorTable;
+				int colorTableSize;
+
+				virtual void UpdateColorTable();
+			};
+		}
+	}
+}

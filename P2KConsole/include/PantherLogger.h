@@ -59,38 +59,52 @@ do { \
 
 #define wloglerr(logger, level, buffersize, format, ...) wlogerr(logger, level, buffersize, format, GetLastError(), __VA_ARGS__)
 
-namespace LibPanther
+namespace Leet
 {
-	class Logger
+	namespace Panther2K
 	{
-	public:
-		// Initialized the logger with the desired log level
-		Logger(const wchar_t* fileName, int logLevel);
-		~Logger();
+		namespace Util
+		{
+			class Logger
+			{
+			public:
+				// Initialized the logger with the desired log level
+				Logger(const wchar_t* fileName, int logLevel);
+				~Logger();
 
-		// Writes to the log file with formatted time and date information
-		void Write(int level, const wchar_t* message);
+				// Writes to the log file with formatted time and date information
+				void Write(int level, const wchar_t* message);
 
-		// Writes directly to the log file (uses as little memory as possible)
-		void WriteDirect(int level, const wchar_t* message);
+				// Writes directly to the log file (uses as little memory as possible)
+				void WriteDirect(int level, const wchar_t* message);
 
-		// Retrieves the log level
-		int GetLogLevel();
-	private:
-		wchar_t timeBuffer[100];
-		wchar_t messageBuffer[512];
-		HANDLE hLogFile;
-		wchar_t szLogFile[MAX_PATH];
-		int dwLogLevel;
-		CRITICAL_SECTION cs;
+				// Retrieves the log level
+				int GetLogLevel();
+			private:
+				wchar_t timeBuffer[100];
+				wchar_t messageBuffer[512];
+				HANDLE hLogFile;
+				wchar_t szLogFile[MAX_PATH];
+				int dwLogLevel;
+				CRITICAL_SECTION cs;
 
-		void formatTime();
-	};
+				void formatTime();
+			};
+		}
+	}
 }
 
-void* __cdecl safeMallocImpl(LibPanther::Logger* logger, size_t size, const wchar_t* file, int line, const wchar_t* function);
+#if PANTHER_RELEASE_TYPE != PANTHER_RT_RELEASE
+void* __cdecl safeMallocImpl(Leet::Panther2K::Util::Logger* logger, size_t size, const wchar_t* file, int line, const wchar_t* function);
 #define safeMalloc(logger, size) safeMallocImpl(logger, size, __FILEW__, __LINE__, __FUNCTIONW__)
-void* __cdecl safeLocalAlloc(LibPanther::Logger* logger, size_t size);
+void* __cdecl safeLocalAlloc(Leet::Panther2K::Util::Logger* logger, size_t size);
 
-void __cdecl safeFree(LibPanther::Logger* logger, void* ptr);
-void __cdecl safeCleanup(LibPanther::Logger* logger);
+void __cdecl safeFree(Leet::Panther2K::Util::Logger* logger, void* ptr);
+void __cdecl safeCleanup(Leet::Panther2K::Util::Logger* logger);
+#else
+#define safeMalloc(logger, size) malloc(size)
+#define safeLocalAlloc(logger, size) LocalAlloc(size);
+
+#define safeFree(logger, ptr) free(ptr)
+#define safeCleanup(logger) wlogc(logger, PANTHER_LL_BASIC, L"[Memory Manager] Production build, not performing memory cleanup.")
+#endif

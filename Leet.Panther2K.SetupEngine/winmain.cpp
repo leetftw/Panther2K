@@ -57,7 +57,7 @@ int APIENTRY wWinMain_C(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpC
 int APIENTRY wWinMain_CPP(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
 	// Create logger
-	LibPanther::Logger logger = LibPanther::Logger(L"test.log", PANTHER_LL_VERBOSE);
+	Leet::Panther2K::Util::Logger logger = Leet::Panther2K::Util::Logger(L"test.log", PANTHER_LL_VERBOSE);
 	logger.Write(PANTHER_LL_NORMAL, L"Panther2K Technical Test Starting. Version 2.0");
 
 	// Initialize the engine

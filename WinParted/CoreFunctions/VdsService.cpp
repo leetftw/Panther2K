@@ -14,6 +14,8 @@
 
 #include "PartitionManager.h"
 
+using namespace Leet::WinParted;
+
 HRESULT VdsStartSession(IVdsService** session)
 {
     HRESULT hResult;

@@ -4,6 +4,8 @@
 #include "PartitionFormatPage.h"
 #include "..\CoreFunctions\PartitionManager.h"
 
+using namespace Leet::WinParted;
+
 void PartitionInformationPage::InitPage()
 {
 	SetStatusText(L"");
@@ -11,7 +13,7 @@ void PartitionInformationPage::InitPage()
 
 void PartitionInformationPage::DrawPage()
 {
-	Console* console = GetConsole();
+	Leet::Panther2K::Util::Console* console = GetConsole();
 	SIZE consoleSize = console->GetSize();
 	int bufferSize = consoleSize.cx + 1;
 	wchar_t* buffer = (wchar_t*)safeMalloc(PartitionManager::GetLogger(), sizeof(wchar_t) * bufferSize);
@@ -127,7 +129,7 @@ void PartitionInformationPage::UpdatePage()
 
 void PartitionInformationPage::RunPage()
 {
-	Console* console = GetConsole();
+	Leet::Panther2K::Util::Console* console = GetConsole();
 
 	while (KEY_EVENT_RECORD* key = console->Read())
 	{

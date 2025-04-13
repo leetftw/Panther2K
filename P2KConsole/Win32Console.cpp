@@ -1,8 +1,11 @@
-#include "Win32Console.h"
 #include <iostream>
-#include "include/PantherLogger.h"
 
-bool rgbMode = true;
+#include "include/PantherLogger.h"
+#include "include/P2KWin32Console.h"
+
+using namespace Leet::Panther2K::Util;
+
+static bool rgbMode = true;
 
 bool Win32Console::Init()
 {

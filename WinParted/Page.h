@@ -1,11 +1,19 @@
 #pragma once
 #include <PantherConsole.h>
 
+namespace Leet 
+{
+	namespace WinParted 
+	{
+		class PartitionManager;
+	}
+}
+
 class Page
 {
 public:
 	Page();
-	void Initialize(Console* con);
+	void Initialize(Leet::Panther2K::Util::Console* con);
 	void Draw();
 	void Update();
 	void Run();
@@ -13,12 +21,12 @@ public:
 private:
 	const wchar_t* text;
 	const wchar_t* statusText;
-	Console* console;
+	Leet::Panther2K::Util::Console* console;
 	bool drawHeader;
 	bool drawStatus;
 	bool drawClear;
 
-	friend class PartitionManager;
+	friend class Leet::WinParted::PartitionManager;
 protected:
 	void SetDecorations(bool header, bool status, bool clear);
 	void SetText(const wchar_t* txt);
@@ -26,6 +34,6 @@ protected:
 	virtual void DrawPage();
 	virtual void UpdatePage();
 	virtual void RunPage();
-	Console* GetConsole();
+	Leet::Panther2K::Util::Console* GetConsole();
 };
 

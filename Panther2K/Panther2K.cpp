@@ -15,16 +15,16 @@
 // Command line builds (for testing and debugging)
 int wmain(int argc, wchar_t** argv)
 {
-    printf("Panther2K Early load. Version " PANTHER_VERSION "\n");
+    printf("Panther2K Early load. Version " BASE_VER_STRING "\n");
 
     printf("Creating logger...\n");
-    LibPanther::Logger logger = LibPanther::Logger(L"debug.log", PANTHER_LL_VERBOSE);
+    Leet::Panther2K::Util::Logger logger = Leet::Panther2K::Util::Logger(L"debug.log", PANTHER_LL_VERBOSE);
 
     // Separate stack frame to perform deinitialization
     HRESULT result;
     {
         printf("Creating console...\n");
-        CustomConsole console;
+        Leet::Panther2K::Util::CustomConsole console;
         console.Init();
         ShowWindow(console.WindowHandle, SW_SHOW);
 

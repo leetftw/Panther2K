@@ -5,6 +5,8 @@
 #include "PantherLogger.h"
 #include "VdsService.h"
 
+using namespace Leet::WinParted;
+
 DISK_INFORMATION* PartitionManager::DiskInformationTable = 0;
 long PartitionManager::DiskInformationTableSize = 0;
 
@@ -23,29 +25,29 @@ PartitionInformation PartitionManager::CurrentPartition = { 0 };
 
 bool PartitionManager::ShowNoInfoDialogs = false;
 
-Console* PartitionManager::currentConsole = 0;
-LibPanther::Logger* PartitionManager::logger = 0;
+Leet::Panther2K::Util::Console* PartitionManager::currentConsole = 0;
+Leet::Panther2K::Util::Logger* PartitionManager::logger = 0;
 Page* PartitionManager::CurrentPage = 0;
 std::stack<Page*> PartitionManager::pageStack = std::stack<Page*>();
 bool PartitionManager::shouldExit = false;
 int PartitionManager::exitCode = 0;
 
-void PartitionManager::SetConsole(Console* console)
+void PartitionManager::SetConsole(Leet::Panther2K::Util::Console* console)
 {
 	currentConsole = console;
 }
 
-void PartitionManager::SetLogger(LibPanther::Logger* logger)
+void PartitionManager::SetLogger(Leet::Panther2K::Util::Logger* logger)
 {
 	PartitionManager::logger = logger;
 }
 
-LibPanther::Logger* PartitionManager::GetLogger()
+Leet::Panther2K::Util::Logger* PartitionManager::GetLogger()
 {
 	return logger;
 }
 
-int PartitionManager::RunWinParted(Console* console)
+int PartitionManager::RunWinParted(Leet::Panther2K::Util::Console* console)
 {
     // Prepare the console
     if (console == NULL)
@@ -53,23 +55,23 @@ int PartitionManager::RunWinParted(Console* console)
 		bool customConsole = true;
 		if (customConsole)
 		{
-			currentConsole = new CustomConsole();
+			currentConsole = new Leet::Panther2K::Util::CustomConsole();
 			currentConsole->Init();
 			//currentConsole->SetSize(40, 80);
-			ShowWindow(((CustomConsole*)currentConsole)->WindowHandle, SW_SHOW);
-			((CustomConsole*)currentConsole)->SetPixelScale(1);
+			ShowWindow(((Leet::Panther2K::Util::CustomConsole*)currentConsole)->WindowHandle, SW_SHOW);
+			((Leet::Panther2K::Util::CustomConsole*)currentConsole)->SetPixelScale(1);
 		}
 		else 
 		{
 			printf("Creating WinParted console (Win32)...");
-			currentConsole = new Win32Console();
+			currentConsole = new Leet::Panther2K::Util::Win32Console();
 			currentConsole->Init();
 		}
     }
     else
         currentConsole = console;
 	if (logger == NULL)
-		logger = new LibPanther::Logger(L"wparted.log", PANTHER_LL_VERBOSE);
+		logger = new Leet::Panther2K::Util::Logger(L"wparted.log", PANTHER_LL_VERBOSE);
 
 	// Reset values
 	printf("Initializing values...");

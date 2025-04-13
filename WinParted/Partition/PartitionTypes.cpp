@@ -1,5 +1,7 @@
 #include "..\CoreFunctions\PartitionManager.h"
 
+using namespace Leet::WinParted;
+
 // Taken from GPT fdisk (gdisk) source code
 // Modified a bit to work within the use of this application
 const PartitionType PartitionManager::GptTypes[PartitionTypeCount]

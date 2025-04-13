@@ -1,6 +1,5 @@
-#include "CustomConsole.h"
+#include "include/P2KCustomConsole.h"
 #include <iostream>
-#include "Win32Console.h"
 #include "include/PantherLogger.h"
 
 #define IDR_FONT_IBM                    3
@@ -10,6 +9,8 @@
 #define WM_CLEARCONSOLE WM_APP + 2
 #define WM_UPDATECONSOLE WM_APP + 3
 #define WM_CREATEBUFFER WM_APP + 4
+
+using namespace Leet::Panther2K::Util;
 
 HFONT CustomConsole::font = 0;
 long CustomConsole::fontWidth = 0;
@@ -54,8 +55,8 @@ void CustomConsole::ConsoleMessageLoop()
 			console->fullScreen = false;
 			console->columns = newConsoleSize.cx;
 			console->rows = newConsoleSize.cy;
-			console->backColor = COLOR{ 0, 0, 170 };
-			console->foreColor = COLOR{ 170, 170, 170 };
+			console->backColor = CONSOLE_COLOR{ 0, 0, 170 };
+			console->foreColor = CONSOLE_COLOR{ 170, 170, 170 };
 			console->backColorIndex = CONSOLE_COLOR_BG;
 			console->foreColorIndex = CONSOLE_COLOR_FG;
 			console->screenPointerX = 0;
@@ -68,8 +69,8 @@ void CustomConsole::ConsoleMessageLoop()
 			if (!console->WindowHandle)
 				break;;
 
-			console->screenBuffer = (DISPLAYCHAR*)safeMalloc(nullptr, sizeof(DISPLAYCHAR) * console->columns * console->rows);
-			ZeroMemory(console->screenBuffer, sizeof(DISPLAYCHAR) * console->columns * console->rows);
+			console->screenBuffer = (CUSTOM_CONSOLE_CHAR*)safeMalloc(nullptr, sizeof(CUSTOM_CONSOLE_CHAR) * console->columns * console->rows);
+			ZeroMemory(console->screenBuffer, sizeof(CUSTOM_CONSOLE_CHAR) * console->columns * console->rows);
 			//ShowWindow(console->WindowHandle, SW_SHOW);
 			PostMessageW(console->WindowHandle, WM_KEYDOWN, VK_HOME, 0);
 			break;
@@ -84,7 +85,6 @@ CustomConsole::CustomConsole() : Console()
 {
 	inputBuffer = new std::queue<KEY_EVENT_RECORD>();
 	outputBuffer = new std::deque<int>();
-	isWindowClosed = true;
 }
 
 CustomConsole::~CustomConsole()
@@ -235,7 +235,7 @@ wchar_t ConvertCharacter(wchar_t charr)
 void CustomConsole::Write(const wchar_t* string)
 {
 	RECT rect;
-	DISPLAYCHAR* characters = WcharPointerToDisplayCharPointer(string);
+	CUSTOM_CONSOLE_CHAR* characters = WcharPointerToDisplayCharPointer(string);
 
 	int length = lstrlenW(string);
 	for (int i = 0; i < length; i++)
@@ -527,8 +527,8 @@ LRESULT CALLBACK CustomConsole::WndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPAR
 		columns = consoleSize->cx;
 		rows = consoleSize->cy;
 		if (screenBuffer) safeFree(nullptr, screenBuffer);
-		screenBuffer = (DISPLAYCHAR*)safeMalloc(nullptr, sizeof(DISPLAYCHAR) * columns * rows); 
-		ZeroMemory(screenBuffer, sizeof(DISPLAYCHAR) * columns * rows);
+		screenBuffer = (CUSTOM_CONSOLE_CHAR*)safeMalloc(nullptr, sizeof(CUSTOM_CONSOLE_CHAR) * columns * rows);
+		ZeroMemory(screenBuffer, sizeof(CUSTOM_CONSOLE_CHAR) * columns * rows);
 		SendMessageW(WindowHandle, WM_CREATEBUFFER, VK_HOME, 0);
 		break;
 	}
@@ -648,14 +648,14 @@ void CustomConsole::incrementY()
 	}
 }
 
-DISPLAYCHAR* CustomConsole::WcharPointerToDisplayCharPointer(const wchar_t* string)
+CUSTOM_CONSOLE_CHAR* CustomConsole::WcharPointerToDisplayCharPointer(const wchar_t* string)
 {
 	int length = lstrlenW(string);
 	if (length <= 0)
 		return NULL;
 
-	DISPLAYCHAR* displayCharPointer = (DISPLAYCHAR*)safeMalloc(nullptr, sizeof(DISPLAYCHAR) * length);
-	ZeroMemory(displayCharPointer, sizeof(DISPLAYCHAR) * length);
+	CUSTOM_CONSOLE_CHAR* displayCharPointer = (CUSTOM_CONSOLE_CHAR*)safeMalloc(nullptr, sizeof(CUSTOM_CONSOLE_CHAR) * length);
+	ZeroMemory(displayCharPointer, sizeof(CUSTOM_CONSOLE_CHAR) * length);
 
 	if (displayCharPointer == 0)
 		return NULL;

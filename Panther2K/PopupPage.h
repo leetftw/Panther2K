@@ -6,7 +6,7 @@
 class PopupPage
 {
 public:
-	void Initialize(Console* con, Page* par);
+	void Initialize(Leet::Panther2K::Util::Console* con, Page* par);
 	void Draw();
 	PageResult HandleKey(WPARAM wParam);
 	Page* parent;
@@ -19,5 +19,5 @@ protected:
 	int fore, back;
 	int width, height;
 	const wchar_t* statusText;
-	Console* console;
+	Leet::Panther2K::Util::Console* console;
 };

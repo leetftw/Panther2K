@@ -1,6 +1,6 @@
 ﻿#include "PopupPage.h"
 
-void PopupPage::Initialize(Console* con, Page* par)
+void PopupPage::Initialize(Leet::Panther2K::Util::Console* con, Page* par)
 {
 	console = con;
 	parent = par;
@@ -11,7 +11,7 @@ void PopupPage::Initialize(Console* con, Page* par)
 
 void PopupPage::Draw()
 {
-	COLOR a, b;
+	Leet::Panther2K::Util::CONSOLE_COLOR a, b;
 
 	if (customColor)
 	{

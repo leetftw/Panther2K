@@ -30,10 +30,10 @@ const MessagePageResult MessagePage::escReturnValues[7] = {
 };
 
 MessagePage::MessagePage() : MessagePage(NULL) { }
-MessagePage::MessagePage(Console* console) : MessagePage(console, L"No message was supplied for this page") { }
-MessagePage::MessagePage(Console* console, const wchar_t* message) : MessagePage(console, message, MessagePageType::OK) { }
-MessagePage::MessagePage(Console* console, const wchar_t* message, MessagePageType type) : MessagePage(console, message, type, MessagePageUI::Normal) { }
-MessagePage::MessagePage(Console* console, const wchar_t* message, MessagePageType type, MessagePageUI uiType)
+MessagePage::MessagePage(Leet::Panther2K::Util::Console* console) : MessagePage(console, L"No message was supplied for this page") { }
+MessagePage::MessagePage(Leet::Panther2K::Util::Console* console, const wchar_t* message) : MessagePage(console, message, MessagePageType::OK) { }
+MessagePage::MessagePage(Leet::Panther2K::Util::Console* console, const wchar_t* message, MessagePageType type) : MessagePage(console, message, type, MessagePageUI::Normal) { }
+MessagePage::MessagePage(Leet::Panther2K::Util::Console* console, const wchar_t* message, MessagePageType type, MessagePageUI uiType)
 {
 	messageText = message;
 	messageType = type;
@@ -68,7 +68,7 @@ void MessagePage::DrawPage()
 	// Box with centered text, two indent on each side.
 	// Should be 3/8 of the size of the window
 	int lineCount;
-	Console* console = GetConsole();
+	Leet::Panther2K::Util::Console* console = GetConsole();
 	SIZE consoleSize = console->GetSize();
 	wchar_t* buffer = (wchar_t*)safeMalloc(nullptr, sizeof(wchar_t) * consoleSize.cx);
 	int textWidth = consoleSize.cx - (consoleSize.cx / 8 * 3);
@@ -108,7 +108,7 @@ void MessagePage::DrawPage()
 
 void MessagePage::UpdatePage()
 {
-	Console* console = GetConsole();
+	Leet::Panther2K::Util::Console* console = GetConsole();
 
 	selectionMax = 0;
 	for (int i = 0; i < 3; i++)
@@ -145,7 +145,7 @@ void MessagePage::UpdatePage()
 
 void MessagePage::RunPage()
 {
-	Console* console = GetConsole();
+	Leet::Panther2K::Util::Console* console = GetConsole();
 
 	while (KEY_EVENT_RECORD* key = console->Read())
 	{

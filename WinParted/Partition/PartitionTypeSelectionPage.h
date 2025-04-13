@@ -16,7 +16,7 @@ private:
 	int maxItems;
 	int totalItems;
 	int boxY;
-	PartitionType items[PartitionTypeCount];
+	Leet::WinParted::PartitionType items[PartitionTypeCount];
 	wchar_t enteredChars[5];
 	POINT textLocation;
 	int inputIndex;

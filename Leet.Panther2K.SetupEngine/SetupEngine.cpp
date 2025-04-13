@@ -18,15 +18,15 @@
 
 #define STDOUT(buffer) WriteConsoleW(consoleHandle, buffer, lstrlenW(buffer), NULL, NULL)
 
-Leet::Panther2K::SetupEngine::SetupEngine(LibPanther::Logger* logger)
+Leet::Panther2K::SetupEngine::SetupEngine(Leet::Panther2K::Util::Logger* logger)
 {
 	bUseLegacy = false;
 	dwCallbackThread = -1;
 	installLog = logger;
 #ifdef _DEBUG
-	if (!installLog) installLog = new LibPanther::Logger(L"PantherEngine.log", PANTHER_LL_VERBOSE);
+	if (!installLog) installLog = new Leet::Panther2K::Util::Logger(L"PantherEngine.log", PANTHER_LL_VERBOSE);
 #else
-	if (!installLog) installLog = new LibPanther::Logger(L"PantherEngine.log", PANTHER_LL_NORMAL);
+	if (!installLog) installLog = new Leet::Panther2K::Util::Logger(L"PantherEngine.log", PANTHER_LL_NORMAL);
 #endif
 	hWimFile = nullptr;
 	hWimImage = nullptr;

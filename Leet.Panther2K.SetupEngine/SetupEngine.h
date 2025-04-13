@@ -18,7 +18,7 @@ namespace Leet::Panther2K
 	class SetupEngine
 	{
 	public:
-		SetupEngine(LibPanther::Logger* logger);
+		SetupEngine(Leet::Panther2K::Util::Logger* logger);
 		~SetupEngine();
 
 		// Setters for installation config
@@ -42,7 +42,7 @@ namespace Leet::Panther2K
 		static DWORD CALLBACK WimgapiCallback(DWORD dwMessageId, WPARAM wParam, LPARAM lParam, PVOID pvUserData);
 		HRESULT createBootFiles();
 
-		LibPanther::Logger* installLog;
+		Leet::Panther2K::Util::Logger* installLog;
 
 		// WIMFILE data (legacy phase 2)
 		std::wstring szWimPath;

@@ -8,153 +8,159 @@
 #include "..\Page.h"
 #include "..\MessagePage.h"
 
-enum class PartitionTableType
-{
-	Unknown = 0,
-	MBR = 1,
-	GPT = 2,
-	PMBR = 4,
-	GPT_PMBR = GPT | PMBR,
-	GPT_HMBR = GPT | MBR,
-};
-
-enum class OperatingMode
-{
-	Unknown,
-	MBR,
-	GPT,
-};
-
-struct DISK_INFORMATION
-{
-	unsigned int DiskNumber;
-	wchar_t DiskPath[64];
-	wchar_t DeviceName[256];
-	unsigned int PartitionCount;
-	MEDIA_TYPE MediaType;
-	unsigned int SectorSize;
-	unsigned long long SectorCount;
-};
-
-struct PartitionType
-{
-	short gDiskType;
-	GUID guid;
-	const wchar_t* display_name;
-};
-
-struct WP_PART_DESCRIPTION
-{
-	int PartitionNumber;
-	short PartitionType;
-	wchar_t PartitionSize[10];
-	wchar_t FileSystem[10];
-	const wchar_t* MountPoint;
-};
-
-struct WP_PART_LAYOUT
-{
-	int PartitionCount;
-	WP_PART_DESCRIPTION Partitions[1];
-};
-
 #define PartitionTypeCount 224
 #define PartitionTypeCommonCount 16
 
-class PartitionManager
+namespace Leet
 {
-public:
-	static const PartitionType GptTypes[PartitionTypeCount];
-	
-	//
-	// UI management
-	//
+	namespace WinParted
+	{
+		enum class PartitionTableType
+		{
+			Unknown = 0,
+			MBR = 1,
+			GPT = 2,
+			PMBR = 4,
+			GPT_PMBR = GPT | PMBR,
+			GPT_HMBR = GPT | MBR,
+		};
 
-	static void SetConsole(Console* console);
-	static void SetLogger(LibPanther::Logger* logger);
-	static LibPanther::Logger* GetLogger();
-    static int RunWinParted(Console* console);
-	static void PushPage(Page* page);
-	static void PopPage();
-	static MessagePageResult ShowMessagePage(const wchar_t* message, MessagePageType type = MessagePageType::OK, MessagePageUI uiStyle = MessagePageUI::Normal);
-	static void Exit(int returnCode);
-	static void Restart();
+		enum class OperatingMode
+		{
+			Unknown,
+			MBR,
+			GPT,
+		};
 
-	//
-	// Disk manipulation
-	//
+		struct DISK_INFORMATION
+		{
+			unsigned int DiskNumber;
+			wchar_t DiskPath[64];
+			wchar_t DeviceName[256];
+			unsigned int PartitionCount;
+			MEDIA_TYPE MediaType;
+			unsigned int SectorSize;
+			unsigned long long SectorCount;
+		};
 
-	static void PopulateDiskInformation();
-	static PartitionTableType GetPartitionTableType(DISK_INFORMATION* diskInfo);
-	static bool LoadDisk(DISK_INFORMATION* diskInfo, bool forceOperatingMode);
+		struct PartitionType
+		{
+			short gDiskType;
+			GUID guid;
+			const wchar_t* display_name;
+		};
 
-	//
-	// Partition table manipulation
-	//
+		struct WP_PART_DESCRIPTION
+		{
+			int PartitionNumber;
+			short PartitionType;
+			wchar_t PartitionSize[10];
+			wchar_t FileSystem[10];
+			const wchar_t* MountPoint;
+		};
 
-	static bool LoadPartitionTable();
-	static bool SavePartitionTableToDisk();
-	static bool AddPartition(PartitionInformation* partInfo, unsigned long long flags);
-	static bool DeletePartition(PartitionInformation* partInfo);
-	static HRESULT ApplyPartitionLayoutGPT(WP_PART_LAYOUT* layout);
-	static HRESULT ApplyPartitionLayoutMBR(WP_PART_LAYOUT* layout);
+		struct WP_PART_LAYOUT
+		{
+			int PartitionCount;
+			WP_PART_DESCRIPTION Partitions[1];
+		};
 
-	static DISK_INFORMATION* DiskInformationTable;
-	static long DiskInformationTableSize;
-	static DISK_INFORMATION CurrentDisk;
-	static PartitionTableType CurrentDiskType;
-	static MBR_HEADER CurrentDiskMBR;
-	static GPT_HEADER CurrentDiskGPT;
-	static GPT_ENTRY* CurrentDiskGPTTable;
-	static OperatingMode CurrentDiskOperatingMode;
-	static PartitionInformation* CurrentDiskPartitions;
-	static long CurrentDiskPartitionCount;
-	static bool CurrentDiskPartitionsModified;
-	static bool CurrentDiskPartitionTableDestroyed;
-	static long CurrentDiskFirstAvailablePartition;
+		class PartitionManager
+		{
+		public:
+			static const PartitionType GptTypes[PartitionTypeCount];
 
-	//
-	// Partition manipulation
-	//
+			//
+			// UI management
+			//
 
-	static bool LoadPartition(PartitionInformation* partition);
-	static bool SetCurrentPartitionType(short value);
-	static bool SetCurrentPartitionGuid(GUID value);
+			static void SetConsole(Leet::Panther2K::Util::Console* console);
+			static void SetLogger(Leet::Panther2K::Util::Logger* logger);
+			static Leet::Panther2K::Util::Logger* GetLogger();
+			static int RunWinParted(Leet::Panther2K::Util::Console* console);
+			static void PushPage(Page* page);
+			static void PopPage();
+			static MessagePageResult ShowMessagePage(const wchar_t* message, MessagePageType type = MessagePageType::OK, MessagePageUI uiStyle = MessagePageUI::Normal);
+			static void Exit(int returnCode);
+			static void Restart();
 
-	//
-	// Vds Functions
-	// 
+			//
+			// Disk manipulation
+			//
 
-	static HRESULT FormatPartition(PartitionInformation* partition, const wchar_t* fileSystem, const wchar_t* volumeName = L"");
-	static HRESULT MountPartition(PartitionInformation* partition, const wchar_t* mountPoint);
-	static HRESULT FormatAndMountPartition(PartitionInformation* partition, const wchar_t* fileSystem, const wchar_t* mountPoint, const wchar_t* volumeName = L"");
-	static HRESULT QueryPartitionSupportedFilesystems(PartitionInformation* partition, wchar_t** query);
-	//static HRESULT FormatAndOrMountPartition(PartitionInformation* partition, const wchar_t* fileSystem, const wchar_t* mountPoint, wchar_t** query = 0);
+			static void PopulateDiskInformation();
+			static PartitionTableType GetPartitionTableType(DISK_INFORMATION* diskInfo);
+			static bool LoadDisk(DISK_INFORMATION* diskInfo, bool forceOperatingMode);
 
-	static PartitionInformation CurrentPartition;
-	
-	//
-	// Miscellaneous conversion stuff
-	//
+			//
+			// Partition table manipulation
+			//
 
-	static const wchar_t* GetOperatingModeString();
-	static const wchar_t* GetOperatingModeExtraString();
-	static void GetSizeStringFromBytes(unsigned long long bytes, wchar_t buffer[10]);
-	static void GetGuidStringFromStructure(GUID bytes, wchar_t buffer[37]);
-	static void GetGuidStructureFromString(GUID* bytes, const wchar_t buffer[37]);
-	static const wchar_t* GetStringFromPartitionTypeGUID(GUID guid);
-	static const wchar_t* GetStringFromPartitionSystemID(char systemID);
-	static const wchar_t* GetStringFromPartitionTypeCode(short typeCode);
-	static const GUID* GetGUIDFromPartitionTypeCode(short typeCode);
-	static long CalculateCRC32(char* data, unsigned long long length);
+			static bool LoadPartitionTable();
+			static bool SavePartitionTableToDisk();
+			static bool AddPartition(PartitionInformation* partInfo, unsigned long long flags);
+			static bool DeletePartition(PartitionInformation* partInfo);
+			static HRESULT ApplyPartitionLayoutGPT(WP_PART_LAYOUT* layout);
+			static HRESULT ApplyPartitionLayoutMBR(WP_PART_LAYOUT* layout);
 
-	static Page* CurrentPage;
-	static bool ShowNoInfoDialogs;
-private:
-	static Console* currentConsole;
-	static LibPanther::Logger* logger;
-	static Page* nextPage;
-	static std::stack<Page*> pageStack;
-	static bool shouldExit;
-	static int exitCode;
-};
+			static DISK_INFORMATION* DiskInformationTable;
+			static long DiskInformationTableSize;
+			static DISK_INFORMATION CurrentDisk;
+			static PartitionTableType CurrentDiskType;
+			static MBR_HEADER CurrentDiskMBR;
+			static GPT_HEADER CurrentDiskGPT;
+			static GPT_ENTRY* CurrentDiskGPTTable;
+			static OperatingMode CurrentDiskOperatingMode;
+			static PartitionInformation* CurrentDiskPartitions;
+			static long CurrentDiskPartitionCount;
+			static bool CurrentDiskPartitionsModified;
+			static bool CurrentDiskPartitionTableDestroyed;
+			static long CurrentDiskFirstAvailablePartition;
+
+			//
+			// Partition manipulation
+			//
+
+			static bool LoadPartition(PartitionInformation* partition);
+			static bool SetCurrentPartitionType(short value);
+			static bool SetCurrentPartitionGuid(GUID value);
+
+			//
+			// Vds Functions
+			// 
+
+			static HRESULT FormatPartition(PartitionInformation* partition, const wchar_t* fileSystem, const wchar_t* volumeName = L"");
+			static HRESULT MountPartition(PartitionInformation* partition, const wchar_t* mountPoint);
+			static HRESULT FormatAndMountPartition(PartitionInformation* partition, const wchar_t* fileSystem, const wchar_t* mountPoint, const wchar_t* volumeName = L"");
+			static HRESULT QueryPartitionSupportedFilesystems(PartitionInformation* partition, wchar_t** query);
+			//static HRESULT FormatAndOrMountPartition(PartitionInformation* partition, const wchar_t* fileSystem, const wchar_t* mountPoint, wchar_t** query = 0);
+
+			static PartitionInformation CurrentPartition;
+
+			//
+			// Miscellaneous conversion stuff
+			//
+
+			static const wchar_t* GetOperatingModeString();
+			static const wchar_t* GetOperatingModeExtraString();
+			static void GetSizeStringFromBytes(unsigned long long bytes, wchar_t buffer[10]);
+			static void GetGuidStringFromStructure(GUID bytes, wchar_t buffer[37]);
+			static void GetGuidStructureFromString(GUID* bytes, const wchar_t buffer[37]);
+			static const wchar_t* GetStringFromPartitionTypeGUID(GUID guid);
+			static const wchar_t* GetStringFromPartitionSystemID(char systemID);
+			static const wchar_t* GetStringFromPartitionTypeCode(short typeCode);
+			static const GUID* GetGUIDFromPartitionTypeCode(short typeCode);
+			static long CalculateCRC32(char* data, unsigned long long length);
+
+			static Page* CurrentPage;
+			static bool ShowNoInfoDialogs;
+		private:
+			static Leet::Panther2K::Util::Console* currentConsole;
+			static Leet::Panther2K::Util::Logger* logger;
+			static Page* nextPage;
+			static std::stack<Page*> pageStack;
+			static bool shouldExit;
+			static int exitCode;
+		};
+	}
+}

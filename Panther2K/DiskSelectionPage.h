@@ -8,7 +8,7 @@ class DiskSelectionPage :
 {
 public:
 	~DiskSelectionPage();
-	HRESULT LoadData(Console* console, LibPanther::Logger* logger);
+	HRESULT LoadData(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger);
 	int GetResult();
 protected:
 	virtual void Init() override;
