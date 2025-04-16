@@ -289,10 +289,90 @@ void Leet::Panther2K::SetupEngine::freeWimImage()
 	hWimImage = nullptr;
 }
 
+HRESULT PrepareWindowsOld(std::wstring& fileSystemRoot)
+{
+	wchar_t pathBuffer[MAX_PATH];
+
+	// Check if Windows.old doesn't exist, if so, no need to move anything
+	swprintf_s(pathBuffer, L"%sWindows.old", fileSystemRoot.c_str());
+	if (GetFileAttributesW(pathBuffer) == INVALID_FILE_ATTRIBUTES)
+		return S_OK;
+
+	// Otherwise move existing Windows.old to first-free Windows.old.xxx
+	int i = 0;
+	for (; i < 1000; i++)
+	{
+		swprintf_s(pathBuffer, L"%sWindows.old.%03d", fileSystemRoot.c_str(), i);
+		
+		if (GetFileAttributesW(pathBuffer) == INVALID_FILE_ATTRIBUTES)
+			break;
+	}
+
+	// If there is no free Windows.old.xxx, fail
+	if (i == 1000)
+		return HRESULT_FROM_WIN32(ERROR_DISK_FULL);
+
+	// Move Windows.old to Windows.old.i
+	wchar_t winOld[MAX_PATH];
+	swprintf_s(winOld, L"%sWindows.old", fileSystemRoot.c_str());
+	if (!MoveFileW(winOld, pathBuffer))
+	{
+		return HRESULT_FROM_WIN32(GetLastError());
+	}
+
+	return S_OK;
+}
+
+HRESULT CreateWindowsOld(std::wstring& fileSystemRoot)
+{
+	wchar_t pathBuffers[2][MAX_PATH];
+
+	swprintf_s(pathBuffers[0], L"%sWindows.old", fileSystemRoot.c_str());
+	if (!CreateDirectoryW(pathBuffers[0], NULL))
+		return HRESULT_FROM_WIN32(GetLastError());
+
+	// Move the following dirs:
+	const wchar_t* dirsToMove[] =
+	{
+		L"Windows",
+		L"Program Files",
+		L"Program Files (x86)",
+		L"ProgramData",
+		L"Users",
+		L"XboxGames"
+	};
+
+	for (const auto& dir : dirsToMove)
+	{
+		swprintf_s(pathBuffers[0], L"%s%s", fileSystemRoot.c_str(), dir);
+		swprintf_s(pathBuffers[1], L"%sWindows.old\\%s", fileSystemRoot.c_str(), dir);
+		if (!MoveFileW(pathBuffers[0], pathBuffers[1]) && GetLastError() != ERROR_FILE_NOT_FOUND) 
+			return HRESULT_FROM_WIN32(GetLastError());
+	}
+
+	// Delete the following:
+	// Page files
+	swprintf_s(pathBuffers[0], L"%spagefile.sys", fileSystemRoot.c_str());
+	if (!DeleteFileW(pathBuffers[0]) && GetLastError() != ERROR_FILE_NOT_FOUND) 
+		return HRESULT_FROM_WIN32(GetLastError());
+	swprintf_s(pathBuffers[0], L"%shiberfil.sys", fileSystemRoot.c_str());
+	if (!DeleteFileW(pathBuffers[0]) && GetLastError() != ERROR_FILE_NOT_FOUND) 
+		return HRESULT_FROM_WIN32(GetLastError());
+
+	// TODO: Deleting directories is a pita and these are not really necessary
+	// Documents and settings
+	// $Windows-BT
+	// $Windows-WS
+
+	return S_OK;
+}
+
 HRESULT Leet::Panther2K::SetupEngine::StartInstallation()
 {
 	auto threadFunction = [](LPVOID pCode) -> DWORD WINAPI
 	{
+		HRESULT hResult;
+
 		SetupEngine* engine = static_cast<SetupEngine*>(pCode);
 		wlogc(engine->installLog, PANTHER_LL_BASIC, L"[Engine/Install thread] Starting installation.");
 
@@ -301,17 +381,66 @@ HRESULT Leet::Panther2K::SetupEngine::StartInstallation()
 
 		engine->hFileNameReadyEvent = CreateEventW(NULL, false, true, NULL);
 
+		wlogc(engine->installLog, PANTHER_LL_DETAILED, L"[Engine/Install thread] Checking for old installations...");
+		std::wstring path = L"\\\\?\\Volume" + engine->szSystemPartition + L"\\Windows";
+		if (GetFileAttributesW(path.c_str()) != INVALID_FILE_ATTRIBUTES)
+		{
+			path = L"\\\\?\\Volume" + engine->szSystemPartition + L"\\";
+			wlogc(engine->installLog, PANTHER_LL_NORMAL, L"[Engine/Install thread] Old Windows installation detected! Creating Windows.old migration...");
+
+			// Move existing Windows.old folder out of the way
+			hResult = PrepareWindowsOld(path);
+			if (FAILED(hResult))
+			{
+				// Cannot create installation.
+				// TODO: this doesn't do anything
+				wloglerr(engine->installLog, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Engine/Install thread] Failed to prepare Windows.old directory for migration. %s");
+				MessageBoxW(NULL, L"The engine has encountered an irrecoverable error. The application will be terminated. Note: This message box will be replaced with proper error handling.", L"Panther Setup Engine", MB_OK | MB_ICONERROR);
+				DebugBreak();
+				exit(GetLastError());
+				return HRESULT_FROM_WIN32(GetLastError());
+				DebugBreak();
+			}
+
+			// Move files from volume root to Windows.old
+			hResult = CreateWindowsOld(path);
+			if (FAILED(hResult))
+			{
+				// Cannot create installation.
+				// TODO: this doesn't do anything
+				wloglerr(engine->installLog, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Engine/Install thread] CRITICAL: Failed to move current installation into Windows.old, the installed operating system may have been corrupted as a result! %s");
+				MessageBoxW(NULL, L"The engine has encountered an irrecoverable error. The application will be terminated. Note: This message box will be replaced with proper error handling.", L"Panther Setup Engine", MB_OK | MB_ICONERROR);
+				DebugBreak();
+				exit(GetLastError());
+				return HRESULT_FROM_WIN32(GetLastError());
+			}
+		}
+
 		wlogc(engine->installLog, PANTHER_LL_NORMAL, L"[Engine/Install thread] Applying system image...");
-		std::wstring path = L"\\\\?\\Volume" + engine->szSystemPartition + L"\\";
+		path = L"\\\\?\\Volume" + engine->szSystemPartition + L"\\";
 		BOOL result = WIMApplyImage(engine->hWimImage, path.c_str(), WIM_FLAG_FILEINFO);
 		wloglerr(engine->installLog, PANTHER_LL_DETAILED, MAX_PATH, engine->installLog->GetLogLevel() == PANTHER_LL_VERBOSE
 			? L"[Engine/Install thread] (WIMApplyImage) %s"
 			: L"[Engine/Install thread] %s");
 		
+		// TODO: this doesn't do anything
 		if (result != TRUE)
+		{
+			wloglerr(engine->installLog, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Engine/Install thread] The installation has failed. %s");
+			MessageBoxW(NULL, L"The engine has encountered an irrecoverable error. The application will be terminated. Note: This message box will be replaced with proper error handling.", L"Panther Setup Engine", MB_OK|MB_ICONERROR);
+			DebugBreak();
+			exit(GetLastError());
 			return HRESULT_FROM_WIN32(GetLastError());
-
-		HRESULT hResult = engine->createBootFiles();
+		}
+		hResult = engine->createBootFiles();
+		if (FAILED(hResult))
+		{
+			wlogerr(engine->installLog, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Engine/Install thread] Failed to create boot files. %s", hResult);
+			MessageBoxW(NULL, L"The engine has encountered an irrecoverable error. The application will be terminated. Note: This message box will be replaced with proper error handling.", L"Panther Setup Engine", MB_OK | MB_ICONERROR);
+			DebugBreak();
+			exit(GetLastError());
+			return HRESULT_FROM_WIN32(GetLastError());
+		}
 		wlogerr(engine->installLog, PANTHER_LL_DETAILED, MAX_PATH, engine->installLog->GetLogLevel() == PANTHER_LL_VERBOSE
 			? L"[Engine/Install thread] (createBootFiles) %s"
 			: L"[Engine/Install thread] %s", hResult);

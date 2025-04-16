@@ -1,9 +1,9 @@
 // Leet.WinParted.Bootstrap.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
-extern "C" int _stdcall RunWinParted();
+_declspec(dllimport) extern "C" int _stdcall PartedEntryPoint();
 
 int main()
 {
-    return RunWinParted();
+    return PartedEntryPoint();
 }

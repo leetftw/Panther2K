@@ -16,7 +16,7 @@ private:
 	bool enteringName = false;
 	wchar_t nameString[64];
 
-	wchar_t* supportedFileSystems[5]; /* at most 5 filesystems for now */
+	wchar_t supportedFileSystems[8][32]; /* at most 8 filesystems for now */
 	int supportedFsCount = 0;
 	int biggestFsName = 0;
 	int drawY = 0;

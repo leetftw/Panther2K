@@ -2,7 +2,11 @@
 
 #include "VdsService.h"
 
-#define Assert(result, action) { if (FAILED(result)) { DebugBreak(); wlogf(PartitionManager::GetLogger(), PANTHER_LL_BASIC, MAX_PATH, L"Failed. (0x%08X)", result); action; }};
+#ifdef _DEBUG
+#define Assert(result, action) { if (FAILED(result)) { DebugBreak(); wlogf(PartitionManager::GetLogger(), PANTHER_LL_BASIC, MAX_PATH, L"[VdsService] The Virtual Disk Service returned an error code: (0x%08X)", result); action; }};
+#else
+#define Assert(result, action) { if (FAILED(result)) { wlogf(PartitionManager::GetLogger(), PANTHER_LL_BASIC, MAX_PATH, L"Failed. (0x%08X)", result); action; }};
+#endif
 
 #define ObjectNameInformation (OBJECT_INFORMATION_CLASS)1
 #define SafeRelease(x) {if (nullptr != x) { x->Release(); x = nullptr; } }
@@ -22,10 +26,10 @@ HRESULT VdsStartSession(IVdsService** session)
     IVdsServiceLoader* pLoader = nullptr;
     IVdsService* pService = nullptr;
 
-    wlogc(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, L"Starting VDS session...");
+    wlogc(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, L"[VdsService] Starting VDS session...");
 
     // Initialize COM and IVdsLoader
-    wlogc(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, L"Connecting to COM...");
+    wlogc(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, L"[VdsService] Connecting to COM...");
 
     hResult = CoInitialize(nullptr);
     Assert(hResult, return hResult);
@@ -33,7 +37,7 @@ HRESULT VdsStartSession(IVdsService** session)
     Assert(hResult, goto releaseCOM);
 
     // Connect to IVdsService
-    wlogc(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, L"Connecting to VDS service...");
+    wlogc(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, L"[VdsService] Connecting to VDS service...");
     hResult = pLoader->LoadService(nullptr, &pService);
     SafeRelease(pLoader);
     Assert(hResult, goto releaseCOM);
@@ -41,7 +45,7 @@ HRESULT VdsStartSession(IVdsService** session)
     Assert(hResult, goto releaseCOM);
 
     // Refresh VDS data
-    wlogc(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, L"Refreshing data...");
+    wlogc(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, L"[VdsService] Refreshing data...");
     hResult = pService->Reenumerate();
     Assert(hResult, goto releaseCOM);
     hResult = pService->Refresh();
@@ -72,7 +76,7 @@ HRESULT VdsFindDisk(IVdsService* pVdsService, int diskNumber, IVdsDisk** pVdsDis
     Assert(res, return res);
     wcscpy_s(requestedDisk, ((UNICODE_STRING*)infoBuffer)->Buffer);
 
-    wlogf(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, MAX_PATH, L"Finding disk in VDS namespace: %s.", requestedDisk);
+    wlogf(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, MAX_PATH, L"[VdsService] Finding disk in VDS namespace: %s.", requestedDisk);
 
     IEnumVdsObject* pEnumVdsSwProviders = nullptr;
     IEnumVdsObject* pEnumVdsPacks = nullptr;
@@ -86,7 +90,7 @@ HRESULT VdsFindDisk(IVdsService* pVdsService, int diskNumber, IVdsDisk** pVdsDis
     VDS_DISK_PROP diskProperties;
 
     // Query through all software providers
-    wlogc(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, L"Querying software providers...");
+    wlogc(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, L"[VdsService] Querying software providers...");
     hResult = pVdsService->QueryProviders(VDS_QUERY_SOFTWARE_PROVIDERS, &pEnumVdsSwProviders);
     Assert(hResult, goto releaseCOM);
 
@@ -95,7 +99,7 @@ HRESULT VdsFindDisk(IVdsService* pVdsService, int diskNumber, IVdsDisk** pVdsDis
         hResult = pUnknown->QueryInterface(&pProvider);
         SafeRelease(pUnknown);
         Assert(hResult, continue);
-        wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"Querying packs for Software Provider #%d...", swpIndex);
+        wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"[VdsService]   Querying packs for Software Provider #%d...", swpIndex);
 
         // Query through all packs
         hResult = pProvider->QueryPacks(&pEnumVdsPacks);
@@ -108,7 +112,7 @@ HRESULT VdsFindDisk(IVdsService* pVdsService, int diskNumber, IVdsDisk** pVdsDis
             SafeRelease(pUnknown);
             Assert(hResult, continue);
 
-            wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"  Querying disks for Pack #%d...", packIndex);
+            wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"[VdsService]     Querying disks for Pack #%d...", packIndex);
 
             // Query through all disks
             hResult = pPack->QueryDisks(&pEnumVdsDisks);
@@ -121,7 +125,7 @@ HRESULT VdsFindDisk(IVdsService* pVdsService, int diskNumber, IVdsDisk** pVdsDis
                 SafeRelease(pUnknown);
                 Assert(hResult, goto releaseCOM);
 
-                wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"    Getting properties for Disk #%d...", diskIndex);
+                wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"[VdsService]       Getting properties for Disk #%d...", diskIndex);
 
                 // Determine if the disk contains the target
                 hResult = pDisk->GetProperties(&diskProperties);
@@ -134,7 +138,7 @@ HRESULT VdsFindDisk(IVdsService* pVdsService, int diskNumber, IVdsDisk** pVdsDis
                 CloseHandle(hFile);
                 Assert(res, goto releaseDisk);
 
-                wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"    The path of the disk is %s.", ((UNICODE_STRING*)infoBuffer)->Buffer);
+                wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"[VdsService]         The path of the disk is %s.", ((UNICODE_STRING*)infoBuffer)->Buffer);
 
                 if (lstrcmpiW(requestedDisk, ((UNICODE_STRING*)infoBuffer)->Buffer))
                 {
@@ -143,12 +147,12 @@ HRESULT VdsFindDisk(IVdsService* pVdsService, int diskNumber, IVdsDisk** pVdsDis
                 }
 
                 // From this point, no branch should continue iterating over disks
-                wlogc(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, L"Found the target disk.");
+                wlogc(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, L"[VdsService] Found the target disk.");
                 *pVdsDisk = pDisk;
                 goto releaseCOM;
 
             releaseDisk:
-                wlogf(PartitionManager::GetLogger(), PANTHER_LL_BASIC, MAX_PATH, L"An error occurred while querying disk properties, skipping the disk. (0x%08X)", hResult);
+                wlogf(PartitionManager::GetLogger(), PANTHER_LL_BASIC, MAX_PATH, L"[VdsService] An error occurred while querying disk properties, skipping the disk. (0x%08X)", hResult);
                 SafeRelease(pDisk);
             }
         }
@@ -173,7 +177,7 @@ HRESULT VdsIsPartitionOEM(IVdsDisk* pVdsDisk, unsigned long long partOffset, boo
     VDS_DISK_EXTENT* diskExtents = nullptr;
     LONG lFetchCount = 0;
 
-    wlogf(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, MAX_PATH, L"Determining if volume at offset %llu is OEM...", partOffset);
+    wlogf(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, MAX_PATH, L"[VdsService] Determining if volume at offset %llu is OEM...", partOffset);
 
     hResult = pVdsDisk->QueryExtents(&diskExtents, &lFetchCount);
     if (SUCCEEDED(hResult))
@@ -184,12 +188,12 @@ HRESULT VdsIsPartitionOEM(IVdsDisk* pVdsDisk, unsigned long long partOffset, boo
             if (diskExtents[i].ullOffset != partOffset)
                 continue;
 
-            wlogc(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, L"Found the target partition.");
-            wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"         Extent #%d:", i);
-            wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"            Type: %d", diskExtents[i].type);
-            wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"            Offset: %llu", diskExtents[i].ullOffset);
-            wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"            Size: %llu", diskExtents[i].ullSize);
-            wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"            Volume GUID: {%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}",
+            wlogc(PartitionManager::GetLogger(), PANTHER_LL_DETAILED,          L"[VdsService] Found the target partition.");
+            wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"[VdsService]   Extent #%d:", i);
+            wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"[VdsService]     Type: %d", diskExtents[i].type);
+            wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"[VdsService]     Offset: %llu", diskExtents[i].ullOffset);
+            wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"[VdsService]     Size: %llu", diskExtents[i].ullSize);
+            wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"[VdsService]     Volume GUID: {%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}",
                 diskExtents[i].volumeId.Data1, diskExtents[i].volumeId.Data2, diskExtents[i].volumeId.Data3,
                 diskExtents[i].volumeId.Data4[0], diskExtents[i].volumeId.Data4[1], diskExtents[i].volumeId.Data4[2], diskExtents[i].volumeId.Data4[3],
                 diskExtents[i].volumeId.Data4[4], diskExtents[i].volumeId.Data4[5], diskExtents[i].volumeId.Data4[6], diskExtents[i].volumeId.Data4[7]);
@@ -212,7 +216,7 @@ HRESULT VdsGetVolumeOnDisk(IVdsService* pVdsService, IVdsDisk* pVdsDisk, unsigne
     VDS_DISK_EXTENT* diskExtents = nullptr;
     LONG lFetchCount = 0;
 
-    wlogf(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, MAX_PATH, L"Retrieving volume at offset %llu...", partOffset);
+    wlogf(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, MAX_PATH, L"[VdsService] Retrieving volume at offset %llu...", partOffset);
     hResult = pVdsDisk->QueryExtents(&diskExtents, &lFetchCount);
     if (SUCCEEDED(hResult))
     {
@@ -222,12 +226,12 @@ HRESULT VdsGetVolumeOnDisk(IVdsService* pVdsService, IVdsDisk* pVdsDisk, unsigne
             if (diskExtents[i].ullOffset != partOffset)
                 continue;
 
-            wlogc(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, L"Found the target partition.");
-            wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"         Extent #%d:", i);
-            wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"            Type: %d", diskExtents[i].type);
-            wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"            Offset: %llu", diskExtents[i].ullOffset);
-            wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"            Size: %llu", diskExtents[i].ullSize);
-            wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"            Volume GUID: {%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}",
+            wlogc(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, L"[VdsService] Found the target partition.");
+            wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"[VdsService]   Extent #%d:", i);
+            wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"[VdsService]     Type: %d", diskExtents[i].type);
+            wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"[VdsService]     Offset: %llu", diskExtents[i].ullOffset);
+            wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"[VdsService]     Size: %llu", diskExtents[i].ullSize);
+            wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"[VdsService]     Volume GUID: {%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}",
                 diskExtents[i].volumeId.Data1, diskExtents[i].volumeId.Data2, diskExtents[i].volumeId.Data3,
                 diskExtents[i].volumeId.Data4[0], diskExtents[i].volumeId.Data4[1], diskExtents[i].volumeId.Data4[2], diskExtents[i].volumeId.Data4[3],
                 diskExtents[i].volumeId.Data4[4], diskExtents[i].volumeId.Data4[5], diskExtents[i].volumeId.Data4[6], diskExtents[i].volumeId.Data4[7]);
@@ -236,12 +240,13 @@ HRESULT VdsGetVolumeOnDisk(IVdsService* pVdsService, IVdsDisk* pVdsDisk, unsigne
             bool isOEM = memcmp(&GUID_NULL, &diskExtents[i].volumeId, sizeof(GUID)) == 0;
             if (isOEM)
             {
+                wlogc(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, L"[VdsService] The target volume is on an OEM partition, cannot retrieve volume object.");
                 hResult = VDS_E_NOT_SUPPORTED;
                 break;
             }
 
             // Get IVdsVolumeMF2 object
-            wlogc(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, L"Found the target volume.");
+            wlogc(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, L"[VdsService] Found the target volume.");
             hResult = pVdsService->GetObjectW(diskExtents[i].volumeId, VDS_OT_VOLUME, pVdsVolume);
             break;
         }
@@ -253,7 +258,7 @@ HRESULT VdsGetVolumeOnDisk(IVdsService* pVdsService, IVdsDisk* pVdsDisk, unsigne
 
 HRESULT FormatPartition(int diskNumber, unsigned long long partOffset, const wchar_t* fileSystem, const wchar_t* volumeName)
 {
-    wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"Starting format operation on %d@%llu", diskNumber, partOffset);
+    wlogf(PartitionManager::GetLogger(), PANTHER_LL_NORMAL, MAX_PATH, L"[VdsService] Starting format operation on %d@%llu", diskNumber, partOffset);
 
     HRESULT hResult, asyncRes;
 
@@ -282,7 +287,7 @@ HRESULT FormatPartition(int diskNumber, unsigned long long partOffset, const wch
         Assert(hResult, goto releaseCOM);
 
         // Do DiskPartitionMF::Format
-        wlogc(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, L"Formatting the partition...");
+        wlogc(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, L"[VdsService] Formatting the partition...");
         wchar_t fsNameBuffer[10];
         wcscpy_s(fsNameBuffer, fileSystem);
         wchar_t fsLabelBuffer[32];
@@ -298,7 +303,7 @@ HRESULT FormatPartition(int diskNumber, unsigned long long partOffset, const wch
         SafeRelease(pUnknown);
         Assert(hResult, goto releaseCOM);
 
-        wlogc(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, L"Formatting the volume...");
+        wlogc(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, L"[VdsService] Formatting the volume...");
         wchar_t fsNameBuffer[10];
         wcscpy_s(fsNameBuffer, fileSystem);
         wchar_t fsLabelBuffer[32];
@@ -310,8 +315,9 @@ HRESULT FormatPartition(int diskNumber, unsigned long long partOffset, const wch
     asyncRes = pVdsAsync->Wait(&hResult, &vdsAsyncOut);
     Assert(hResult, goto releaseCOM);
     Assert(asyncRes, hResult = asyncRes; goto releaseCOM);
-
+    wlogc(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, L"[VdsService] The mount operation completed successfully.");
 releaseCOM:
+    wlogc(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, L"[VdsService] Releasing VDS resources...");
     SafeRelease(pVdsAsync);
     SafeRelease(pVdsVolume);
     SafeRelease(pVdsDisk);
@@ -321,7 +327,7 @@ releaseCOM:
 
 HRESULT SetPartitionAccessPoint(int diskNumber, unsigned long long partOffset, const wchar_t* mountPoint, bool unmountPrevious)
 {
-    wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"Starting mount operation on %d@%llu", diskNumber, partOffset);
+    wlogf(PartitionManager::GetLogger(), PANTHER_LL_NORMAL, MAX_PATH, L"[VdsService] Starting mount operation on %d@%llu", diskNumber, partOffset);
 
     HRESULT hResult, asyncRes;
 
@@ -346,10 +352,10 @@ HRESULT SetPartitionAccessPoint(int diskNumber, unsigned long long partOffset, c
     Assert(hResult, goto releaseCOM);
     if (isOEM)
     {
-        wlogc(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, L"Partition is an OEM partition, mounting partition...");
+        wlogc(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, L"[VdsService] Partition is an OEM partition, mounting partition...");
         if (mountPoint && lstrlenW(mountPoint) > 1)
         {
-            wlogc(PartitionManager::GetLogger(), PANTHER_LL_BASIC, L"Cannot mount OEM partition to an NTFS path.");
+            wlogc(PartitionManager::GetLogger(), PANTHER_LL_BASIC, L"[VdsService] Cannot mount OEM partition to an NTFS path.");
             hResult = VDS_E_NOT_SUPPORTED; goto releaseCOM;
         }
 
@@ -365,7 +371,7 @@ HRESULT SetPartitionAccessPoint(int diskNumber, unsigned long long partOffset, c
         {
             if (!unmountPrevious)
             {
-                wlogf(PartitionManager::GetLogger(), PANTHER_LL_BASIC, MAX_PATH, L"The volume already has mount point %c, cannot assign a second letter.", letter);
+                wlogf(PartitionManager::GetLogger(), PANTHER_LL_BASIC, MAX_PATH, L"[VdsService] The volume already has mount point %c, cannot assign a second letter.", letter);
                 hResult = VDS_E_DRIVE_LETTER_NOT_FREE; goto releaseCOM;
             }
 
@@ -383,7 +389,7 @@ HRESULT SetPartitionAccessPoint(int diskNumber, unsigned long long partOffset, c
     }
     else
     {
-        wlogc(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, L"Partition is a non-OEM partition, mounting volume...");
+        wlogc(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, L"[VdsService] Partition is a non-OEM partition, mounting volume...");
 
         // Get volume and do VolumeMF::FormatEx
         hResult = VdsGetVolumeOnDisk(pVdsService, pVdsDisk, partOffset, &pUnknown);
@@ -394,7 +400,7 @@ HRESULT SetPartitionAccessPoint(int diskNumber, unsigned long long partOffset, c
 
         if (unmountPrevious)
         {
-            PartitionManager::GetLogger()->Write(PANTHER_LL_VERBOSE, L"Querying and unmounting existing volume mount points...");
+            PartitionManager::GetLogger()->Write(PANTHER_LL_VERBOSE, L"[VdsService] Querying and unmounting existing volume mount points...");
             hResult = pVdsVolumeMF->QueryAccessPaths(&accessPaths, (PLONG)&ulFetchCount);
             Assert(hResult, goto releaseCOM);
             for (int i = 0; i < ulFetchCount; i++)
@@ -409,7 +415,7 @@ HRESULT SetPartitionAccessPoint(int diskNumber, unsigned long long partOffset, c
 
         if (mountPoint && lstrlenW(mountPoint))
         {
-            wlogc(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, L"Assigning the access point...");
+            wlogc(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, L"[VdsService] Assigning the access point...");
             wchar_t mountBuffer[MAX_PATH];
             wcscpy_s(mountBuffer, mountPoint);
             if (lstrlenW(mountBuffer) == 1)
@@ -418,7 +424,9 @@ HRESULT SetPartitionAccessPoint(int diskNumber, unsigned long long partOffset, c
         }
     }
 
+    wlogc(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, L"[VdsService] The mount operation completed successfully.");
 releaseCOM:
+    wlogc(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, L"[VdsService] Releasing VDS resources...");
     SafeCoFree(accessPaths);
     SafeRelease(pVdsVolumeMF);
     SafeRelease(pVdsAdvDisk);
@@ -429,7 +437,7 @@ releaseCOM:
 
 HRESULT ShrinkPartition(int diskNumber, unsigned long long partOffset, unsigned long long sizeToShrink)
 {
-    wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"Starting format operation on %d@%llu", diskNumber, partOffset);
+    wlogf(PartitionManager::GetLogger(), PANTHER_LL_NORMAL, MAX_PATH, L"[VdsService] Starting shrink operation on %d@%llu", diskNumber, partOffset);
 
     HRESULT hResult, asyncRes;
 
@@ -456,7 +464,7 @@ HRESULT ShrinkPartition(int diskNumber, unsigned long long partOffset, unsigned 
     Assert(hResult, goto releaseCOM);
     if (isOEM)
     {
-        wlogc(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, L"Partition is an OEM partition, it is not possible to shrink it.");
+        wlogc(PartitionManager::GetLogger(), PANTHER_LL_BASIC, L"[VdsService] Partition is an OEM partition, it is not possible to shrink it.");
         hResult = VDS_E_NOT_SUPPORTED; goto releaseCOM;
     }
 
@@ -466,17 +474,97 @@ HRESULT ShrinkPartition(int diskNumber, unsigned long long partOffset, unsigned 
     SafeRelease(pUnknown);
     Assert(hResult, goto releaseCOM);
 
-    wlogc(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, L"Partition is a non-OEM partition, shrinking the volume...");
+    wlogc(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, L"[VdsService] Partition is a non-OEM partition, shrinking the volume...");
     pVdsVolume->Shrink(sizeToShrink, &pVdsAsync);
     Assert(hResult, goto releaseCOM);
     asyncRes = pVdsAsync->Wait(&hResult, &vdsAsyncOut);
     Assert(hResult, goto releaseCOM);
     Assert(asyncRes, hResult = asyncRes; goto releaseCOM);
 
+    wlogc(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, L"[VdsService] The shrink operation completed successfully.");
 releaseCOM:
+    wlogc(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, L"[VdsService] Releasing VDS resources...");
     SafeCoFree(accessPaths);
     SafeRelease(pVdsAsync);
     SafeRelease(pVdsVolume);
+    SafeRelease(pVdsDisk);
+    SafeRelease(pVdsService);
+    return hResult;
+}
+
+HRESULT QueryPartitionSupportedFilesystems(int diskNumber, unsigned long long partOffset, wchar_t*** queryResult, int* queryCount)
+{
+    wlogf(PartitionManager::GetLogger(), PANTHER_LL_NORMAL, MAX_PATH, L"[VdsService] Starting filesystem support query for %d@%llu", diskNumber, partOffset);
+
+    HRESULT hResult, asyncRes;
+
+    IVdsService* pVdsService = nullptr;
+    IVdsDisk* pVdsDisk = nullptr;
+    IVdsDiskPartitionMF* pVdsDiskMF = nullptr;
+    IVdsVolumeMF2* pVdsVolumeMF = nullptr;
+
+    IUnknown* pUnknown = nullptr;
+    bool isOEM = false;
+
+    LONG lFetchCount = 0;
+    VDS_FILE_SYSTEM_FORMAT_SUPPORT_PROP* pSupportedFilesystems = 0;
+
+    hResult = VdsStartSession(&pVdsService);
+    Assert(hResult, return hResult);
+
+    hResult = VdsFindDisk(pVdsService, diskNumber, &pVdsDisk);
+    Assert(hResult, goto releaseCOM);
+
+    hResult = VdsIsPartitionOEM(pVdsDisk, partOffset, &isOEM);
+    Assert(hResult, goto releaseCOM);
+
+    if (isOEM)
+    {
+        wlogc(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, L"[VdsService] Partition is an OEM partition, querying container disk...");
+        
+        hResult = pVdsDisk->QueryInterface(&pVdsDiskMF);
+        Assert(hResult, goto releaseCOM);
+
+        hResult = pVdsDiskMF->QueryPartitionFileSystemFormatSupport(partOffset, &pSupportedFilesystems, &lFetchCount);
+    }
+    else
+    {
+        wlogc(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, L"[VdsService] Partition is a non-OEM partition, querying volume directly...");
+
+        // Get volume and do VolumeMF::FormatEx
+        hResult = VdsGetVolumeOnDisk(pVdsService, pVdsDisk, partOffset, &pUnknown);
+        Assert(hResult, goto releaseCOM);
+        hResult = pUnknown->QueryInterface(&pVdsVolumeMF);
+        SafeRelease(pUnknown);
+        Assert(hResult, goto releaseCOM);
+
+        hResult = pVdsVolumeMF->QueryFileSystemFormatSupport(&pSupportedFilesystems, &lFetchCount);
+    }
+
+    Assert(hResult, goto releaseCOM);
+
+    {
+        void* queryData = safeMalloc(NULL, sizeof(wchar_t*) * lFetchCount + sizeof(wchar_t) * lFetchCount * 32);
+        *queryResult = reinterpret_cast<wchar_t**>(queryData);
+        *queryCount = lFetchCount;
+
+        wlogc(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, L"[VdsService] The partition/volume supports the following filesystems:");
+        for (int i = 0; i < lFetchCount; i++)
+        {
+            size_t offset = sizeof(wchar_t*) * lFetchCount + sizeof(wchar_t) * i * 32;
+            wchar_t* destination = reinterpret_cast<wchar_t*>(reinterpret_cast<char*>(queryData) + offset);
+            wcscpy_s(destination, 32, pSupportedFilesystems[i].wszName);
+            (*queryResult)[i] = destination;
+            wlogf(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, MAX_PATH, L"[VdsService]   Filesystem name: %s", pSupportedFilesystems[i].wszName);
+        }
+    }
+
+    wlogc(PartitionManager::GetLogger(), PANTHER_LL_DETAILED, L"[VdsService] The shrink operation completed successfully.");
+releaseCOM:
+    wlogc(PartitionManager::GetLogger(), PANTHER_LL_VERBOSE, L"[VdsService] Releasing VDS resources...");
+    SafeCoFree(pSupportedFilesystems);
+    SafeRelease(pVdsVolumeMF);
+    SafeRelease(pVdsDiskMF);
     SafeRelease(pVdsDisk);
     SafeRelease(pVdsService);
     return hResult;

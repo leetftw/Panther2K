@@ -11,6 +11,13 @@ EXPORTS
    ORD_MountPartition   @6
 */
 
+// TODO: These functions can all be called directly now eg:
+// 
+// _declspec(dllimport) extern "C" _stdcall int RunWinParted(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger);
+// RunWinParted(console, logger);
+//
+// No need for GetProcAddress
+
 #define ORD_RunWinParted              (LPCSTR)2
 #define ORD_ApplyP2KLayoutToDiskGPT   (LPCSTR)3
 #define ORD_ApplyP2KLayoutToDiskMBR   (LPCSTR)4
@@ -20,14 +27,14 @@ EXPORTS
 #define ORD_PrepareDiskForWindows     (LPCSTR)8
 #define ORD_EnumVolumes               (LPCSTR)9
 
-typedef int (*RunWinPartedStub)(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*);
-typedef HRESULT(*ApplyP2KLayoutToDiskGPTStub)(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, int, bool, wchar_t***, wchar_t***);
-typedef HRESULT(*ApplyP2KLayoutToDiskMBRStub)(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, int, bool, wchar_t***, wchar_t***);
-typedef HRESULT(*SetPartTypeStub)(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, int, unsigned long long, short);
-typedef HRESULT(*MountPartitionStub)(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, int, unsigned long long, const wchar_t*);
-typedef HRESULT(*EnumerateDisksStub)(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, DISK_INFORMATION**, int*);
-typedef HRESULT(*PrepareDiskForWindowsStub)(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, const wchar_t*, bool, unsigned long long, unsigned long long, wchar_t[2][128]);
-typedef HRESULT(*EnumVolumesStub)(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, VolumeInformation**, bool, int*);
+typedef int (_stdcall* RunWinPartedStub)(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*);
+typedef HRESULT(_stdcall* ApplyP2KLayoutToDiskGPTStub)(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, int, bool, wchar_t***, wchar_t***);
+typedef HRESULT(_stdcall* ApplyP2KLayoutToDiskMBRStub)(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, int, bool, wchar_t***, wchar_t***);
+typedef HRESULT(_stdcall* SetPartTypeStub)(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, int, unsigned long long, short);
+typedef HRESULT(_stdcall* MountPartitionStub)(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, int, unsigned long long, const wchar_t*);
+typedef HRESULT(_stdcall* EnumerateDisksStub)(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, DISK_INFORMATION**, int*);
+typedef HRESULT(_stdcall* PrepareDiskForWindowsStub)(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, const wchar_t*, bool, unsigned long long, unsigned long long, wchar_t[2][128]);
+typedef HRESULT(_stdcall* EnumVolumesStub)(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, VolumeInformation**, bool, int*);
 
 bool WinPartedDll::partedInitialized = false;
 HMODULE WinPartedDll::hWinParted = NULL;
@@ -87,7 +94,7 @@ HRESULT WinPartedDll::EnumerateDisks(Leet::Panther2K::Util::Console* console, Le
 	if (!partedInitialized && (res = InitParted()) != ERROR_SUCCESS)
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, res);
 
-	auto enumerateDisks = (EnumerateDisksStub)GetProcAddress(hWinParted, ORD_EnumerateDisks);
+	auto enumerateDisks = reinterpret_cast<EnumerateDisksStub>(GetProcAddress(hWinParted, ORD_EnumerateDisks));
 	return enumerateDisks(console, logger, disks, diskCount);
 }
 

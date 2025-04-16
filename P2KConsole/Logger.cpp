@@ -92,6 +92,7 @@ typedef struct AllocationInfo
 	const wchar_t* function;
 	int line;
 	size_t size;
+	const wchar_t* allocator;
 } AllocationInfo;
 
 std::unordered_map<void*, AllocationInfo> allocations;
@@ -100,7 +101,7 @@ std::mutex allocMutex;
 // 'Safe' malloc implementation
 // Terminates any execution if memory cannot be allocated
 // If possible an error is logged
-void *safeMallocImpl(Logger* logger, size_t size, const wchar_t* file, int line, const wchar_t* function)
+void* _stdcall safeMallocImpl(Logger* logger, size_t size, const wchar_t* file, int line, const wchar_t* function)
 {
 	void *returnValue = malloc(size);
 	if (!returnValue) 
@@ -114,13 +115,13 @@ void *safeMallocImpl(Logger* logger, size_t size, const wchar_t* file, int line,
 
 	{
 		std::lock_guard<std::mutex> lock(allocMutex);
-		allocations[returnValue] = { file, function, line, size };
+		allocations[returnValue] = { file, function, line, size, L"malloc" };
 	}
 
 	return returnValue;
 }
 
-void safeFree(Logger* logger, void* ptr)
+void _stdcall safeFree(Logger* logger, void* ptr)
 {
 	if (!ptr) return;
 	{
@@ -139,7 +140,7 @@ void safeFree(Logger* logger, void* ptr)
 	free(ptr);
 }
 
-void* safeLocalAlloc(Logger* logger, size_t size)
+void* _stdcall safeLocalAllocImpl(Logger* logger, size_t size, const wchar_t* file, int line, const wchar_t* function)
 {
 	void* returnValue = LocalAlloc(LPTR, size);
 	if (!returnValue)
@@ -147,10 +148,36 @@ void* safeLocalAlloc(Logger* logger, size_t size)
 		logger->WriteDirect(PANTHER_LL_BASIC, L"FATAL: OUT OF MEMORY.\r\n");
 		ExitProcess(MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, ERROR_NOT_ENOUGH_MEMORY));
 	}
+
+	{
+		std::lock_guard<std::mutex> lock(allocMutex);
+		allocations[returnValue] = { file, function, line, size, L"LocalAlloc" };
+	}
+
 	return returnValue;
 }
 
-void __cdecl safeCleanup(Logger* logger)
+void _stdcall safeRegisterNewImpl(Leet::Panther2K::Util::Logger* logger, void* ptr, size_t size, const wchar_t* file, int line, const wchar_t* function)
+{
+	std::lock_guard<std::mutex> lock(allocMutex);
+	allocations[ptr] = { file, function, line, size, L"new" };
+}
+
+void _stdcall safeRegisterDelete(Leet::Panther2K::Util::Logger* logger, void* ptr)
+{
+	std::lock_guard<std::mutex> lock(allocMutex);
+	auto it = allocations.find(ptr);
+	if (it != allocations.end())
+	{
+		allocations.erase(it);
+	}
+	else if (logger)
+	{
+		logger->Write(PANTHER_LL_BASIC, L"[Memory Manager] WARNING: Attempt to delete untracked class!");
+	}
+}
+
+void _stdcall safeCleanup(Logger* logger)
 {
 	wlogc(logger, PANTHER_LL_BASIC, L"[Memory Manager] Safe allocation report");
 	wlogc(logger, PANTHER_LL_BASIC, L"========================================");
@@ -159,6 +186,25 @@ void __cdecl safeCleanup(Logger* logger)
 		void* ptr = alloc.first;
 		AllocationInfo info = alloc.second;
 
-		wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"Pointer not freed: Ptr: %016llX | Size: %08llX | Allocated at: %s:%d in function %s", (unsigned long long)ptr, info.size, info.file, info.line, info.function);
+		if (wcscmp(info.allocator, L"new"))
+		{
+#if defined(_M_X64)
+			wlogf(logger, PANTHER_LL_BASIC, MAX_PATH * 2, L"Pointer not freed: Ptr: %016llX | Size: %08llX | Allocated at: %s:%d in function %s | Allocator: %s", (unsigned long long)ptr, info.size, info.file, info.line, info.function, info.allocator);
+#elif defined(_M_IX86)
+			wlogf(logger, PANTHER_LL_BASIC, MAX_PATH * 2, L"Pointer not freed: Ptr: %08X | Size: %08X | Allocated at: %s:%d in function %s | Allocator: %s", (unsigned long)ptr, info.size, info.file, info.line, info.function, info.allocator);
+#else
+			wlogf(logger, PANTHER_LL_BASIC, MAX_PATH * 2, L"Pointer not freed: Ptr/size: (architecture ptr and size_t width unknown) | Allocated at: %s:%d in function %s | Allocator: %s", info.file, info.line, info.function, info.allocator);
+#endif
+		}
+		else
+		{
+#if defined(_M_X64)
+			wlogf(logger, PANTHER_LL_BASIC, MAX_PATH * 2, L"Object not freed: Ptr: %016llX | Size: %08llX | Type: %s", (unsigned long long)ptr, info.size, info.function);
+#elif defined(_M_IX86)
+			wlogf(logger, PANTHER_LL_BASIC, MAX_PATH * 2, L"Object not freed: Ptr: %08X | Size: %08X | Type: %s", (unsigned long long)ptr, info.size, info.function);
+#else
+			wlogf(logger, PANTHER_LL_BASIC, MAX_PATH * 2, L"Object not freed: Ptr/size: (architecture ptr and size_t width unknown) | Type: %s", info.function);
+#endif
+		}
 	}
 }

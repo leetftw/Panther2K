@@ -12,7 +12,9 @@ using namespace Leet::WinParted;
 
 extern "C" int _stdcall PartedEntryPoint()
 {
-	return PartitionManager::RunWinParted(NULL);
+	int result = PartitionManager::RunWinParted(NULL);
+	safeCleanup(PartitionManager::GetLogger());
+	return result;
 };
 
 extern "C" int _stdcall RunWinParted(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger)
@@ -351,7 +353,7 @@ extern "C" HRESULT _stdcall MountPartition(Leet::Panther2K::Util::Console* conso
 	HRESULT result = ERROR_BAD_UNIT;
 
 	if (!LoadPartitionFromOffset(diskNumber, partOffset)) goto retFalse;
-	result = PartitionManager::MountPartition(&PartitionManager::CurrentPartition, mountPoint);
+	result = ::SetPartitionAccessPoint(PartitionManager::CurrentPartition.DiskNumber, PartitionManager::CurrentPartition.StartLBA.ULL * PartitionManager::CurrentDisk.SectorSize, mountPoint);
 
 retFalse:
 	PartitionManager::ShowNoInfoDialogs = false;

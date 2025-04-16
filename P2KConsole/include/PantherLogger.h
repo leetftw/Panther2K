@@ -95,12 +95,18 @@ namespace Leet
 }
 
 #if PANTHER_RELEASE_TYPE != PANTHER_RT_RELEASE
-void* __cdecl safeMallocImpl(Leet::Panther2K::Util::Logger* logger, size_t size, const wchar_t* file, int line, const wchar_t* function);
+void* _stdcall safeMallocImpl(Leet::Panther2K::Util::Logger* logger, size_t size, const wchar_t* file, int line, const wchar_t* function);
 #define safeMalloc(logger, size) safeMallocImpl(logger, size, __FILEW__, __LINE__, __FUNCTIONW__)
-void* __cdecl safeLocalAlloc(Leet::Panther2K::Util::Logger* logger, size_t size);
+void* _stdcall safeLocalAllocImpl(Leet::Panther2K::Util::Logger* logger, size_t size, const wchar_t* file, int line, const wchar_t* function);
+#define safeLocalAlloc(logger, size) safeLocalAllocImpl(logger, size, __FILEW__, __LINE__, __FUNCTIONW__)
 
-void __cdecl safeFree(Leet::Panther2K::Util::Logger* logger, void* ptr);
-void __cdecl safeCleanup(Leet::Panther2K::Util::Logger* logger);
+void _stdcall safeRegisterNewImpl(Leet::Panther2K::Util::Logger* logger, void* ptr, size_t size, const wchar_t* file, int line, const wchar_t* function);
+#define safeRegisterNew(logger) safeRegisterNewImpl(logger, this, sizeof(this), __FILEW__, __LINE__, __FUNCTIONW__)
+void _stdcall safeRegisterDelete(Leet::Panther2K::Util::Logger* logger, void* ptr);
+
+
+void _stdcall safeFree(Leet::Panther2K::Util::Logger* logger, void* ptr);
+void _stdcall safeCleanup(Leet::Panther2K::Util::Logger* logger);
 #else
 #define safeMalloc(logger, size) malloc(size)
 #define safeLocalAlloc(logger, size) LocalAlloc(size);

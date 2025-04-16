@@ -70,6 +70,30 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)build\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
+    <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
+    <CopyLocalProjectReference>true</CopyLocalProjectReference>
+    <CopyLocalDebugSymbols>true</CopyLocalDebugSymbols>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)build\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
+    <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
+    <CopyLocalProjectReference>true</CopyLocalProjectReference>
+    <CopyLocalDebugSymbols>true</CopyLocalDebugSymbols>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)build\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
+    <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
+    <CopyLocalProjectReference>true</CopyLocalProjectReference>
+    <CopyLocalDebugSymbols>true</CopyLocalDebugSymbols>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)build\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
+    <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
+    <CopyLocalProjectReference>true</CopyLocalProjectReference>
+    <CopyLocalDebugSymbols>true</CopyLocalDebugSymbols>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -134,7 +158,11 @@
       <Project>{e999838a-4f2d-4748-a038-39e2bdb49722}</Project>
       <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\WinParted\WinParted.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

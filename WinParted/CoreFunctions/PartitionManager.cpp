@@ -1124,11 +1124,21 @@ HRESULT PartitionManager::ApplyPartitionLayoutMBR(WP_PART_LAYOUT* layout)
 	{
 		if (lstrcmpW(layout->Partitions[i].FileSystem, L"RAW"))
 		{
-			HRESULT res = FormatAndMountPartition(&CurrentDiskPartitions[i], layout->Partitions[i].FileSystem, layout->Partitions[i].MountPoint);
-			if (res != S_OK)
+			HRESULT res = ::FormatPartition(CurrentDiskPartitions[i].DiskNumber, CurrentDiskPartitions[i].StartLBA.ULL * PartitionManager::CurrentDisk.SectorSize, layout->Partitions[i].FileSystem);
+			if (FAILED(res))
 			{
 				result = res;
 				break;
+			}
+
+			if (lstrlenW(layout->Partitions[i].MountPoint) > 0)
+			{
+				res = ::SetPartitionAccessPoint(CurrentDiskPartitions[i].DiskNumber, CurrentDiskPartitions[i].StartLBA.ULL * PartitionManager::CurrentDisk.SectorSize, layout->Partitions[i].MountPoint);
+				if (FAILED(res))
+				{
+					result = res;
+					break;
+				}
 			}
 		}
 	}

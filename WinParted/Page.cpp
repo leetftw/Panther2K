@@ -11,6 +11,13 @@ Page::Page()
 	drawHeader = true;
 	drawStatus = true;
 	drawClear = true;
+
+	safeRegisterNew(nullptr);
+}
+
+Page::~Page()
+{
+	safeRegisterDelete(nullptr, this);
 }
 
 void Page::Initialize(Leet::Panther2K::Util::Console* con)

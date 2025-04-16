@@ -75,33 +75,37 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(SolutionDir)P2KConsole\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)Wimgapi\Include;$(SolutionDir)Leet.Panther2K.SetupEngine\include</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(SolutionDir)Wimgapi\Lib\x86;</LibraryPath>
-    <OutDir>$(ProjectDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)build\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
     <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
     <CopyLocalProjectReference>true</CopyLocalProjectReference>
+    <CopyLocalDebugSymbols>true</CopyLocalDebugSymbols>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SolutionDir)P2KConsole\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)Wimgapi\Include;$(SolutionDir)Leet.Panther2K.SetupEngine\include</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(SolutionDir)Wimgapi\Lib\x86;</LibraryPath>
-    <OutDir>$(ProjectDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)build\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
     <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
     <CopyLocalProjectReference>true</CopyLocalProjectReference>
+    <CopyLocalDebugSymbols>true</CopyLocalDebugSymbols>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(SolutionDir)P2KConsole\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)Wimgapi\Include;$(SolutionDir)Leet.Panther2K.SetupEngine\include</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(SolutionDir)Wimgapi\Lib\amd64;</LibraryPath>
-    <OutDir>$(ProjectDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)build\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
     <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
     <CopyLocalProjectReference>true</CopyLocalProjectReference>
+    <CopyLocalDebugSymbols>true</CopyLocalDebugSymbols>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SolutionDir)P2KConsole\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)Wimgapi\Include;$(SolutionDir)Leet.Panther2K.SetupEngine\include</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(SolutionDir)Wimgapi\Lib\amd64;</LibraryPath>
-    <OutDir>$(ProjectDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)build\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
     <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
     <CopyLocalProjectReference>true</CopyLocalProjectReference>
+    <CopyLocalDebugSymbols>true</CopyLocalDebugSymbols>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -123,8 +127,8 @@
       </Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>xcopy /Y "$(SolutionDir)Leet.Panther2K.SetupEngine\bin\$(Platform)\$(Configuration)\Leet.Panther2K.SetupEngine.dll" "$(TargetDir)"
-</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -175,8 +179,8 @@
       </Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>xcopy /Y "$(SolutionDir)Leet.Panther2K.SetupEngine\bin\$(Platform)\$(Configuration)\Leet.Panther2K.SetupEngine.dll" "$(TargetDir)"
-</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -264,13 +268,19 @@
     <ProjectReference Include="..\Leet.Panther2K.SetupEngine\Leet.Panther2K.SetupEngine.vcxproj">
       <Project>{3e61bd60-ca66-4ffd-8864-ad2c550daaba}</Project>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\P2KConsole\P2KConsole.vcxproj">
       <Project>{a3dd51ce-63ab-4189-9d8a-3111288a3463}</Project>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+      <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>
     </ProjectReference>
     <ProjectReference Include="..\WinParted\WinParted.vcxproj">
       <Project>{e999838a-4f2d-4748-a038-39e2bdb49722}</Project>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
+      <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

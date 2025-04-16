@@ -1,5 +1,6 @@
 ﻿#include "PartitionFormatPage.h"
 #include "..\CoreFunctions\PartitionManager.h"
+#include "..\CoreFunctions\VdsService.h"
 
 using namespace Leet::WinParted;
 
@@ -33,24 +34,16 @@ void PartitionFormatPage::InitPage()
 	SetStatusText(L"Querying supported filesystems...");
 	Draw();
 
-	wchar_t* fileSystems;
-	PartitionManager::QueryPartitionSupportedFilesystems(&PartitionManager::CurrentPartition, &fileSystems);
-	wlogf(PartitionManager::GetLogger(), PANTHER_LL_BASIC, 128, L"Found filesystems: %s", fileSystems);
-	
-	wchar_t* context; 
-	wchar_t* token = wcstok_s(fileSystems, L"|", &context);
-	supportedFsCount = 0;
-	while (token != NULL)
+	wchar_t** fileSystems;
+	QueryPartitionSupportedFilesystems(PartitionManager::CurrentPartition.DiskNumber, PartitionManager::CurrentPartition.StartLBA.ULL * PartitionManager::CurrentDisk.SectorSize, &fileSystems, &supportedFsCount);
+	biggestFsName = 0;
+	for (int i = 0; i < supportedFsCount && i < 8; i++)
 	{
-		int tokenSize = lstrlenW(token);
-		supportedFileSystems[supportedFsCount] = (wchar_t*)safeMalloc(PartitionManager::GetLogger(), tokenSize + 1);
-		if (!supportedFileSystems[supportedFsCount])
-			continue;
-		wcscpy_s(supportedFileSystems[supportedFsCount++], tokenSize + 1, token);
-		biggestFsName = max(biggestFsName, tokenSize);
-
-		token = wcstok_s(NULL, L"|", &context);
+		biggestFsName = max(biggestFsName, lstrlenW(fileSystems[i]));
+		wcscpy_s(supportedFileSystems[i], fileSystems[i]);
 	}
+	safeFree(nullptr, fileSystems);
+
 	SetStatusText(L"");
 }
 
@@ -153,7 +146,6 @@ void PartitionFormatPage::UpdatePage()
 void PartitionFormatPage::RunPage()
 {
 	Leet::Panther2K::Util::Console* console = GetConsole();
-	bool holdingShift;
 
 	while (KEY_EVENT_RECORD* key = console->Read())
 	{
@@ -199,7 +191,7 @@ void PartitionFormatPage::RunPage()
 
 			SetStatusText(L"Formatting the partition...");
 			Update();
-			HRESULT hR = PartitionManager::FormatPartition(&PartitionManager::CurrentPartition, supportedFileSystems[selectionIndex + scrollIndex], nameString);
+			HRESULT hR = ::FormatPartition(PartitionManager::CurrentDisk.DiskNumber, PartitionManager::CurrentPartition.StartLBA.ULL * PartitionManager::CurrentDisk.SectorSize, supportedFileSystems[selectionIndex + scrollIndex], nameString);
 			if (hR != S_OK)
 			{
 				wchar_t buffer[MAX_PATH * 2];

@@ -13,6 +13,7 @@ class Page
 {
 public:
 	Page();
+	~Page();
 	void Initialize(Leet::Panther2K::Util::Console* con);
 	void Draw();
 	void Update();

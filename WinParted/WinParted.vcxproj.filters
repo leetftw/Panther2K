@@ -48,9 +48,6 @@
     <ClCompile Include="Partition\PartitionCreationPage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CoreFunctions\VdsFunctions.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CoreFunctions\DllExports.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -101,11 +98,6 @@
     <ClInclude Include="CoreFunctions\VdsService.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="WinParted.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="DllExports.def">

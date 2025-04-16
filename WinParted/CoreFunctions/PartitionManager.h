@@ -129,10 +129,10 @@ namespace Leet
 			// Vds Functions
 			// 
 
-			static HRESULT FormatPartition(PartitionInformation* partition, const wchar_t* fileSystem, const wchar_t* volumeName = L"");
-			static HRESULT MountPartition(PartitionInformation* partition, const wchar_t* mountPoint);
-			static HRESULT FormatAndMountPartition(PartitionInformation* partition, const wchar_t* fileSystem, const wchar_t* mountPoint, const wchar_t* volumeName = L"");
-			static HRESULT QueryPartitionSupportedFilesystems(PartitionInformation* partition, wchar_t** query);
+			//static HRESULT FormatPartition(PartitionInformation* partition, const wchar_t* fileSystem, const wchar_t* volumeName = L"");
+			//static HRESULT MountPartition(PartitionInformation* partition, const wchar_t* mountPoint);
+			//static HRESULT FormatAndMountPartition(PartitionInformation* partition, const wchar_t* fileSystem, const wchar_t* mountPoint, const wchar_t* volumeName = L"");
+			//static HRESULT QueryPartitionSupportedFilesystems(PartitionInformation* partition, wchar_t** query);
 			//static HRESULT FormatAndOrMountPartition(PartitionInformation* partition, const wchar_t* fileSystem, const wchar_t* mountPoint, wchar_t** query = 0);
 
 			static PartitionInformation CurrentPartition;
