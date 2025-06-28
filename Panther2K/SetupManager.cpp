@@ -2,6 +2,7 @@
 
 #include <string>
 #include <sstream>
+#include <algorithm>
 
 #include "../PugiXML/pugixml.hpp"
 #include "Page.h"

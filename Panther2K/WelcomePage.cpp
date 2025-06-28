@@ -1,6 +1,7 @@
 #include "WelcomePage.h"
 #include "QuittingPage.h"
 #include "ImageSelectionPage.h"
+#include "MessageBoxPage.h"
 
 void WelcomePage::Init()
 {
@@ -21,9 +22,12 @@ void WelcomePage::Drawer()
 	console->Write(L"•");
 	console->DrawTextLeft(L"To launch Setup, press ENTER", console->GetSize().cx - 18, console->GetPosition().y);
 
-	console->SetPosition(6, console->GetPosition().y + 2);
-	console->Write(L"•");
-	console->DrawTextLeft(L"To repair a Windows installation, press R", console->GetSize().cx - 18, console->GetPosition().y);
+	if (GetFileAttributesW(L"X:\\sources\\recovery\\recenv.exe") != INVALID_FILE_ATTRIBUTES)
+	{
+		console->SetPosition(6, console->GetPosition().y + 2);
+		console->Write(L"•");
+		console->DrawTextLeft(L"To repair a Windows installation, press R", console->GetSize().cx - 18, console->GetPosition().y);	
+	}
 
 	console->SetPosition(6, console->GetPosition().y + 2);
 	console->Write(L"•");
@@ -40,6 +44,19 @@ PageResult WelcomePage::KeyHandler(WPARAM wParam)
 	{
 	case VK_RETURN:
 		return PageContinue;
+	case 'R':
+		if (GetFileAttributesW(L"X:\\sources\\recovery\\recenv.exe") != INVALID_FILE_ATTRIBUTES)
+		{
+			// Launch the recovery environment
+			ShellExecuteW(NULL, L"open", L"X:\\sources\\recovery\\recenv.exe", NULL, NULL, SW_SHOWNORMAL);
+		}
+		else 
+		{
+			MessageBoxPage page(L"Could not find Windows Recovery files.", true, this);
+			page.Initialize(console, this);
+			page.ShowDialog();
+		}
+		break;
 	case VK_ESCAPE:
 	case VK_F3:
 		AddPopup(new QuittingPage());
