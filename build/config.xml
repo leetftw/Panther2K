@@ -18,86 +18,92 @@
         <DarkForegroundColor />
         <Columns>80</Columns>
         <Rows/><!-- Again, use default (80x25) --> 
-        <!-- Note, default options are only allowed in the Console section -->
     </Console>
 
-   <!--All options below this line do nothing -->
+    <!--All options below this line do nothing -->
 
     <!-- Specified how detailed the logfile should be -->
     <!--<LogLevel>basic</LogLevel>-->
-    <LogLevel>normal</LogLevel>
+    <!--<LogLevel>normal</LogLevel>-->
     <!--<LogLevel>detailed</LogLevel>-->
-    <!--<LogLevel>verbose</LogLevel>-->
-
+    <LogLevel>verbose</LogLevel>
+	
     <!-- May be omitted -->
     <!-- WinPE behaves slightly differently from full Windows in terms of disk/volume functions so Panther2K has certain mitigations for that -->
     <!-- If present, Panther2K will always behave as if it were in the Windows Preinstallation Environment (mitigations enabled) -->
-    <!-- This might slow down formatting operations -->
+    <!-- This might slow down formatting operations in WinParted -->
     <!--<WinPE />-->
 
     <!-- Specifies the location of the WIM or ESD file Panther2K uses -->
-    <!-- Must be either Auto or a fully qualified path to a valid WIM or ESD image -->
+    <!-- Must be a fully qualified path to a valid WIM or ESD image -->
     <!-- ESD images must have .esd extension (case insensitive) -->
-    <WimFile>Auto</WimFile>
+	<!-- Omit to ask the user during installation -->
+    <!--<WimFile>Auto</WimFile>-->
 
     <!-- Specifies the index of the image inside the WIM file to use -->
-    <!-- Must be either Ask or a valid image index in WimFile -->
-    <!-- WimFile may not be Auto -->
-    <WimIndex>Ask</WimIndex>
+    <!-- Must be a valid image index in WimFile -->
+    <!-- WimFile must be defined if defining WimIndex -->
+	<!-- Omit to ask the user during installation -->
+    <!--<WimIndex>Ask</WimIndex>-->
 
     <!-- Specifies the method of booting to use -->
-    <!-- Must be one of: Legacy, UEFI or Ask -->
-    <BootMethod>Ask</BootMethod>
-
-    <!-- Determines whether to set up the Windows Recovery Environment -->
-    <!-- Requires an extra partition to set up -->
-    <UseRecovery>True</UseRecovery>
-
-    <!-- By default, Panther2K checks whether certain installation partitions have certain filesystems: -->
-    <!-- System: NTFS,   Boot (UEFI): FAT32,   Boot (Legacy): NTFS,   Recovery: NTFS -->
-    <!-- If this option is set to True, these checks are disabled -->
-    <!-- Should only be used when installing Windows to normally unsupported filesystems (eg. Btrfs) -->
-    <AllowOtherFilesystems>False</AllowOtherFilesystems>
+    <!-- Must be one of: Legacy, UEFI -->
+	<!-- Omit to ask the user during installation -->
+    <!--<BootMethod>Ask</BootMethod>-->
 
     <!-- Panther2K supports two modes of operation: -->
-    <!-- FullDisk: Uses an entire disk to install Windows. The entire disk will be formatted -->
-    <!-- Custom: Uses individual partitions to install Windows. T-->
-    <!-- Must be FullDisk, Custom or Ask -->
-    <PartitionMethod>Ask</PartitionMethod>
-
-    <!-- Config options for PartitionMethod FullDisk: -->
-    <!-- Can be a disk number or Ask -->
-    <!--<DiskNumber>0</DiskNumber>-->
-
-    <!-- Config options for PartitionMethod Custom: -->
+    <!-- FullDisk: Uses the entirety of the defined disk to install Windows; The entire disk will be formatted -->
+    <!-- Easy: Uses the defined system partition to install Windows (automatically finds Boot partition) -->
+	<!-- Custom: Uses the manually defined partitions to install Windows -->
+	<!-- Omit to ask the user during installation -->
+	<!-- Note: when defining PartitionMethod, the user cannot manually select anything and everything must be defined through the configuration -->
+    <!-- See the examples below -->
+	
+	<!-- EXAMPLE: FullDisk -->
+	<!--
+    <PartitionMethod>FullDisk</PartitionMethod>
+	<DiskNumber>0</DiskNumber>
+	-->
+	
+	<!-- EXAMPLE: Easy -->
     <!--
+    <PartitionMethod>Easy</PartitionMethod>
+    <SystemPartition>
+        <Volume>W:</Volume>
+    </SystemPartition>
+    -->
+	
+    <!-- EXAMPLE: Custom -->
+    <!--
+    <PartitionMethod>Custom</PartitionMethod>
     <SystemPartition>
         <Volume>\\?\Volume{aabbccdd-eeff-aabb-ccdd-eeffaabbccdd}</Volume>
     </SystemPartition>
     <BootPartition>
-        <MountPoint>C:\</MountPoint>
+        <MountPoint>D:</MountPoint>
     </BootPartition>
-    <RecoveryPartition>
-        <MountPoint>C:\Path\To\NTFS\Dir\MountPoint</MountPoint>
-    </RecoveryPartition>
     -->
-    <!-- RecoveryPartition is only valid if UseRecovery is True -->
-
-    <!-- If PartitionMethod is Ask, no additional information may be provided. -->
-
+	
+    <!-- By default, Panther2K checks whether certain installation partitions have certain filesystems: -->
+    <!-- System: NTFS,   Boot (UEFI): FAT32,   Boot (Legacy): NTFS -->
+    <!-- If this option is set to True, these checks are disabled -->
+    <!-- Should only be used when installing Windows to normally unsupported filesystems (eg. Btrfs) -->
+    <!-- Must be defined -->
+	<AllowOtherFilesystems>False</AllowOtherFilesystems>
+	
     <!-- Determine whether to show filenames during installation -->
+	<!-- Must be defined -->
     <ShowFileNames>True</ShowFileNames>
 
     <!-- Determines how many characters of the file name should be displayed -->
     <!-- Must be at least 12 -->
     <!-- If equal to 12, Panther2K will automatically generate a DOS style 8.3 filename (eg: FILENAMEISLONG.ext -> FILENA~0.ext) -->
+	<!-- Must be defined -->
     <ShownFileNameLength>12</ShownFileNameLength>
-
-    <!-- Determines whether to continue the installation if Windows RE failed to set up -->
-    <AllowFailedRecovery>True</AllowFailedRecovery>
 
     <!-- Determines for how many seconds the final page should be displayed -->
     <!-- If this is less than 3, the final page is skipped entirely -->
     <!-- Note: if the setup fails, the final page is always displayed without any timer -->
+	<!-- Must be defined -->
     <RebootTimer>10</RebootTimer>
 </Panther2KConfig>
