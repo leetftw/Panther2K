@@ -154,15 +154,14 @@
     <ClCompile Include="Leet.WinParted.Bootstrap.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\WinParted\WinParted.vcxproj">
+    <ResourceCompile Include="..\Leet.WinParted.PartitionManager\WinParted.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Leet.WinParted.PartitionManager\WinParted.vcxproj">
       <Project>{e999838a-4f2d-4748-a038-39e2bdb49722}</Project>
       <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="..\WinParted\WinParted.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

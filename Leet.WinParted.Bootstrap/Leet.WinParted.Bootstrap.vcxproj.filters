@@ -20,7 +20,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\WinParted\WinParted.rc">
+    <ResourceCompile Include="..\Leet.WinParted.PartitionManager\WinParted.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
