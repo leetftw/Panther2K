@@ -248,7 +248,7 @@ StepResult Leet::Panther2K::SetupManager::LoadConfiguration()
     Leet::Panther2K::Util::CONSOLE_COLOR* colors = new Leet::Panther2K::Util::CONSOLE_COLOR[6];
 
 #if PANTHER_RELEASE_TYPE == PANTHER_RT_RELEASE
-    COLOR defColor = { 0, 0, 170 };
+    Util::CONSOLE_COLOR defColor = { 0, 0, 170 };
     if (!parseColor(consoleNode, L"BackgroundColor", defColor, logger))
         return StepResult::Fail;
     colors[0] = defColor;
