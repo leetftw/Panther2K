@@ -1,6 +1,7 @@
 #include "include/P2KCustomConsole.h"
 #include <iostream>
 #include "include/PantherLogger.h"
+#include <fstream>
 
 #define IDR_FONT_IBM                    3
 
@@ -464,9 +465,43 @@ LRESULT CALLBACK CustomConsole::WndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPAR
 		case VK_HOME:
 			if (!fullScreen)
 			{
-				SetPixelScale(1);
+				SetPixelScale(3);
 			}
 			break;
+		case VK_END:
+		{
+			if (!hBuf || !hdcBuf)
+				return false;
+
+			BITMAP bmp;
+			if (!GetObject(hBuf, sizeof(BITMAP), &bmp))
+				return false;
+
+			BITMAPFILEHEADER bmfHeader = { 0 };
+			BITMAPINFOHEADER& bi = bitmapInfo.bmiHeader;
+
+			DWORD dwBmpSize = ((bmp.bmWidth * bi.biBitCount + 31) / 32) * 4 * bmp.bmHeight;
+			std::vector<BYTE> bmpBuffer(dwBmpSize);
+
+			if (!GetDIBits(hdcBuf, hBuf, 0, (UINT)bmp.bmHeight, bmpBuffer.data(), (BITMAPINFO*)&bitmapInfo, DIB_RGB_COLORS))
+				return false;
+
+			bmfHeader.bfType = 0x4D42; // 'BM'
+			bmfHeader.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+			bmfHeader.bfSize = bmfHeader.bfOffBits + dwBmpSize;
+
+			char filename[64];
+			sprintf_s(filename, "screenshot%llu.bmp", GetTickCount64());
+			std::ofstream file(filename, std::ios::binary);
+			if (!file)
+				break;
+			
+			file.write(reinterpret_cast<const char*>(&bmfHeader), sizeof(BITMAPFILEHEADER));
+			file.write(reinterpret_cast<const char*>(&bi), sizeof(BITMAPINFOHEADER));
+			file.write(reinterpret_cast<const char*>(bmpBuffer.data()), dwBmpSize);
+
+			break;
+		}
 		default:
 		{
 			KEY_EVENT_RECORD keyEvent = { 0 };

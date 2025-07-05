@@ -69,6 +69,13 @@ int Logger::GetLogLevel()
 	return dwLogLevel;
 }
 
+void Logger::SetLogLevel(int level)
+{
+	if (level < PANTHER_LL_BASIC || level > PANTHER_LL_VERBOSE)
+		return;
+	dwLogLevel = level;
+}
+
 void Logger::formatTime()
 {
 	time_t tTime = time(NULL);
@@ -121,6 +128,7 @@ void* _stdcall safeMallocImpl(Logger* logger, size_t size, const wchar_t* file, 
 	return returnValue;
 }
 
+#if PANTHER_RELEASE_TYPE != PANTHER_RT_RELEASE
 void _stdcall safeFree(Logger* logger, void* ptr)
 {
 	if (!ptr) return;
@@ -139,6 +147,7 @@ void _stdcall safeFree(Logger* logger, void* ptr)
 
 	free(ptr);
 }
+#endif
 
 void* _stdcall safeLocalAllocImpl(Logger* logger, size_t size, const wchar_t* file, int line, const wchar_t* function)
 {
@@ -163,6 +172,7 @@ void _stdcall safeRegisterNewImpl(Leet::Panther2K::Util::Logger* logger, void* p
 	allocations[ptr] = { file, function, line, size, L"new" };
 }
 
+#if PANTHER_RELEASE_TYPE != PANTHER_RT_RELEASE
 void _stdcall safeRegisterDelete(Leet::Panther2K::Util::Logger* logger, void* ptr)
 {
 	std::lock_guard<std::mutex> lock(allocMutex);
@@ -208,3 +218,4 @@ void _stdcall safeCleanup(Logger* logger)
 		}
 	}
 }
+#endif

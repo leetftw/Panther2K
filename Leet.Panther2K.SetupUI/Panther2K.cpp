@@ -36,7 +36,7 @@ int wmain(int argc, wchar_t** argv)
     }
 
     // List unfreed memory
-    safeCleanup(&logger);
+    safeCleanup((&logger));
 
     return result;
 }

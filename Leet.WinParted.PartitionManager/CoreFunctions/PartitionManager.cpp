@@ -171,7 +171,7 @@ void PartitionManager::Restart()
 {
 	while (pageStack.size() > 1)
 		PopPage();
-};
+}
 
 void PartitionManager::PopulateDiskInformation()
 {

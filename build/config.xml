@@ -27,12 +27,6 @@
     <!--<LogLevel>normal</LogLevel>-->
     <!--<LogLevel>detailed</LogLevel>-->
     <LogLevel>verbose</LogLevel>
-	
-    <!-- May be omitted -->
-    <!-- WinPE behaves slightly differently from full Windows in terms of disk/volume functions so Panther2K has certain mitigations for that -->
-    <!-- If present, Panther2K will always behave as if it were in the Windows Preinstallation Environment (mitigations enabled) -->
-    <!-- This might slow down formatting operations in WinParted -->
-    <!--<WinPE />-->
 
     <!-- Specifies the location of the WIM or ESD file Panther2K uses -->
     <!-- Must be a fully qualified path to a valid WIM or ESD image -->

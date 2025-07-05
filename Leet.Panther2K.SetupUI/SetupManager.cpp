@@ -303,6 +303,22 @@ StepResult Leet::Panther2K::SetupManager::LoadConfiguration()
     console->Clear();
     page.Draw();
 
+    for (auto& child : rootNode.children()) 
+    {
+        if (wcscmp(child.name(), L"") == 0)
+        {
+            int logLevel = child.text().as_int();
+            if (logLevel < PANTHER_LL_BASIC || logLevel > PANTHER_LL_VERBOSE)
+            {
+                wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Failed to load config! Invalid log level %d.", logLevel);
+                exitCode = HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
+                return StepResult::Fail;
+			}
+            logger->SetLogLevel(logLevel);
+            continue;
+        }
+    }
+
     return StepResult::Success;
 }
 

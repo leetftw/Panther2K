@@ -216,6 +216,7 @@
     <ClInclude Include="..\PugiXML\pugixml.hpp" />
     <ClInclude Include="BootMethodSelectionPage.h" />
     <ClInclude Include="BootPreparationPage.h" />
+    <ClInclude Include="Configuration.h" />
     <ClInclude Include="DiskSelectionPage.h" />
     <ClInclude Include="FinalPage.h" />
     <ClInclude Include="framework.h" />
@@ -238,6 +239,7 @@
     <ClCompile Include="..\PugiXML\pugixml.cpp" />
     <ClCompile Include="BootMethodSelectionPage.cpp" />
     <ClCompile Include="BootPreparationPage.cpp" />
+    <ClCompile Include="Configuration.cpp" />
     <ClCompile Include="DiskSelectionPage.cpp" />
     <ClCompile Include="FinalPage.cpp" />
     <ClCompile Include="PartitionSelectionPage.cpp" />

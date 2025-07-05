@@ -80,6 +80,9 @@ namespace Leet
 
 				// Retrieves the log level
 				int GetLogLevel();
+
+				// Sets the log level
+				void SetLogLevel(int level);
 			private:
 				wchar_t timeBuffer[100];
 				wchar_t messageBuffer[512];
@@ -109,7 +112,10 @@ void _stdcall safeFree(Leet::Panther2K::Util::Logger* logger, void* ptr);
 void _stdcall safeCleanup(Leet::Panther2K::Util::Logger* logger);
 #else
 #define safeMalloc(logger, size) malloc(size)
-#define safeLocalAlloc(logger, size) LocalAlloc(size);
+#define safeLocalAlloc(logger, size) LocalAlloc(LMEM_MOVEABLE, size)
+
+#define safeRegisterNew(logger) ((void)0)
+#define safeRegisterDelete(logger, ptr) ((void)0)
 
 #define safeFree(logger, ptr) free(ptr)
 #define safeCleanup(logger) wlogc(logger, PANTHER_LL_BASIC, L"[Memory Manager] Production build, not performing memory cleanup.")
