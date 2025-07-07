@@ -160,15 +160,8 @@ StepResult Leet::Panther2K::SetupManager::Initialize()
     return StepResult::Success;
 }
 
-bool parseColor(const pugi::xml_node& parentNode, const std::wstring& nodeName, Leet::Panther2K::Util::CONSOLE_COLOR& color, Leet::Panther2K::Util::Logger* logger) 
+bool parseColor(const pugi::xml_node& colorNode, Leet::Panther2K::Util::CONSOLE_COLOR& color, Leet::Panther2K::Util::Logger* logger)
 {
-    pugi::xml_node colorNode = parentNode.child(nodeName.c_str());
-    if (!colorNode)
-    {
-        wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Failed to load config! <%s> misses child node <%s>.", parentNode.name(), nodeName.c_str());
-        return false;
-    }
-
     pugi::xpath_node_set childNodes = colorNode.select_nodes(REL NODE(L"*"));
     if (childNodes.empty()) 
     {
@@ -176,7 +169,7 @@ bool parseColor(const pugi::xml_node& parentNode, const std::wstring& nodeName, 
     } 
     else if (childNodes.size() > 1)
     {
-        wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Failed to load config! <%s>/<%s> has more than one value.", parentNode.name(), nodeName.c_str());
+        wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Failed to load config! <%s> has more than one value.", colorNode.name());
         return false;
     }
 
@@ -194,7 +187,7 @@ bool parseColor(const pugi::xml_node& parentNode, const std::wstring& nodeName, 
     {
         if (!colorValue[0] == L'#' || colorValue.size() != 7)
         {
-            wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Failed to load config! <%s>/<%s>/<HEX> is not a valid hex color.", parentNode.name(), nodeName.c_str());
+            wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Failed to load config! <%s>/<HEX> is not a valid hex color.", colorNode.name());
             return false;
         }
 
@@ -205,7 +198,7 @@ bool parseColor(const pugi::xml_node& parentNode, const std::wstring& nodeName, 
         return true;
     }
 
-    wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Failed to load config! <%s>/<%s> has an unrecognized color type <%s>.", parentNode.name(), nodeName.c_str(), colorType.c_str());
+    wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Failed to load config! <%s> has an unrecognized color type <%s>.", colorNode.name(), colorType.c_str());
     return false;
 }
 
@@ -217,108 +210,74 @@ StepResult Leet::Panther2K::SetupManager::LoadConfiguration()
     page.statusText = L"  Parsing 'config.xml'...";
     page.Initialize(console);
     page.Draw();
-    
-    pugi::xml_document document;
-    document.load_file(L"config.xml");
 
-    pugi::xml_node rootNode = document.select_node(NODE("Panther2KConfig")).node();
-    if (!rootNode)
-    {
-        wlogc(logger, PANTHER_LL_BASIC, L"[Client] Failed to load config! Missing node <Panther2KConfig>.");
-        exitCode = HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
-        return StepResult::Fail;
-    }
+	config.LoadConfiguration(L"config.xml");
 
-    const wchar_t* query = REL NODE(L"Console");
-    pugi::xpath_node_set consoleNodes = rootNode.select_nodes(query);
-    if (consoleNodes.size() > 1)
-    {
-        wlogc(logger, PANTHER_LL_BASIC, L"[Client] Failed to load config! More than one <Console> node defined.");
-        exitCode = HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
-        return StepResult::Fail;
-    }
-    else if (consoleNodes.size() == 0)
-    {
-        wlogc(logger, PANTHER_LL_BASIC, L"[Client] Failed to load config! Missing node <Console>.");
-        exitCode = HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
-        return StepResult::Fail;
-    }
-    pugi::xml_node consoleNode = consoleNodes.first().node();
-
+    // TODO: Console should really not be dependent on this pointer
     Leet::Panther2K::Util::CONSOLE_COLOR* colors = new Leet::Panther2K::Util::CONSOLE_COLOR[6];
-
 #if PANTHER_RELEASE_TYPE == PANTHER_RT_RELEASE
-    Util::CONSOLE_COLOR defColor = { 0, 0, 170 };
-    if (!parseColor(consoleNode, L"BackgroundColor", defColor, logger))
-        return StepResult::Fail;
-    colors[0] = defColor;
-    defColor = { 170, 170, 170 };
-    if (!parseColor(consoleNode, L"ForegroundColor", defColor, logger))
-        return StepResult::Fail;
-    colors[1] = defColor;
-    defColor = { 170, 0, 0 };
-    if (!parseColor(consoleNode, L"ErrorColor", defColor, logger))
-        return StepResult::Fail;
-    colors[2] = defColor;
-    defColor = { 255, 255, 0 };
-    if (!parseColor(consoleNode, L"ProgressBarColor", defColor, logger))
-        return StepResult::Fail;
-    colors[3] = defColor;
-    defColor = { 255, 255, 255 };
-    if (!parseColor(consoleNode, L"LightForegroundColor", defColor, logger))
-        return StepResult::Fail;
-    colors[4] = defColor;
-    defColor = { 0, 0, 0 };
-    if (!parseColor(consoleNode, L"DarkForegroundColor", defColor, logger))
-        return StepResult::Fail;
-    colors[5] = defColor;
+    colors[0] = { 0, 0, 170 };
 #else
     colors[0] = { 170 / 3, 0, 170 / 2 };
+#endif
     colors[1] = { 170, 170, 170 };
     colors[2] = { 170, 0, 0 };
     colors[3] = { 255, 255, 0 };
     colors[4] = { 255, 255, 255 };
     colors[5] = { 0, 0, 0 };
-    wlogc(logger, PANTHER_LL_BASIC, L"[Client] Not a release build, forcing console colors.");
+    if (config.HasConsole())
+    {
+        if (!config.ValidateConsole(logger))
+        {
+			exitCode = HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
+            return StepResult::Fail;
+        }
+
+        wlogc(logger, PANTHER_LL_DETAILED, L"[Client] Console configuration found, applying...");
+
+        // Colors
+#if PANTHER_RELEASE_TYPE == PANTHER_RT_RELEASE
+        if (!config.ValidateBackgroundColor(logger)
+            || !parseColor(config.GetBackgroundColor(), colors[0], logger))
+            wlogc(logger, PANTHER_LL_BASIC, L"[Client] Failed to load background color, using default.");
+        if (!config.ValidateForegroundColor(logger)
+            || !parseColor(config.GetForegroundColor(), colors[1], logger))
+            wlogc(logger, PANTHER_LL_BASIC, L"[Client] Failed to load foreground color, using default.");
+		if (!config.ValidateErrorColor(logger)
+            || !parseColor(config.GetErrorColor(), colors[2], logger))
+			wlogc(logger, PANTHER_LL_BASIC, L"[Client] Failed to load error color, using default.");
+        if (!config.ValidateProgressBarColor(logger)
+			|| !parseColor(config.GetProgressBarColor(), colors[3], logger))
+            wlogc(logger, PANTHER_LL_BASIC, L"[Client] Failed to load progress bar color, using default.");
+		if (!config.ValidateLightForegroundColor(logger)
+            || !parseColor(config.GetLightForegroundColor(), colors[4], logger))
+			wlogc(logger, PANTHER_LL_BASIC, L"[Client] Failed to load light foreground color, using default.");
+		if (!config.ValidateDarkForegroundColor(logger)
+			|| !parseColor(config.GetDarkForegroundColor(), colors[5], logger))
+			wlogc(logger, PANTHER_LL_BASIC, L"[Client] Failed to load dark foreground color, using default.");
+#else
+        wlogc(logger, PANTHER_LL_NORMAL, L"[Client] Not a release build, forcing console colors.");
 #endif
+
+		// Rows and columns
+        int cols = config.ValidateColumns(logger) ? config.GetColumns() : 80;
+        int rows = config.ValidateRows(logger) ? config.GetRows() : 25;
+        if (cols < 1 || cols > 200 || rows < 1 || rows > 100)
+        {
+            wlogc(logger, PANTHER_LL_BASIC, L"[Client] Invalid console size, using defaults.");
+            cols = 80; rows = 25;
+        }
+		console->SetSize(cols, rows);
+    }
+    else
+    {
+        wlogc(logger, PANTHER_LL_NORMAL, L"[Client] No console configuration found, using defaults.");
+	}
     console->SetColorTable(colors, 6);
 
-    pugi::xml_node columnsNode = consoleNode.child(L"Columns");
-    if (!columnsNode)
-    {
-        wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Failed to load config! <%s> misses child node <Columns>.", consoleNode.name());
-        exitCode = HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
-        return StepResult::Fail;
-    }
-    pugi::xml_node rowsNode = consoleNode.child(L"Rows");
-    if (!rowsNode)
-    {
-        wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Failed to load config! <%s> misses child node <Rows>.", consoleNode.name());
-        exitCode = HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
-        return StepResult::Fail;
-    }
-    int cols = columnsNode.first_child().empty() ? 80 : columnsNode.text().as_int();
-    int rows = rowsNode.first_child().empty() ? 25 : rowsNode.text().as_int();
-    console->SetSize(cols, rows);
-    console->Clear();
-    page.Draw();
-
-    for (auto& child : rootNode.children()) 
-    {
-        if (wcscmp(child.name(), L"") == 0)
-        {
-            int logLevel = child.text().as_int();
-            if (logLevel < PANTHER_LL_BASIC || logLevel > PANTHER_LL_VERBOSE)
-            {
-                wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Failed to load config! Invalid log level %d.", logLevel);
-                exitCode = HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
-                return StepResult::Fail;
-			}
-            logger->SetLogLevel(logLevel);
-            continue;
-        }
-    }
-
+    if (config.ValidateLogLevel(logger))
+		logger->SetLogLevel(config.GetLogLevel());
+    
     return StepResult::Success;
 }
 

@@ -10,6 +10,8 @@
 
 #include <SetupEngineC.h>
 
+#include "Configuration.h"
+
 typedef enum {
     Success,
     Fail,
@@ -34,6 +36,7 @@ namespace Leet
 
         private:
             int currentStep = 0;
+            SetupConfiguration config;
             Leet::Panther2K::Util::Console* console = nullptr;
             Leet::Panther2K::Util::Logger* logger = nullptr;
             std::vector<std::tuple<const wchar_t*, StepResult(SetupManager::*)()>> setupSteps = { };

@@ -15,15 +15,15 @@
 // Command line builds (for testing and debugging)
 int wmain(int argc, wchar_t** argv)
 {
-    printf("Panther2K Early load. Version " BASE_VER_STRING "\n");
+    printf("[wmain] Panther2K Early load. Version " BASE_VER_STRING "\n");
 
-    printf("Creating logger...\n");
+    printf("[wmain] Creating logger...\n");
     Leet::Panther2K::Util::Logger logger = Leet::Panther2K::Util::Logger(L"debug.log", PANTHER_LL_VERBOSE);
 
     // Separate stack frame to perform deinitialization
     HRESULT result;
     {
-        printf("Creating console...\n");
+        printf("[wmain] Creating console...\n");
         Leet::Panther2K::Util::CustomConsole console;
         console.Init();
         ShowWindow(console.WindowHandle, SW_SHOW);
@@ -37,6 +37,11 @@ int wmain(int argc, wchar_t** argv)
 
     // List unfreed memory
     safeCleanup((&logger));
+
+    wchar_t returnString[MAX_PATH];
+    if (FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, \
+        result, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), returnString, MAX_PATH, NULL))
+        wprintf_s(L"[wmain] Result from setup manager: %s", returnString);
 
     return result;
 }

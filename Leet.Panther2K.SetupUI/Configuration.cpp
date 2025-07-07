@@ -43,18 +43,18 @@ namespace Leet
         bool SetupConfiguration::ValidateConsole(Logger* logger) const
         {
             if (!rootNode_) {
-                wlogc(logger, PANTHER_LL_BASIC, L"[Client] Failed to load config! Missing node <Panther2KConfig>.");
+                wlogc(logger, PANTHER_LL_BASIC, L"[Client] Configuration contains errors! Missing node <Panther2KConfig>.");
                 return false;
             }
             int count = 0;
             for (auto node : rootNode_.children(L"Console"))
                 ++count;
             if (count > 1) {
-                wlogc(logger, PANTHER_LL_BASIC, L"[Client] Failed to load config! More than one <Console> node defined.");
+                wlogc(logger, PANTHER_LL_BASIC, L"[Client] Configuration contains errors! More than one <Console> node defined.");
                 return false;
             }
             if (count == 0) {
-                wlogc(logger, PANTHER_LL_BASIC, L"[Client] Failed to load config! Missing node <Console>.");
+                wlogc(logger, PANTHER_LL_BASIC, L"[Client] Configuration contains errors! Missing node <Console>.");
                 return false;
             }
             return true;
@@ -74,12 +74,12 @@ namespace Leet
                 auto console = GetConsole(); \
                 auto colorNode = console.child(L#NAME); \
                 if (!colorNode) { \
-                    wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Failed to load config! <%s> misses child node <%s>.", console.name(), L#NAME); \
+                    wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Configuration contains errors! <%s> misses child node <%s>.", console.name(), L#NAME); \
                     return false; \
                 } \
                 pugi::xpath_node_set childNodes = colorNode.select_nodes(L"*"); \
                 if (childNodes.size() > 1) { \
-                    wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Failed to load config! <%s>/<%s> has more than one value.", console.name(), L#NAME); \
+                    wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Configuration contains errors! <%s>/<%s> has more than one value.", console.name(), L#NAME); \
                     return false; \
                 } \
                 if (childNodes.size() == 1) { \
@@ -90,12 +90,12 @@ namespace Leet
                         return true; \
                     } else if (colorType == L"HEX") { \
                         if (colorValue.empty() || colorValue[0] != L'#' || colorValue.size() != 7) { \
-                            wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Failed to load config! <%s>/<%s>/<HEX> is not a valid hex color.", console.name(), L#NAME); \
+                            wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Configuration contains errors! <%s>/<%s>/<HEX> is not a valid hex color.", console.name(), L#NAME); \
                             return false; \
                         } \
                         return true; \
                     } else { \
-                        wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Failed to load config! <%s>/<%s> has an unrecognized color type <%s>.", console.name(), L#NAME, colorType.c_str()); \
+                        wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Configuration contains errors! <%s>/<%s> has an unrecognized color type <%s>.", console.name(), L#NAME, colorType.c_str()); \
                         return false; \
                     } \
                 } \
@@ -120,7 +120,7 @@ namespace Leet
             auto node = GetConsole();
             auto colNode = node.child(L"Columns");
             if (!colNode) {
-                wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Failed to load config! <%s> misses child node <Columns>.", node.name());
+                wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Configuration contains errors! <%s> misses child node <Columns>.", node.name());
                 return false;
             }
             return true;
@@ -144,7 +144,7 @@ namespace Leet
             auto node = GetConsole();
             auto rowNode = node.child(L"Rows");
             if (!rowNode) {
-                wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Failed to load config! <%s> misses child node <Rows>.", node.name());
+                wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Configuration contains errors! <%s> misses child node <Rows>.", node.name());
                 return false;
             }
             return true;
@@ -175,7 +175,7 @@ namespace Leet
                 if (wcscmp(child.name(), L"LogLevel") == 0) {
                     int logLevel = child.text().as_int();
                     if (logLevel < PANTHER_LL_BASIC || logLevel > PANTHER_LL_VERBOSE) {
-                        wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Failed to load config! Invalid log level %d.", logLevel);
+                        wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Configuration contains errors! Invalid log level %d.", logLevel);
                         return false;
                     }
                 }

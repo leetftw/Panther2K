@@ -112,7 +112,7 @@ void _stdcall safeFree(Leet::Panther2K::Util::Logger* logger, void* ptr);
 void _stdcall safeCleanup(Leet::Panther2K::Util::Logger* logger);
 #else
 #define safeMalloc(logger, size) malloc(size)
-#define safeLocalAlloc(logger, size) LocalAlloc(LMEM_MOVEABLE, size)
+#define safeLocalAlloc(logger, size) LocalAlloc(LMEM_FIXED, size)
 
 #define safeRegisterNew(logger) ((void)0)
 #define safeRegisterDelete(logger, ptr) ((void)0)
