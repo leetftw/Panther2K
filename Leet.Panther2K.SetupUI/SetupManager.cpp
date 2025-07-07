@@ -211,7 +211,7 @@ StepResult Leet::Panther2K::SetupManager::LoadConfiguration()
     page.Initialize(console);
     page.Draw();
 
-	config.LoadConfiguration(L"config.xml");
+	config->LoadConfiguration(L"config.xml");
 
     // TODO: Console should really not be dependent on this pointer
     Leet::Panther2K::Util::CONSOLE_COLOR* colors = new Leet::Panther2K::Util::CONSOLE_COLOR[6];
@@ -225,9 +225,9 @@ StepResult Leet::Panther2K::SetupManager::LoadConfiguration()
     colors[3] = { 255, 255, 0 };
     colors[4] = { 255, 255, 255 };
     colors[5] = { 0, 0, 0 };
-    if (config.HasConsole())
+    if (config->HasConsole())
     {
-        if (!config.ValidateConsole(logger))
+        if (!config->ValidateConsole(logger))
         {
 			exitCode = HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
             return StepResult::Fail;
@@ -237,31 +237,31 @@ StepResult Leet::Panther2K::SetupManager::LoadConfiguration()
 
         // Colors
 #if PANTHER_RELEASE_TYPE == PANTHER_RT_RELEASE
-        if (!config.ValidateBackgroundColor(logger)
-            || !parseColor(config.GetBackgroundColor(), colors[0], logger))
+        if (!config->ValidateBackgroundColor(logger)
+            || !parseColor(config->GetBackgroundColor(), colors[0], logger))
             wlogc(logger, PANTHER_LL_BASIC, L"[Client] Failed to load background color, using default.");
-        if (!config.ValidateForegroundColor(logger)
-            || !parseColor(config.GetForegroundColor(), colors[1], logger))
+        if (!config->ValidateForegroundColor(logger)
+            || !parseColor(config->GetForegroundColor(), colors[1], logger))
             wlogc(logger, PANTHER_LL_BASIC, L"[Client] Failed to load foreground color, using default.");
-		if (!config.ValidateErrorColor(logger)
-            || !parseColor(config.GetErrorColor(), colors[2], logger))
+		if (!config->ValidateErrorColor(logger)
+            || !parseColor(config->GetErrorColor(), colors[2], logger))
 			wlogc(logger, PANTHER_LL_BASIC, L"[Client] Failed to load error color, using default.");
-        if (!config.ValidateProgressBarColor(logger)
-			|| !parseColor(config.GetProgressBarColor(), colors[3], logger))
+        if (!config->ValidateProgressBarColor(logger)
+			|| !parseColor(config->GetProgressBarColor(), colors[3], logger))
             wlogc(logger, PANTHER_LL_BASIC, L"[Client] Failed to load progress bar color, using default.");
-		if (!config.ValidateLightForegroundColor(logger)
-            || !parseColor(config.GetLightForegroundColor(), colors[4], logger))
+		if (!config->ValidateLightForegroundColor(logger)
+            || !parseColor(config->GetLightForegroundColor(), colors[4], logger))
 			wlogc(logger, PANTHER_LL_BASIC, L"[Client] Failed to load light foreground color, using default.");
-		if (!config.ValidateDarkForegroundColor(logger)
-			|| !parseColor(config.GetDarkForegroundColor(), colors[5], logger))
+		if (!config->ValidateDarkForegroundColor(logger)
+			|| !parseColor(config->GetDarkForegroundColor(), colors[5], logger))
 			wlogc(logger, PANTHER_LL_BASIC, L"[Client] Failed to load dark foreground color, using default.");
 #else
         wlogc(logger, PANTHER_LL_NORMAL, L"[Client] Not a release build, forcing console colors.");
 #endif
 
 		// Rows and columns
-        int cols = config.ValidateColumns(logger) ? config.GetColumns() : 80;
-        int rows = config.ValidateRows(logger) ? config.GetRows() : 25;
+        int cols = config->ValidateColumns(logger) ? config->GetColumns() : 80;
+        int rows = config->ValidateRows(logger) ? config->GetRows() : 25;
         if (cols < 1 || cols > 200 || rows < 1 || rows > 100)
         {
             wlogc(logger, PANTHER_LL_BASIC, L"[Client] Invalid console size, using defaults.");
@@ -275,8 +275,8 @@ StepResult Leet::Panther2K::SetupManager::LoadConfiguration()
 	}
     console->SetColorTable(colors, 6);
 
-    if (config.ValidateLogLevel(logger))
-		logger->SetLogLevel(config.GetLogLevel());
+    if (config->ValidateLogLevel(logger))
+		logger->SetLogLevel(config->GetLogLevel());
     
     return StepResult::Success;
 }
