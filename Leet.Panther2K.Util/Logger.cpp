@@ -71,8 +71,24 @@ int Logger::GetLogLevel()
 
 void Logger::SetLogLevel(int level)
 {
-	if (level < PANTHER_LL_BASIC || level > PANTHER_LL_VERBOSE)
+	if (level < PANTHER_LL_BASIC || level > PANTHER_LL_VERBOSE || level == dwLogLevel)
 		return;
+
+	switch (level)
+	{
+		case PANTHER_LL_BASIC:
+			WriteDirect(PANTHER_LL_BASIC, L"[Logger] Setting log level to BASIC.\r\n");
+			break;
+		case PANTHER_LL_NORMAL:
+			WriteDirect(PANTHER_LL_BASIC, L"[Logger] Setting log level to NORMAL.\r\n");
+			break;
+		case PANTHER_LL_DETAILED:
+			WriteDirect(PANTHER_LL_BASIC, L"[Logger] Setting log level to DETAILED.\r\n");
+			break;
+		case PANTHER_LL_VERBOSE:
+			WriteDirect(PANTHER_LL_BASIC, L"[Logger] Setting log level to VERBOSE.\r\n");
+			break;
+	}
 	dwLogLevel = level;
 }
 

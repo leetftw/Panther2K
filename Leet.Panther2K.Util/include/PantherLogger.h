@@ -31,9 +31,10 @@ do { \
 	const wchar_t* functionName = __FUNCTIONW__; \
 	int bufferSize = (lstrlenW(message) + lstrlenW(functionName) + 4); \
 	wchar_t* wlogbuffer = static_cast<wchar_t*>(safeMalloc(logger, bufferSize * sizeof(wchar_t))); \
+    if (wlogbuffer) { \
 	swprintf_s(wlogbuffer, bufferSize, L"%s [%s]", message, functionName); \
 	logger->Write(level, wlogbuffer); \
-	safeFree(logger, wlogbuffer); \
+	safeFree(logger, wlogbuffer); } \
 } while (0)
 
 #else

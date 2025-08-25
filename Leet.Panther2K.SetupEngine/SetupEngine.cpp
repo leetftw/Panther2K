@@ -377,7 +377,16 @@ HRESULT Leet::Panther2K::SetupEngine::StartInstallation()
 		wlogc(engine->installLog, PANTHER_LL_BASIC, L"[Engine/Install thread] Starting installation.");
 
 		wlogc(engine->installLog, PANTHER_LL_VERBOSE, L"[Engine/Install thread] Registering internal callback...");
-		WIMRegisterMessageCallback(engine->hWimFile, (FARPROC)WimgapiCallback, pCode);
+		if (true || (WIMRegisterMessageCallback(engine->hWimFile, (FARPROC)WimgapiCallback, pCode) == INVALID_CALLBACK_VALUE))
+		{
+			wlogc(engine->installLog, PANTHER_LL_NORMAL, L"[Engine/Install thread] Warning: Could not register internal WIMGAPI callback. No progress/warning information will be sent to the client during the installation.");
+			DebugBreak();
+			if (!PostThreadMessageW(engine->dwCallbackThread, TM_PANTHER_WARNING, HRESULT_FROM_WIN32(ERROR_IO_PENDING), reinterpret_cast<WPARAM>(L"Failed to register installation callback. The installation will still continue, but no progress information will be provided.")))
+			{
+				int value = GetLastError();
+				DebugBreak();
+			}
+		}
 
 		engine->hFileNameReadyEvent = CreateEventW(NULL, false, true, NULL);
 
@@ -393,13 +402,9 @@ HRESULT Leet::Panther2K::SetupEngine::StartInstallation()
 			if (FAILED(hResult))
 			{
 				// Cannot create installation.
-				// TODO: this doesn't do anything
-				wloglerr(engine->installLog, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Engine/Install thread] Failed to prepare Windows.old directory for migration. %s");
-				MessageBoxW(NULL, L"The engine has encountered an irrecoverable error. The application will be terminated. Note: This message box will be replaced with proper error handling.", L"Panther Setup Engine", MB_OK | MB_ICONERROR);
-				DebugBreak();
-				exit(GetLastError());
-				return HRESULT_FROM_WIN32(GetLastError());
-				DebugBreak();
+				wlogerr(engine->installLog, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Engine/Install thread] Failed to prepare Windows.old directory for migration. %s", hResult);
+				PostThreadMessageW(engine->dwCallbackThread, TM_PANTHER_ERROR, hResult, 0);
+				return hResult;
 			}
 
 			// Move files from volume root to Windows.old
@@ -408,11 +413,9 @@ HRESULT Leet::Panther2K::SetupEngine::StartInstallation()
 			{
 				// Cannot create installation.
 				// TODO: this doesn't do anything
-				wloglerr(engine->installLog, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Engine/Install thread] CRITICAL: Failed to move current installation into Windows.old, the installed operating system may have been corrupted as a result! %s");
-				MessageBoxW(NULL, L"The engine has encountered an irrecoverable error. The application will be terminated. Note: This message box will be replaced with proper error handling.", L"Panther Setup Engine", MB_OK | MB_ICONERROR);
-				DebugBreak();
-				exit(GetLastError());
-				return HRESULT_FROM_WIN32(GetLastError());
+				wlogerr(engine->installLog, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Engine/Install thread] CRITICAL: Failed to move current installation into Windows.old. The installed operating system may have been corrupted as a result! %s", hResult);
+				PostThreadMessageW(engine->dwCallbackThread, TM_PANTHER_ERROR, hResult, 0);
+				return hResult;
 			}
 		}
 
@@ -426,31 +429,30 @@ HRESULT Leet::Panther2K::SetupEngine::StartInstallation()
 		// TODO: this doesn't do anything
 		if (result != TRUE)
 		{
-			wloglerr(engine->installLog, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Engine/Install thread] The installation has failed. %s");
-			MessageBoxW(NULL, L"The engine has encountered an irrecoverable error. The application will be terminated. Note: This message box will be replaced with proper error handling.", L"Panther Setup Engine", MB_OK|MB_ICONERROR);
-			DebugBreak();
-			exit(GetLastError());
+			wloglerr(engine->installLog, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Engine/Install thread] The system image could not be applied. The installation has failed. %s");
+			PostThreadMessageW(engine->dwCallbackThread, TM_PANTHER_ERROR, GetLastError(), 0);
 			return HRESULT_FROM_WIN32(GetLastError());
 		}
 		hResult = engine->createBootFiles();
 		if (FAILED(hResult))
 		{
 			wlogerr(engine->installLog, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Engine/Install thread] Failed to create boot files. %s", hResult);
-			MessageBoxW(NULL, L"The engine has encountered an irrecoverable error. The application will be terminated. Note: This message box will be replaced with proper error handling.", L"Panther Setup Engine", MB_OK | MB_ICONERROR);
-			DebugBreak();
-			exit(GetLastError());
+			PostThreadMessageW(engine->dwCallbackThread, TM_PANTHER_ERROR, hResult, 0);
 			return HRESULT_FROM_WIN32(GetLastError());
 		}
-		wlogerr(engine->installLog, PANTHER_LL_DETAILED, MAX_PATH, engine->installLog->GetLogLevel() == PANTHER_LL_VERBOSE
+		wlogerr(engine->installLog, PANTHER_LL_DETAILED, MAX_PATH, engine->installLog->GetLogLevel() >= PANTHER_LL_VERBOSE
 			? L"[Engine/Install thread] (createBootFiles) %s"
 			: L"[Engine/Install thread] %s", hResult);
 
 		wlogc(engine->installLog, PANTHER_LL_VERBOSE, L"[Engine/Install thread] Unregistering internal callback...");
-		WIMUnregisterMessageCallback(engine->hWimFile, (FARPROC)WimgapiCallback);
+		if (!WIMUnregisterMessageCallback(engine->hWimFile, (FARPROC)WimgapiCallback))
+		{
+			wlogc(engine->installLog, PANTHER_LL_NORMAL, L"[Engine/Install thread] Warning: Could not unregister internal WIMGAPI callback.");
+		}
 
 		if (engine->dwCallbackThread != -1)
 		{
-			wlogc(engine->installLog, PANTHER_LL_DETAILED, L"[Engine/Install thread] Installation finished, notifying callback...");
+			wlogc(engine->installLog, PANTHER_LL_DETAILED, L"[Engine/Install thread] Installation finished, notifying client...");
 			PostThreadMessageW(engine->dwCallbackThread, TM_PANTHER_FINISH, 0, 0);
 		}
 

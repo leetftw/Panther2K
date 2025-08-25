@@ -1,5 +1,6 @@
 #include "Configuration.h"
 #include <cwchar>
+#include <algorithm>
 
 namespace Leet
 {
@@ -173,21 +174,43 @@ namespace Leet
             if (!rootNode_) return false;
             for (auto& child : rootNode_.children()) {
                 if (wcscmp(child.name(), L"LogLevel") == 0) {
-                    int logLevel = child.text().as_int();
-                    if (logLevel < PANTHER_LL_BASIC || logLevel > PANTHER_LL_VERBOSE) {
-                        wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Configuration contains errors! Invalid log level %d.", logLevel);
+                    std::wstring logLevelStr = child.text().as_string();
+                    // Convert to lower case for case-insensitive comparison
+                    std::transform(logLevelStr.begin(), logLevelStr.end(), logLevelStr.begin(), ::towlower);
+                    if (logLevelStr == L"basic" || logLevelStr == L"0") {
+                        // valid
+                    } else if (logLevelStr == L"normal" || logLevelStr == L"1") {
+                        // valid
+                    } else if (logLevelStr == L"detailed" || logLevelStr == L"2") {
+                        // valid
+                    } else if (logLevelStr == L"verbose" || logLevelStr == L"3") {
+                        // valid
+                    } else {
+                        wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Configuration contains errors! Invalid log level '%s'.", child.text().as_string());
                         return false;
                     }
                 }
             }
             return true;
         }
+
         int SetupConfiguration::GetLogLevel() const
         {
             if (!rootNode_) return -1;
             for (auto& child : rootNode_.children()) {
-                if (wcscmp(child.name(), L"LogLevel") == 0)
-                    return child.text().as_int();
+                if (wcscmp(child.name(), L"LogLevel") == 0) {
+                    std::wstring logLevelStr = child.text().as_string();
+                    std::transform(logLevelStr.begin(), logLevelStr.end(), logLevelStr.begin(), ::towlower);
+                    if (logLevelStr == L"basic" || logLevelStr == L"0") {
+                        return 0;
+                    } else if (logLevelStr == L"normal" || logLevelStr == L"1") {
+                        return 1;
+                    } else if (logLevelStr == L"detailed" || logLevelStr == L"2") {
+                        return 2;
+                    } else if (logLevelStr == L"verbose" || logLevelStr == L"3") {
+                        return 3;
+                    }
+                }
             }
             return -1;
         }

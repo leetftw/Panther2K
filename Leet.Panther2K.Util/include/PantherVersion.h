@@ -9,7 +9,7 @@
 #define PANTHER_VERSION_PATCH 0
 #define PANTHER_VERSION_BUILD 4
 
-#define PANTHER_RELEASE_TYPE PANTHER_RT_RELEASE
+#define PANTHER_RELEASE_TYPE PANTHER_RT_BETA
 
 // Thanks GCC!
 // https://gcc.gnu.org/onlinedocs/gcc-3.4.3/cpp/Stringification.html

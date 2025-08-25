@@ -74,7 +74,7 @@ DWORD __stdcall MessageCallback(IN DWORD Msg, IN WPARAM wParam, IN LPARAM lParam
 
 WimApplyPage::~WimApplyPage()
 {
-	if (statusText) free((wchar_t*)statusText);
+	if (statusText) safeFree(nullptr, (wchar_t*)statusText);
 }
 
 void WimApplyPage::Update(int prog)
@@ -153,6 +153,8 @@ void WimApplyPage::Drawer()
 	boxWidth -= 12;
 	boxHeight -= 4;
 	DrawBox(boxX, boxY, boxWidth, boxHeight, false);
+
+	if (warning) console->DrawTextLeft(warning, consoleSize.cx - 12, boxY + boxHeight + 2);
 }
 
 void WimApplyPage::Redrawer()

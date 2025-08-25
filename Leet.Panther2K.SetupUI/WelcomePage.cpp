@@ -1,5 +1,6 @@
 #include "WelcomePage.h"
-#include "QuittingPage.h"
+#include "QuittingPage.h"
+
 #include "ImageSelectionPage.h"
 #include "MessageBoxPage.h"
 

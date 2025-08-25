@@ -127,7 +127,14 @@ void Leet::Panther2K::SetupManager::RunSetup()
             page.Initialize(console);
             page.Draw();
 
-            MessageBoxPage messagePage = MessageBoxPage(L"Panther2K encountered an irrecoverable error. The application cannot continue running. See debug.log for more information.", true, &page);
+			wchar_t* errorMessage = 0;
+            FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, \
+                exitCode, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPWSTR)&errorMessage, 0, NULL);
+
+            wchar_t buffer[256];
+            swprintf_s(buffer, L"An unexpected error occurred: %s (0x%08X). Panther2K will exit. See debug.log for more information.", errorMessage, exitCode);
+
+            MessageBoxPage messagePage = MessageBoxPage(buffer, true, &page);
             messagePage.Initialize(console, &page);
             messagePage.ShowDialog();
 
@@ -277,6 +284,7 @@ StepResult Leet::Panther2K::SetupManager::LoadConfiguration()
 
     if (config->ValidateLogLevel(logger))
 		logger->SetLogLevel(config->GetLogLevel());
+        
     
     return StepResult::Success;
 }
@@ -335,6 +343,7 @@ StepResult Leet::Panther2K::SetupManager::SelectWIMImage()
     
     while (!bResult && GetLastError() == ERROR_MORE_DATA) 
     {
+        // TODO: implement safeRealloc
         mountPoints = static_cast<PMOUNTMGR_MOUNT_POINTS>(realloc(mountPoints, mountPoints->Size));
         if (!mountPoints)
         {
@@ -612,6 +621,54 @@ StepResult Leet::Panther2K::SetupManager::SelectPartitions()
     else if (pageResult == PageExit) return StepResult::Exit;
     
     VolumeInformation info = page.GetSelectedVolume();
+    // Check if selected volume is not the current system volume
+    // 1. Get current system volume (ENV VAR: WINDIR)
+    // 2. Get volume of that path (GetVolumePathName)
+    // 3. Compare with selected volume
+
+    wchar_t windir[MAX_PATH] = {0};
+    DWORD windirLen = GetEnvironmentVariableW(L"WINDIR", windir, MAX_PATH);
+    if (windirLen == 0 || windirLen >= MAX_PATH)
+    {
+        wlogc(logger, PANTHER_LL_BASIC, L"[Client] Failed to get WINDIR environment variable.");
+        DebugBreak();
+        // Optionally handle error or continue
+    } 
+    else 
+    {
+        wchar_t sysVol[MAX_PATH] = {0};
+        if (!GetVolumePathNameW(windir, sysVol, MAX_PATH))
+        {
+            wlogc(logger, PANTHER_LL_BASIC, L"[Client] Failed to get system volume path for WINDIR.");
+            DebugBreak();
+            // Optionally handle error or continue
+        } 
+        else
+        {
+            wchar_t sysVolName[MAX_PATH] = {0};
+            if (!GetVolumeNameForVolumeMountPointW(sysVol, sysVolName, MAX_PATH)) 
+            {
+                wlogc(logger, PANTHER_LL_BASIC, L"[Client] Failed to get volume name for system volume.");
+                DebugBreak();
+                // Optionally handle error or continue
+            } 
+            else
+            {
+                if (_wcsnicmp(sysVolName, info.VolumeFile, wcslen(sysVolName)) == 0) 
+                {
+                    wlogc(logger, PANTHER_LL_BASIC, L"[Client] Selected volume is the current system volume. Aborting selection.");
+                    MessageBoxPage* msgBox = new MessageBoxPage(
+                        L"You cannot select the current system volume for installation. Please choose a different volume.",
+                        false, &page);
+                    msgBox->Initialize(console, &page);
+                    msgBox->ShowDialog();
+                    delete msgBox;
+                    goto userSelection;
+                }
+            }
+        }
+    }
+
     wchar_t volumes[2][128];
     result = WinPartedDll::PrepareDiskForWindows(console, logger, info.VolumeFile, useLegacy, 500000000ULL, 0ULL, volumes);
     if (FAILED(result))
@@ -720,17 +777,16 @@ StepResult Leet::Panther2K::SetupManager::HandleInstallMessages()
         HANDLE fileEvent = 0;
         while (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE))
         {
-            if (msg.message == TM_PANTHER_PROGRESS)
+            switch (msg.message)
             {
+            case TM_PANTHER_PROGRESS:
                 applyPage.Update(msg.wParam);
-            }
-            else if (msg.message == TM_PANTHER_FILENAME)
-            {
+                break;
+            case TM_PANTHER_FILENAME:
                 applyPage.Update((wchar_t*)msg.wParam);
                 fileEvent = (HANDLE)msg.lParam;
-            }
-            else if (msg.message == TM_PANTHER_BOOTSTEP)
-            {
+                break;
+            case TM_PANTHER_BOOTSTEP:
                 switch (msg.wParam)
                 {
                 case PANTHER_BOOTSTEP_BOOT:
@@ -742,12 +798,19 @@ StepResult Leet::Panther2K::SetupManager::HandleInstallMessages()
                     bootPage.Redraw();
                     break;
                 }
-            }
-            else if (msg.message == TM_PANTHER_FINISH)
-            {
+                break;
+            case TM_PANTHER_FINISH:
                 bootPage.statusText = L"Finishing up...";
                 bootPage.Redraw();
                 loop = false;
+                break;
+            case TM_PANTHER_ERROR:
+                exitCode = (HRESULT)msg.wParam;
+                return StepResult::Fail;
+            case TM_PANTHER_WARNING:
+                wlogerr(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Received warning from engine: %s", msg.wParam);
+                applyPage.SetWarning((const wchar_t*)msg.lParam);
+                break;
             }
 
             TranslateMessage(&msg);

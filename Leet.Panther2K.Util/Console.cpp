@@ -251,13 +251,25 @@ wchar_t** SplitStringToLines(const wchar_t* string, int maxWidth, int* lineCount
     }
 
 
-    // Get pointers to all strings
-    wchar_t** returnValue = (wchar_t**)safeMalloc(nullptr, (*lineCount) * sizeof(wchar_t*));
-    for (int i = 0, j = 0; i < (strLen + 1); i += lstrlenW(endValues + i) + 1, j++)
-        returnValue[j] = endValues + i;
+	// Get the size needed for the return value
+    size_t endValuesSize = (strLen + 1) * sizeof(wchar_t);
+    size_t ptrArraySize = (*lineCount) * sizeof(wchar_t*);
+    size_t totalSize = ptrArraySize + endValuesSize;
 
-    // Remove temporary word list
+    // Allocate a single block for both the pointer array and the string data
+    wchar_t** returnValue = (wchar_t**)safeMalloc(nullptr, totalSize);
+
+	// Place string data immediately after the pointer array
+    wchar_t* endValuesCopy = (wchar_t*)((char*)returnValue + ptrArraySize);
+    memcpy(endValuesCopy, endValues, endValuesSize);
+
+    // Set up the pointers to each line within the copied string data
+    for (int i = 0, j = 0; i < (strLen + 1); i += lstrlenW(endValuesCopy + i) + 1, j++)
+        returnValue[j] = endValuesCopy + i;
+
+    // Remove temporary word list and endValues
     safeFree(nullptr, wordList);
+    safeFree(nullptr, endValues);
 
     return returnValue;
 }
