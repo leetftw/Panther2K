@@ -464,7 +464,7 @@ bool PartitionManager::LoadDisk(DISK_INFORMATION* diskInfo, bool forceOperatingM
 	if (CurrentDiskOperatingMode == OperatingMode::GPT)
 	{
 		int count = CurrentDiskGPT.TableEntryCount;
-		unsigned long long PartitionTableSize = CurrentDiskGPT.TableEntrySize * count;
+		unsigned long long PartitionTableSize = CurrentDiskGPT.TableEntrySize * 128;
 		CurrentDiskGPTTable = (GPT_ENTRY*)safeMalloc(logger, PartitionTableSize);
 
 		unsigned long long newPtr = CurrentDiskGPT.TableLBA.ULL * CurrentDisk.SectorSize;

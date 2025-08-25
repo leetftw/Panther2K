@@ -233,6 +233,25 @@ namespace pantherScripts
             return new TaskResult();
         }
 
+        public static TaskResult DisplayOverview(TaskContext context)
+        {
+            ClearAndWriteHeader("Overview of selected preferences.");
+
+            Console.WriteLine("Selected files:");
+            Console.WriteLine($"Panther2K ZIP: {context.PantherFile}");
+            Console.WriteLine($"Source image file: {context.ImageFile}" + (context.WorkingFiles.Contains(context.ImageFile) ? " (downloaded from Windows Update)" : ""));
+            Console.WriteLine($"Install image will{(context.IncludeInstallImage ? "" : " not")} be included.");
+            Console.WriteLine($"Install image will{(context.ReplaceWimWithEsd ? "" : " not")} be recompressed to ESD.");
+            Console.WriteLine("Press any key to continue, or Escape to cancel.");
+
+            if (Console.ReadKey().Key == ConsoleKey.Escape)
+            {
+                Console.WriteLine("Exiting...");
+                throw new OperationCanceledException("User cancelled the operation.");
+            }
+            return new TaskResult();
+        }
+
         public static TaskResult CreateWorkingDirectories(TaskContext context)
         {
             ClearAndWriteHeader("Creating working directories...");
@@ -1003,6 +1022,7 @@ namespace pantherScripts
                 context.ImageFile = isoFile;
                 tasks = new TaskDelegate[]
                 {
+                    DisplayOverview,
                     CreateWorkingDirectories,
                     ISOExtract,
                     ISOTempMoveInstallWim,
@@ -1027,6 +1047,7 @@ namespace pantherScripts
                 context.ImageFile = esdFile;
                 tasks = new TaskDelegate[]
                 {
+                    DisplayOverview,
                     CreateWorkingDirectories,
                     ESDExtractSetupRoot,
                     CopyAutorun,
@@ -1053,6 +1074,7 @@ namespace pantherScripts
                     RetrieveLatestESDCatalog,
                     SelectESDFromCatalog,
                     DownloadSelectedEsd,
+                    DisplayOverview,
                     CreateWorkingDirectories,
                     ESDExtractSetupRoot,
                     CopyAutorun,

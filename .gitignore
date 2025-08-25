@@ -363,3 +363,6 @@ MigrationBackup/
 FodyWeavers.xsd
 /build/Panther2K.*.zip
 /build/WinParted.*.zip
+
+# Panther Console screenshots
+screenshot*.bmp
