@@ -86,7 +86,7 @@ HRESULT Leet::Panther2K::SetupEngine::SetWimFile(const std::wstring& path)
 		wlogf(installLog, PANTHER_LL_DETAILED, 100, installLog->GetLogLevel() == PANTHER_LL_VERBOSE ? 
 			L"[Engine] (WIMCreateFile) Failed to load WIM file (0x%08x)." : L"[Engine] Failed to load WIM file (0x%08x).", result);
 
-		return HRESULT_FROM_WIN32(GetLastError());
+		return result;
 	}
 
 	wchar_t buffer[MAX_PATH];
@@ -258,11 +258,7 @@ HRESULT Leet::Panther2K::SetupEngine::SetCallbackThread(unsigned int threadId)
 
 	HANDLE hThread = OpenThread(THREAD_QUERY_LIMITED_INFORMATION, FALSE, threadId);
 	if (!hThread)
-	{
-		wsprintfW(buffer, L"OpenThread failed: (0x%08x).\n", HRESULT_FROM_WIN32(GetLastError()));
-		STDOUT(buffer);
 		return HRESULT_FROM_WIN32(GetLastError());
-	}
 
 	CloseHandle(hThread);
 	dwCallbackThread = threadId;
@@ -377,15 +373,10 @@ HRESULT Leet::Panther2K::SetupEngine::StartInstallation()
 		wlogc(engine->installLog, PANTHER_LL_BASIC, L"[Engine/Install thread] Starting installation.");
 
 		wlogc(engine->installLog, PANTHER_LL_VERBOSE, L"[Engine/Install thread] Registering internal callback...");
-		if (true || (WIMRegisterMessageCallback(engine->hWimFile, (FARPROC)WimgapiCallback, pCode) == INVALID_CALLBACK_VALUE))
+		if (WIMRegisterMessageCallback(engine->hWimFile, (FARPROC)WimgapiCallback, pCode) == INVALID_CALLBACK_VALUE)
 		{
 			wlogc(engine->installLog, PANTHER_LL_NORMAL, L"[Engine/Install thread] Warning: Could not register internal WIMGAPI callback. No progress/warning information will be sent to the client during the installation.");
-			DebugBreak();
-			if (!PostThreadMessageW(engine->dwCallbackThread, TM_PANTHER_WARNING, HRESULT_FROM_WIN32(ERROR_IO_PENDING), reinterpret_cast<WPARAM>(L"Failed to register installation callback. The installation will still continue, but no progress information will be provided.")))
-			{
-				int value = GetLastError();
-				DebugBreak();
-			}
+			PostThreadMessageW(engine->dwCallbackThread, TM_PANTHER_WARNING, HRESULT_FROM_WIN32(ERROR_IO_PENDING), reinterpret_cast<WPARAM>(L"Failed to register installation callback. The installation will still continue, but no progress information will be provided."));			
 		}
 
 		engine->hFileNameReadyEvent = CreateEventW(NULL, false, true, NULL);
@@ -429,16 +420,17 @@ HRESULT Leet::Panther2K::SetupEngine::StartInstallation()
 		// TODO: this doesn't do anything
 		if (result != TRUE)
 		{
+			int lastError = GetLastError();
 			wloglerr(engine->installLog, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Engine/Install thread] The system image could not be applied. The installation has failed. %s");
-			PostThreadMessageW(engine->dwCallbackThread, TM_PANTHER_ERROR, GetLastError(), 0);
-			return HRESULT_FROM_WIN32(GetLastError());
+			PostThreadMessageW(engine->dwCallbackThread, TM_PANTHER_ERROR, HRESULT_FROM_WIN32(lastError), 0);
+			return HRESULT_FROM_WIN32(lastError);
 		}
 		hResult = engine->createBootFiles();
 		if (FAILED(hResult))
 		{
 			wlogerr(engine->installLog, PANTHER_LL_BASIC, MAX_PATH * 2, L"[Engine/Install thread] Failed to create boot files. %s", hResult);
 			PostThreadMessageW(engine->dwCallbackThread, TM_PANTHER_ERROR, hResult, 0);
-			return HRESULT_FROM_WIN32(GetLastError());
+			return hResult;
 		}
 		wlogerr(engine->installLog, PANTHER_LL_DETAILED, MAX_PATH, engine->installLog->GetLogLevel() >= PANTHER_LL_VERBOSE
 			? L"[Engine/Install thread] (createBootFiles) %s"
@@ -463,8 +455,9 @@ HRESULT Leet::Panther2K::SetupEngine::StartInstallation()
 	HANDLE hThread = CreateThread(nullptr, 0, threadFunction, this, 0, &threadId);
 	if (!hThread)
 	{
+		HRESULT result = HRESULT_FROM_WIN32(GetLastError());
 		wloglerr(installLog, PANTHER_LL_BASIC, MAX_PATH, L"[Engine] Failed to create installation thread: %s");
-		return HRESULT_FROM_WIN32(GetLastError());
+		return result;
 	}
 
 	wlogc(installLog, PANTHER_LL_BASIC, L"[Engine] Installation thread created.");

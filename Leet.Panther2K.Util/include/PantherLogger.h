@@ -58,7 +58,11 @@ do { \
 		LocalFree(wlog_errmessage); \
 	} else logger->Write(level, L"Unable to format Win32 error message."); } while(0)
 
-#define wloglerr(logger, level, buffersize, format, ...) wlogerr(logger, level, buffersize, format, GetLastError(), __VA_ARGS__)
+#define wloglerr(logger, level, buffersize, format, ...) \
+do { \
+	int wloglerr_err = GetLastError(); \
+	wlogerr(logger, level, buffersize, format, GetLastError(), __VA_ARGS__); \
+	SetLastError(wloglerr_err); \ } while (0)
 
 namespace Leet
 {

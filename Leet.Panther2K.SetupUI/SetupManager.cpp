@@ -325,6 +325,7 @@ StepResult Leet::Panther2K::SetupManager::SelectWIMImage()
 {
     std::vector<std::wstring> paths;
 
+    // TODO: Add more extensive logging here
     HANDLE hMPM = CreateFileW(L"\\\\.\\MountPointManager", 0, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, INVALID_HANDLE_VALUE);
     if (hMPM == INVALID_HANDLE_VALUE)
     {

@@ -67,7 +67,7 @@ HRESULT VdsFindDisk(IVdsService* pVdsService, int diskNumber, IVdsDisk** pVdsDis
     wchar_t requestedDisk[MAX_PATH];
     swprintf_s(requestedDisk, L"\\\\.\\GLOBALROOT\\Device\\Harddisk%d\\Partition0", diskNumber);
     HANDLE hFile = CreateFileW(requestedDisk, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, NULL, nullptr);
-    Assert(GetLastError(), return GetLastError());
+    Assert(GetLastError(), return HRESULT_FROM_WIN32(GetLastError()));
 
     char infoBuffer[512];
     DWORD bytesReceived;
@@ -132,7 +132,7 @@ HRESULT VdsFindDisk(IVdsService* pVdsService, int diskNumber, IVdsDisk** pVdsDis
                 Assert(hResult, goto releaseDisk);
 
                 hFile = CreateFileW(diskProperties.pwszName, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, NULL, nullptr);
-                hResult = GetLastError();
+                hResult = HRESULT_FROM_WIN32(GetLastError());
                 Assert(hResult, goto releaseDisk);
                 res = NtQueryObject(hFile, ObjectNameInformation, &infoBuffer, 512, &bytesReceived);
                 CloseHandle(hFile);

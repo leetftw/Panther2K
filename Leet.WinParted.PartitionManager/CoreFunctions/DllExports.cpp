@@ -815,10 +815,11 @@ extern "C" HRESULT _stdcall EnumVolumes(Leet::Panther2K::Util::Console* console,
 			searchHandle = NULL;
 	}
 
-	if (GetLastError != 0 && GetLastError() != ERROR_NO_MORE_FILES)
+	int lastError = GetLastError();
+	if (lastError != 0 && lastError != ERROR_NO_MORE_FILES)
 	{
 		wloglerr(logger, PANTHER_LL_BASIC, MAX_PATH, L"[WinPartedDll] Failed to enumerate volumes: %s");
-		return HRESULT_FROM_WIN32(GetLastError());
+		return HRESULT_FROM_WIN32(lastError);
 	}
 
 	*volumes = (VolumeInformation*)safeMalloc(logger, sizeof(VolumeInformation) * volumeVec.size());
