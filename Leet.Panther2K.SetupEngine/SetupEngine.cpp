@@ -174,7 +174,7 @@ HRESULT Leet::Panther2K::SetupEngine::SetWimIndex(int index)
 	if (!hWimFile)
 		return HRESULT_FROM_WIN32(ERROR_INVALID_STATE);
 	if (index < 1 || index > dwWimImageCount)
-		return HRESULT_FROM_WIN32(ERROR_INDEX_OUT_OF_BOUNDS);
+		return HRESULT_FROM_WIN32(ERROR_INVALID_INDEX);
 
 	wlogf(installLog, PANTHER_LL_DETAILED, MAX_PATH, L"[Engine] Loading image from index %d...", index);
 

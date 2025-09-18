@@ -36,6 +36,8 @@ bool ImageSelectionPage::SetData(PantherWimInfo* wimInfo)
 		
 		FormattedStrings.push_back(std::wstring(buffer));
 	}
+
+	return true;
 }
 
 int ImageSelectionPage::GetResult()

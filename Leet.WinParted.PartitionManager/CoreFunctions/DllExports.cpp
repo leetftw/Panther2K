@@ -556,8 +556,27 @@ extern "C" HRESULT _stdcall PrepareDiskForWindows(Leet::Panther2K::Util::Console
 		}
 		else
 		{
-			// TODO: write this
-			// 0x80 attrib + NTFS + bootmgr exists
+			// Active
+			if ((PartitionManager::CurrentDiskMBR.PartitionTable[PartitionManager::CurrentDiskPartitions[i].PartitionNumber - 1].BootIndicator & 0x80) == 0)
+				continue;
+
+			// NTFS
+			if (PartitionManager::CurrentDiskPartitions[i].Type.SystemID != 0x07)
+				continue;
+
+			// Try loading volume
+			PartitionManager::LoadPartition(PartitionManager::CurrentDiskPartitions + i);
+			if (!PartitionManager::CurrentPartition.VolumeLoaded)
+				continue;
+
+			// Check for bootmgr
+			wchar_t buffer[MAX_PATH + 1];
+			swprintf_s(buffer, L"%s%s", PartitionManager::CurrentPartition.VolumeInformation.VolumeFile, L"\\bootmgr");
+			if (GetFileAttributesW(buffer) == INVALID_FILE_ATTRIBUTES)
+				continue;
+
+			bootOffset = PartitionManager::CurrentPartition.StartLBA.ULL;
+			break;
 		}
 	}
 	if (!foundBoot && !useLegacy)

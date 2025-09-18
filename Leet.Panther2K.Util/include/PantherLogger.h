@@ -62,7 +62,7 @@ do { \
 do { \
 	int wloglerr_err = GetLastError(); \
 	wlogerr(logger, level, buffersize, format, GetLastError(), __VA_ARGS__); \
-	SetLastError(wloglerr_err); \ } while (0)
+	SetLastError(wloglerr_err); } while (0)
 
 namespace Leet
 {

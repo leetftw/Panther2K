@@ -551,6 +551,7 @@ bool PartitionManager::SavePartitionTableToDisk()
 	const wchar_t* oldStatus = CurrentPage->statusText;
 	CurrentPage->SetStatusText(L"WinParted is writing the partition table to the disk...");
 	CurrentPage->Update();
+	wlogc(logger, PANTHER_LL_DETAILED, L"Saving partition table to disk.");
 
 	// Open the disk for reading
 	DWORD bytes;
@@ -576,6 +577,7 @@ bool PartitionManager::SavePartitionTableToDisk()
 		if (CurrentDiskPartitionTableDestroyed)
 		{
 			// If a new GPT is being made, the table lies in the last sectors of the disk
+			wlogc(logger, PANTHER_LL_VERBOSE, L"New GPT, creating backup header/table in the last two sectors of the disk.");
 			backupGPTTable.ULL = CurrentDisk.SectorCount
 				- (PartitionTableSize / CurrentDisk.SectorSize)
 				- 1;
@@ -583,6 +585,7 @@ bool PartitionManager::SavePartitionTableToDisk()
 		else
 		{
 			// If an existing GPT is used, read the location of the table from the existing backup header
+			wlogc(logger, PANTHER_LL_VERBOSE, L"Overwriting existing GPT, reading existing data to find backup header/table offsets.");
 			ptrBuffer = gptHeader.BackupHeaderLBA.ULL * CurrentDisk.SectorSize;
 			if (SetFilePointer(hDisk, static_cast<long>(ptrBuffer), (PLONG)&ptrBuffer + 1, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
 			{
@@ -599,11 +602,13 @@ bool PartitionManager::SavePartitionTableToDisk()
 		}
 
 		// Calculate CRC's for main header
+		wlogc(logger, PANTHER_LL_VERBOSE, L"Calculating CRC for main GPT header and table.");
 		gptHeader.TableCRC = CalculateCRC32((char*)CurrentDiskGPTTable, PartitionTableSize);
 		gptHeader.HeaderCRC = 0;
 		gptHeader.HeaderCRC = CalculateCRC32((char*)&gptHeader, CurrentDiskGPT.HeaderSize);
 
 		// Write main GPT header
+		wlogc(logger, PANTHER_LL_VERBOSE, L"Writing main GPT header to disk.");
 		if (SetFilePointer(hDisk, CurrentDisk.SectorSize, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
 		{
 			ShowMessagePage(L"The GPT header could not be saved because the disk could not seek to it: %s The partition table may have been corrupted. The backup GPT remains intact and can be used to restore your disk.", MessagePageType::OK, MessagePageUI::Error);
@@ -617,6 +622,7 @@ bool PartitionManager::SavePartitionTableToDisk()
 		}
 
 		// Write main GPT table
+		wlogc(logger, PANTHER_LL_VERBOSE, L"Writing main GPT table to disk.");
 		ptrBuffer = gptHeader.TableLBA.ULL * CurrentDisk.SectorSize;
 		if (SetFilePointer(hDisk, static_cast<long>(ptrBuffer), (PLONG)&ptrBuffer + 1, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
 		{
@@ -633,6 +639,7 @@ bool PartitionManager::SavePartitionTableToDisk()
 		ptrBuffer = gptHeader.BackupHeaderLBA.ULL * CurrentDisk.SectorSize;
 
 		// Calculate CRC for backup header and set LBA's
+		wlogc(logger, PANTHER_LL_VERBOSE, L"Calculating CRC for backup GPT header.");
 		gptHeader.HeaderCRC = 0;
 		gptHeader.TableLBA = backupGPTTable;
 		gptHeader.BackupHeaderLBA = gptHeader.CurrentHeaderLBA;
@@ -640,6 +647,7 @@ bool PartitionManager::SavePartitionTableToDisk()
 		gptHeader.HeaderCRC = CalculateCRC32((char*)&gptHeader, CurrentDiskGPT.HeaderSize);
 
 		// Write backup GPT header
+		wlogc(logger, PANTHER_LL_VERBOSE, L"Writing backup GPT header to disk.");
 		if (SetFilePointer(hDisk, static_cast<long>(ptrBuffer), (PLONG)&ptrBuffer + 1, FILE_BEGIN) == INVALID_SET_FILE_POINTER) 
 		{
 			ShowMessagePage(L"The backup GPT header could not be saved because the disk could not seek to it: %s The main GPT table was saved succesfully, no information was lost. The partition table still needs to be repaired with other tools in order to create a valid backup GPT table.", MessagePageType::OK, MessagePageUI::Error);
@@ -653,6 +661,7 @@ bool PartitionManager::SavePartitionTableToDisk()
 		}
 
 		// Write backup GPT table
+		wlogc(logger, PANTHER_LL_VERBOSE, L"Writing backup GPT table to disk.");
 		ptrBuffer = gptHeader.TableLBA.ULL * CurrentDisk.SectorSize;
 		if (SetFilePointer(hDisk, static_cast<long>(ptrBuffer), (PLONG)&ptrBuffer + 1, FILE_BEGIN) == INVALID_SET_FILE_POINTER) 
 		{
@@ -676,6 +685,7 @@ bool PartitionManager::SavePartitionTableToDisk()
 		}
 
 		// Write the new MBR
+		wlogc(logger, PANTHER_LL_VERBOSE, L"Writing Master Boot Record to disk.");
 		if (!WriteFile(hDisk, &CurrentDiskMBR, CurrentDisk.SectorSize, &bytes, NULL))
 		{
 			ShowMessagePage(L"The Master Boot Record could not be saved: %s", MessagePageType::OK, MessagePageUI::Error);
@@ -684,6 +694,7 @@ bool PartitionManager::SavePartitionTableToDisk()
 		break;
 	}
 
+	wlogc(logger, PANTHER_LL_VERBOSE, L"Finished saving partition table.");
 	ShowMessagePage(L"The partition table was succesfully written to the disk.");
 	if (!DeviceIoControl(hDisk, IOCTL_DISK_UPDATE_PROPERTIES, NULL, 0, NULL, 0, &bytes, NULL))
 	{

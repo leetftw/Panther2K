@@ -63,19 +63,14 @@
     <!--
     <PartitionMethod>Easy</PartitionMethod>
     <SystemPartition>
-        <Volume>W:</Volume>
-    </SystemPartition>
-    -->
-	
-    <!-- EXAMPLE: Custom -->
-    <!--
-    <PartitionMethod>Custom</PartitionMethod>
-    <SystemPartition>
+        <MountPoint>W:</MountPoint>
+        // OR
         <Volume>\\?\Volume{aabbccdd-eeff-aabb-ccdd-eeffaabbccdd}</Volume>
+        // OR
+        <DiskPartition>0,2</DiskPartition> // Disk 0, partition 2
+        // OR
+        <PartitionGuid>{aabbccdd-eeff-aabb-ccdd-eeffaabbccdd}</PartitionGuid>
     </SystemPartition>
-    <BootPartition>
-        <MountPoint>D:</MountPoint>
-    </BootPartition>
     -->
 	
     <!-- By default, Panther2K checks whether certain installation partitions have certain filesystems: -->

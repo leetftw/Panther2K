@@ -5,7 +5,7 @@
 #ifdef _DEBUG
 #define Assert(result, action) { if (FAILED(result)) { DebugBreak(); wlogf(PartitionManager::GetLogger(), PANTHER_LL_BASIC, MAX_PATH, L"[VdsService] The Virtual Disk Service returned an error code: (0x%08X)", result); action; }};
 #else
-#define Assert(result, action) { if (FAILED(result)) { wlogf(PartitionManager::GetLogger(), PANTHER_LL_BASIC, MAX_PATH, L"Failed. (0x%08X)", result); action; }};
+#define Assert(result, action) { if (FAILED(result)) { wlogf(PartitionManager::GetLogger(), PANTHER_LL_BASIC, MAX_PATH, L"[VdsService] The Virtual Disk Service returned an error code: (0x%08X)", result); action; }};
 #endif
 
 #define ObjectNameInformation (OBJECT_INFORMATION_CLASS)1
