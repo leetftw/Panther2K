@@ -1,0 +1,10 @@
+EXPORTS
+   PartedEntryPoint   @1
+   RunWinParted   @2
+   ApplyP2KLayoutToDiskGPT   @3
+   ApplyP2KLayoutToDiskMBR   @4
+   SetPartType   @5
+   MountPartition   @6
+   EnumerateDisks   @7
+   PrepareDiskForWindows  @8
+   EnumVolumes  @9

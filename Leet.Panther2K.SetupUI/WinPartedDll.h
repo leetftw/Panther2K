@@ -1,0 +1,45 @@
+#pragma once
+#include <PantherLogger.h>
+#include <PantherConsole.h>
+
+struct DISK_INFORMATION
+{
+	unsigned int DiskNumber;
+	wchar_t DiskPath[64];
+	wchar_t DeviceName[256];
+	unsigned int PartitionCount;
+	MEDIA_TYPE MediaType;
+	unsigned int SectorSize;
+	unsigned long long SectorCount;
+};
+
+struct VolumeInformation
+{
+	wchar_t FileSystem[16];
+	wchar_t VolumeName[128];
+	wchar_t VolumeFile[128];
+	wchar_t MountPoint[MAX_PATH];
+	unsigned long long TotalSize;
+	unsigned long long SpaceFree;
+	unsigned int DiskNumber;
+	unsigned int PartitionNumber;
+};
+
+class WinPartedDll 
+{
+public:
+	static int RunWinParted(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*);
+	static HRESULT ApplyP2KLayoutToDiskGPT(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, int, bool, wchar_t***, wchar_t***);
+	static HRESULT ApplyP2KLayoutToDiskMBR(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, int, bool, wchar_t***, wchar_t***);
+	static HRESULT SetPartType(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, int, unsigned long long, short);
+	static HRESULT MountPartition(Leet::Panther2K::Util::Console*, Leet::Panther2K::Util::Logger*, int, unsigned long long, const wchar_t*);
+	static HRESULT EnumerateDisks(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger, DISK_INFORMATION** disks, int* diskCount);
+	static HRESULT PrepareDiskForWindows(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger, const wchar_t* volumeGuid, bool useLegacy,
+		unsigned long long requiredBootSize, unsigned long long requiredRESize, wchar_t installVolumes[2][128]);
+	static HRESULT EnumVolumes(Leet::Panther2K::Util::Console* console, Leet::Panther2K::Util::Logger* logger, VolumeInformation** volumes, bool includeDynamic, int* count);
+
+private:
+	static HMODULE hWinParted;
+	static HRESULT InitParted();
+	static bool partedInitialized;
+};

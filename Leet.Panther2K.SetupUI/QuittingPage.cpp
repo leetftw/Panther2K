@@ -1,0 +1,53 @@
+#include "QuittingPage.h"
+#include "WelcomePage.h"
+
+
+void QuittingPage::Init()
+{
+	width = 52;
+	height = 8;
+
+	statusText = L"  F3=Quit  ENTER=Continue";
+
+	customColor = true;
+	back = CONSOLE_COLOR_FG;
+	fore = CONSOLE_COLOR_ERROR;
+}
+
+void QuittingPage::Drawer()
+{
+	int boxWidth = width + 2;
+	int boxHeight = height + 2;
+
+	SIZE d = console->GetSize();
+
+	int boxX = (d.cx / 2) - (boxWidth / 2);
+	int boxY = ((d.cy - 1) / 2) - (boxHeight / 2);
+
+	console->SetPosition(boxX + 3, boxY + 1);
+	console->Write(L"Windows is not completely set up on your");
+	console->SetPosition(boxX + 3, boxY + 2);
+	console->Write(L"computer. If you quit Setup now, you will need");
+	console->SetPosition(boxX + 3, boxY + 3);
+	console->Write(L"to run Setup again to set up Windows.");
+
+	console->SetPosition(boxX + 6, boxY + 5);
+	console->Write(L"•");
+	console->Write(L" To continue Setup, press ENTER.");
+	console->SetPosition(boxX + 6, boxY + 6);
+	console->Write(L"•");
+	console->Write(L" To quit Setup, press F3.");
+}
+
+PageResult QuittingPage::KeyHandler(WPARAM wParam)
+{
+	switch (wParam)
+	{
+	case VK_RETURN:
+		parent->RemovePopup();
+		break;
+	case VK_F3:
+		return PageExit;
+	}
+	return PageSuccess;
+}
