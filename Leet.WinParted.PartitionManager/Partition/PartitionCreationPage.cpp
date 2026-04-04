@@ -202,7 +202,7 @@ void PartitionCreationPage::UpdatePage()
 
 		int length = lstrlenW(buffer);
 		// TODO: Make the zero not show up because it is confusing
-		swprintf_s(buffer + length, bufferSize - length, L"%*s%-11.0llu  %-11.0llu  %-9.0d", consoleSize.cx - 12 - length - 36,
+		swprintf_s(buffer + length, bufferSize - length, L"%*s%-11.0llu  %-11.0llu  %-9.0lld", consoleSize.cx - 12 - length - 36,
 			L"", j % 2 ? 0 : unallocatedSpans[j / 2].startSector, j % 2 ? unallocatedSpans[j / 2].endSector : 0,
 			unallocatedSpans[j / 2].GetSize());
 
