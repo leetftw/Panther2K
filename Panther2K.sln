@@ -1,22 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 18
-VisualStudioVersion = 18.0.11010.61 d18.0
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36616.10 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Leet.Panther2K.SetupUI", "Leet.Panther2K.SetupUI\Panther2K.vcxproj", "{87BBE52A-F355-4BC7-8D09-DAC1E48B3753}"
-	ProjectSection(ProjectDependencies) = postProject
-		{3E61BD60-CA66-4FFD-8864-AD2C550DAABA} = {3E61BD60-CA66-4FFD-8864-AD2C550DAABA}
-		{E999838A-4F2D-4748-A038-39E2BDB49722} = {E999838A-4F2D-4748-A038-39E2BDB49722}
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Leet.WinParted.PartitionManager", "Leet.WinParted.PartitionManager\WinParted.vcxproj", "{E999838A-4F2D-4748-A038-39E2BDB49722}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Leet.Panther2K.Util", "Leet.Panther2K.Util\P2KConsole.vcxproj", "{A3DD51CE-63AB-4189-9D8A-3111288A3463}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Leet.Panther2K.SetupEngine", "Leet.Panther2K.SetupEngine\Leet.Panther2K.SetupEngine.vcxproj", "{3E61BD60-CA66-4FFD-8864-AD2C550DAABA}"
-	ProjectSection(ProjectDependencies) = postProject
-		{A3DD51CE-63AB-4189-9D8A-3111288A3463} = {A3DD51CE-63AB-4189-9D8A-3111288A3463}
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Leet.WinParted.Bootstrap", "Leet.WinParted.Bootstrap\Leet.WinParted.Bootstrap.vcxproj", "{35B2ABD8-666F-4B2F-92FD-EA49E55E7FE0}"
 EndProject

@@ -406,12 +406,19 @@ LRESULT CALLBACK CustomConsole::WndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPAR
 	switch (Msg)
 	{
 	case WM_CLOSE:
-		PostQuitMessage(0);
+	{
+		KEY_EVENT_RECORD keyEvent = { 0 };
+		keyEvent.bKeyDown = TRUE;
+		keyEvent.wVirtualKeyCode = VK_F3;
+		keyEvent.wRepeatCount = 0;
+		keyEvent.wVirtualScanCode = 0;
+
+		inputBuffer->push(keyEvent);
 		break;
+	}
 	case WM_CREATE:
 	case WM_CREATEBUFFER:
 		hdc = BeginPaint(hWnd, &ps);
-		//hBuf = CreateCompatibleBitmap(hdc, columns * fontWidth, rows * fontHeight);
 
 		if (hdcBuf)
 		{
@@ -427,10 +434,6 @@ LRESULT CALLBACK CustomConsole::WndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPAR
 		bitmapInfo.bmiHeader.biCompression = BI_RGB;
 		bitmapInfo.bmiHeader.biBitCount = 24;
 		hBuf = CreateDIBSection(hdc, &bitmapInfo, DIB_RGB_COLORS, &bitmapBits, NULL, 0);
-
-		/*bBuf = new Bitmap(columns * fontWidth, rows * fontHeight, PixelFormat32bppPARGB);
-		fBuf = new Font(hdc, font);
-		gBuf = Graphics::FromImage(bBuf);*/
 
 		SetBkMode(hdcBuf, TRANSPARENT);
 		SelectObject(hdcBuf, font);
