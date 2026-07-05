@@ -172,20 +172,19 @@ namespace Leet
         bool SetupConfiguration::ValidateLogLevel(Logger* logger) const
         {
             if (!rootNode_) return false;
-            for (auto& child : rootNode_.children()) {
-                if (wcscmp(child.name(), L"LogLevel") == 0) {
+            for (auto& child : rootNode_.children()) 
+            {
+                if (wcscmp(child.name(), L"LogLevel") == 0) 
+                {
                     std::wstring logLevelStr = child.text().as_string();
                     // Convert to lower case for case-insensitive comparison
                     std::transform(logLevelStr.begin(), logLevelStr.end(), logLevelStr.begin(), ::towlower);
-                    if (logLevelStr == L"basic" || logLevelStr == L"0") {
-                        // valid
-                    } else if (logLevelStr == L"normal" || logLevelStr == L"1") {
-                        // valid
-                    } else if (logLevelStr == L"detailed" || logLevelStr == L"2") {
-                        // valid
-                    } else if (logLevelStr == L"verbose" || logLevelStr == L"3") {
-                        // valid
-                    } else {
+                    if (logLevelStr == L"basic" || logLevelStr == L"0");
+                    else if (logLevelStr == L"normal" || logLevelStr == L"1");
+                    else if (logLevelStr == L"detailed" || logLevelStr == L"2");
+                    else if (logLevelStr == L"verbose" || logLevelStr == L"3");
+                    else 
+                    {
                         wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Configuration contains errors! Invalid log level '%s'.", child.text().as_string());
                         return false;
                     }
@@ -197,8 +196,10 @@ namespace Leet
         int SetupConfiguration::GetLogLevel() const
         {
             if (!rootNode_) return -1;
-            for (auto& child : rootNode_.children()) {
-                if (wcscmp(child.name(), L"LogLevel") == 0) {
+            for (auto& child : rootNode_.children())
+            {
+                if (wcscmp(child.name(), L"LogLevel") == 0)
+                {
                     std::wstring logLevelStr = child.text().as_string();
                     std::transform(logLevelStr.begin(), logLevelStr.end(), logLevelStr.begin(), ::towlower);
                     if (logLevelStr == L"basic" || logLevelStr == L"0") {
@@ -215,6 +216,140 @@ namespace Leet
             return -1;
         }
 
+        // Root / WimFile
+        bool SetupConfiguration::HasWimFile() const
+        {
+			if (!rootNode_) return false;
+            for (auto& child : rootNode_.children())
+            {
+                if (wcscmp(child.name(), L"WimFile") == 0)
+                    return true;
+            }
+            return false;
+		}
+
+        bool SetupConfiguration::ValidateWimFile(Logger* logger) const
+        {
+            if (!rootNode_) return false;
+            for (auto& child : rootNode_.children())
+            {
+                if (wcscmp(child.name(), L"WimFile") == 0)
+                {
+                    std::wstring wimFilePath = child.text().as_string();
+                    if (wimFilePath.empty()) {
+                        wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Configuration contains errors! <WimFile> value is empty.");
+                        return false;
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        const wchar_t* SetupConfiguration::GetWimFile() const
+        {
+            if (!rootNode_) return L"";
+            for (auto& child : rootNode_.children()) 
+            {
+                if (wcscmp(child.name(), L"WimFile") == 0) 
+                {
+                    return child.text().get();
+                }
+            }
+            return L"";
+        }
+
+        bool SetupConfiguration::HasWimIndex() const
+        {
+            if (!rootNode_) return false;
+            for (auto& child : rootNode_.children()) 
+            {
+                if (wcscmp(child.name(), L"WimIndex") == 0)
+                    return true;
+            }
+            return false;
+        }
+
+        bool SetupConfiguration::ValidateWimIndex(Logger* logger) const
+        {
+            if (!rootNode_) return false;
+            for (auto& child : rootNode_.children()) 
+            {
+                if (wcscmp(child.name(), L"WimIndex") == 0)
+                {
+                    int index = child.text().as_int(-1);
+                    if (index < 1) {
+                        wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Configuration contains errors! <WimIndex> value must be a positive integer.");
+                        return false;
+                    }
+                    return true;
+                }
+            }
+			return false;
+        }
+
+        int SetupConfiguration::GetWimIndex() const
+        {
+            if (!rootNode_) return -1;
+            for (auto& child : rootNode_.children()) {
+                if (wcscmp(child.name(), L"WimIndex") == 0) {
+                    return child.text().as_int(-1);
+                }
+            }
+            return -1;
+        }
+
+        bool SetupConfiguration::HasBootMethod() const
+        {
+            if (!rootNode_) return false;
+            for (auto& child : rootNode_.children()) 
+            {
+                if (wcscmp(child.name(), L"BootMethod") == 0)
+                    return true;
+            }
+            return false;
+		}
+
+        bool SetupConfiguration::ValidateBootMethod(Logger* logger) const
+        {
+            if (!rootNode_) return false;
+            for (auto& child : rootNode_.children()) 
+            {
+                if (wcscmp(child.name(), L"BootMethod") == 0) 
+                {
+                    std::wstring method = child.text().as_string();
+                    std::transform(method.begin(), method.end(), method.begin(), ::towlower);
+                    if (method == L"uefi") {
+                        return true;
+                    } else if (method == L"legacy") {
+                        return true;
+                    } else {
+                        wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Configuration contains errors! <BootMethod> has an unrecognized value <%s>.", child.text().as_string());
+                        return false;
+                    }
+                }
+            }
+            return false;
+        }
+
+        bool SetupConfiguration::GetBootMethod() const
+        {
+            if (!rootNode_) return false;
+            for (auto& child : rootNode_.children()) {
+                if (wcscmp(child.name(), L"BootMethod") == 0) {
+                    std::wstring method = child.text().as_string();
+                    std::transform(method.begin(), method.end(), method.begin(), ::towlower);
+                    if (method == L"uefi") {
+                        return false;
+                    }
+                    else if (method == L"legacy") {
+                        return true;
+                    }
+                }
+            }
+
+            return true;
+        }
     }
 }
 

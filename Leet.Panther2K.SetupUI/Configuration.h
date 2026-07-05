@@ -61,6 +61,21 @@ namespace Panther2K
         bool ValidateLogLevel(Util::Logger* logger) const;
         int GetLogLevel() const;
 
+        // WimFile
+		bool HasWimFile() const;
+		bool ValidateWimFile(Util::Logger* logger) const;
+        const wchar_t* GetWimFile() const;
+
+		// WimIndex
+		bool HasWimIndex() const;
+		bool ValidateWimIndex(Util::Logger* logger) const;
+		int GetWimIndex() const;
+
+        // BootMethod
+		bool HasBootMethod() const;
+		bool ValidateBootMethod(Util::Logger* logger) const;
+		bool GetBootMethod() const;
+
         // Root node
         bool HasRoot() const;
         pugi::xml_node GetRoot() const;

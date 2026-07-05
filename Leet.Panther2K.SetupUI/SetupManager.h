@@ -47,6 +47,7 @@ namespace Leet
 
             HSetupEngine engine = nullptr;
             bool useLegacy = false;
+            std::wstring wimFile = L"";
 
             StepResult Initialize();
             StepResult LoadConfiguration();
@@ -54,6 +55,7 @@ namespace Leet
             StepResult WelcomeUser();
             
             StepResult SelectWIMImage();
+            StepResult SelectWIMIndex();
             
             StepResult SelectBootMethod();
             StepResult SelectPartMethod();

@@ -93,6 +93,7 @@ void Leet::Panther2K::SetupManager::RunSetup()
         STEP(InitializeEngine),
         STEP(WelcomeUser),
         STEP(SelectWIMImage),
+        STEP(SelectWIMIndex),
         STEP(SelectBootMethod),
         STEP(SelectPartMethod),
         STEP(SelectPartitions),
@@ -323,6 +324,32 @@ StepResult Leet::Panther2K::SetupManager::WelcomeUser()
 
 StepResult Leet::Panther2K::SetupManager::SelectWIMImage()
 {
+    // First try config
+    if (config->ValidateWimFile(logger)) 
+    {
+        wimFile = config->GetWimFile();
+        
+        wlogf(logger, PANTHER_LL_DETAILED, MAX_PATH, L"[Client] Configuration contains WIM file entry, validating path '%s'...", wimFile.c_str());
+
+        DWORD dwAttrib = GetFileAttributesW(wimFile.c_str());
+        if (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY))
+        {
+            wlogf(logger, PANTHER_LL_DETAILED, MAX_PATH, L"[Client] Found WIM file at path %s", wimFile.c_str());
+
+            HRESULT hResult = PantherEngineSetWimFile(engine, wimFile.c_str());
+            if (FAILED(hResult))
+            {
+                wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Failed to set WIM file! (0x%08X)", hResult);
+                exitCode = hResult;
+                return StepResult::Fail;
+            }
+
+            wlogf(logger, PANTHER_LL_DETAILED, MAX_PATH * 2, L"[Client] Found WIM file at path %s", wimFile.c_str());
+            return StepResult::Success;
+        }
+        wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] WIM file specified in configuration not found at path '%s'!", wimFile.c_str());
+    }
+
     std::vector<std::wstring> paths;
 
     // TODO: Add more extensive logging here
@@ -385,7 +412,7 @@ StepResult Leet::Panther2K::SetupManager::SelectWIMImage()
 
     wlogc(logger, PANTHER_LL_DETAILED, L"[Client] Searching for WIM file in enumerated volumes...");
 
-    std::wstring wimPath = L"";
+    wimFile = L"";
     for (auto& a : paths)
     {
         wlogc(logger, PANTHER_LL_VERBOSE, a.c_str());
@@ -394,32 +421,34 @@ StepResult Leet::Panther2K::SetupManager::SelectWIMImage()
         DWORD dwAttrib = GetFileAttributesW(path.c_str());
         if (dwAttrib != INVALID_FILE_ATTRIBUTES &&
             !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY))
-            wimPath.assign(path);
+            wimFile.assign(path);
 
         path = a + L"\\sources\\install.esd";
         dwAttrib = GetFileAttributesW(path.c_str());
         if (dwAttrib != INVALID_FILE_ATTRIBUTES &&
             !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY))
-            wimPath.assign(path);
+            wimFile.assign(path);
        
         path = a + L"\\sources\\install.swm";
         dwAttrib = GetFileAttributesW(path.c_str());
         if (dwAttrib != INVALID_FILE_ATTRIBUTES &&
             !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY))
-            wimPath.assign(path);
+            wimFile.assign(path);
     }
 
-    if (wimPath == L"")
+    if (wimFile == L"")
     {
         exitCode = HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND);
         wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Could not find a WIM file! The installation is aborted. (0x%08X)", exitCode);
         return StepResult::Fail;
     }
 
-    wlogf(logger, PANTHER_LL_DETAILED, MAX_PATH * 2, L"[Client] Found WIM file at path %s", wimPath.c_str());
+    wlogf(logger, PANTHER_LL_DETAILED, MAX_PATH * 2, L"[Client] Found WIM file at path %s", wimFile.c_str());
+}
 
-    //HRESULT hResult = PantherEngineSetWimFile(engine, L"\\\\?\\Volume{88d8d147-48e7-41e9-a4d2-7943f6dd64a9}\\sources\\boot.wim");
-    HRESULT hResult = PantherEngineSetWimFile(engine, wimPath.c_str());
+StepResult Leet::Panther2K::SetupManager::SelectWIMIndex()
+{
+    HRESULT hResult = PantherEngineSetWimFile(engine, wimFile.c_str());
     if (FAILED(hResult))
     {
         wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Failed to load WIM file. The engine reported an error. The installation is aborted. (0x%08X)", hResult);
@@ -434,16 +463,28 @@ StepResult Leet::Panther2K::SetupManager::SelectWIMImage()
     if (FAILED(hResult))
     {
         wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Failed to retrieve image list. The engine reported an error. The installation is aborted. (0x%08X)", hResult);
-        exitCode = hResult; 
+        exitCode = hResult;
         return StepResult::Fail;
     }
+
+    // Try configuration first
+    
 
     int selectedIndex;
     if (wimInfo->ImageCount == 1)
     {
         selectedIndex = 1;
     }
-    else
+    if (config->ValidateWimIndex(logger))
+    {
+		selectedIndex = config->GetWimIndex();
+        if (selectedIndex == -1) 
+        {
+			wlogc(logger, PANTHER_LL_DETAILED, L"[Client] Configuration specifies to automatically select the image, but the index is set to -1. Ignoring configuration.");
+        }
+    }
+    
+    if (selectedIndex == -1)
     {
         wlogc(logger, PANTHER_LL_DETAILED, L"[Client] Multiple images exist, requesting choice from user.");
         ImageSelectionPage page;
@@ -477,6 +518,21 @@ StepResult Leet::Panther2K::SetupManager::SelectWIMImage()
 
 StepResult Leet::Panther2K::SetupManager::SelectBootMethod()
 {
+	// Try configuration first
+    if (config->ValidateBootMethod(logger)) 
+    {
+		useLegacy = config->GetBootMethod();
+        wlogf(logger, PANTHER_LL_DETAILED, MAX_PATH, L"[Client] Configuration contains boot method entry, using %s method.", useLegacy ? L"Legacy" : L"UEFI");
+        HRESULT result = PantherEngineSetUseLegacy(engine, useLegacy);
+        if (FAILED(result))
+        {
+            wlogf(logger, PANTHER_LL_BASIC, MAX_PATH, L"[Client] Failed to set boot method. The engine reported an error. The installation is aborted. (0x%08X)", result);
+            exitCode = result;
+            return StepResult::Fail;
+        }
+		return StepResult::Success;
+    }
+
     BootMethodSelectionPage page;
     page.Initialize(console);
     page.Draw();
@@ -519,11 +575,7 @@ StepResult Leet::Panther2K::SetupManager::SelectPartMethod()
     if (selectedDisk == -1)
     {
         wlogc(logger, PANTHER_LL_DETAILED, L"[Client] Custom partitioning requested, entering Easy Part Mode.");
-        /*
-        MessageBoxPage msgBox(L"Not implemented.", true, &page);
-        msgBox.Initialize(console, &page);
-        msgBox.ShowDialog();
-        goto userSelection;*/
+
         return StepResult::Success;
     }
 
