@@ -994,7 +994,15 @@ namespace pantherScripts
 
         static void Main(string[] args)
         {
-            Environment.CurrentDirectory = "X:\\pantherScripts\\v2";
+            // Check if current directory is on NTFS volume
+            DriveInfo currentDrive = new DriveInfo(Path.GetPathRoot(Environment.CurrentDirectory));
+            if (currentDrive.DriveFormat != "NTFS")
+            {
+                ClearAndWriteHeader("You must run pantherScripts from on an NTFS partition. Press any key to exit.");
+                Console.ReadKey();
+                return;
+            }
+
             Windows.Imaging.WimRegisterLogFile(Path.GetFullPath("./wimgapi.log"));
 
             // Helper: Find files by extension (case-insensitive)
