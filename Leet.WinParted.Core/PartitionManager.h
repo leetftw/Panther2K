@@ -134,14 +134,14 @@ namespace Leet
 				/// <summary>
 				/// Return the number of partitions on the disk.
 				/// </summary>
-				virtual int GetPartitionCount() { return 0; }
+				virtual int GetPartitionCount() const { return 0; }
 				/// <summary>
 				/// Retrieves the partition information for the partition at the given index.
 				/// </summary>
 				/// <param name="index">The index of the partition to retrieve information of</param>
 				/// <param name="partitionInfo">A reference to the structure to store the information in</param>
 				/// <returns>true if the operation succeeded, false otherwise.</returns>
-				virtual bool GetPartition(int index, WP_PART_INFO& partitionInfo) { return false; }
+				virtual bool GetPartition(int index, WP_PART_INFO& partitionInfo) const { return false; } 
 				virtual bool CreatePartition() { return false; }
 				virtual bool DeletePartition(int index) { return false; }
 				virtual bool Zap() { return false; }
@@ -164,19 +164,19 @@ namespace Leet
 			class GptDiskPartitionTable : public DiskPartitionTable
 			{
 			public:
-				int GetPartitionCount() override;
-				bool GetPartition(int index, WP_PART_INFO& partitionInfo) override;
+				int GetPartitionCount() const override;
+				bool GetPartition(int index, WP_PART_INFO& partitionInfo) const override;
 				//bool CreatePartition() override;
 				bool DeletePartition(int index) override;
 				bool FlushChangesToDisk() override;
-				//bool DiscardChanges() override;
+				bool DiscardChanges() override;
 			protected:
 				bool Load() override;
 			private:
 				friend class PartitionManager;
-				GPT_HEADER m_gptHeader = { };
 				std::vector<GPT_ENTRY> m_gptEntries = { };
 				std::vector<WP_PART_INFO> m_partitions = { };
+				GPT_HEADER m_gptHeader = { };
 
 				GptDiskPartitionTable(PartitionManager& manager, WP_DISK_INFO& info) : DiskPartitionTable(manager, info) { }
 			};

@@ -30,6 +30,7 @@ bool Leet::WinParted::PartitionManager::GptDiskPartitionTable::Load()
 		return true;
 	}
 
+	m_newTable = false;
 
 	unsigned long long partitionTableOffset = m_gptHeader.TableLBA.ULL * m_diskInfo.SectorSize;
 	if (SetFilePointer(hDisk, static_cast<long>(partitionTableOffset), reinterpret_cast<PLONG>(&partitionTableOffset) + 1, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
@@ -70,12 +71,12 @@ bool Leet::WinParted::PartitionManager::GptDiskPartitionTable::Load()
 	return true;
 }
 
-int Leet::WinParted::PartitionManager::GptDiskPartitionTable::GetPartitionCount()
+int Leet::WinParted::PartitionManager::GptDiskPartitionTable::GetPartitionCount() const
 {
-	return m_partitions.size();
+	return static_cast<int>(m_partitions.size());
 }
 
-bool Leet::WinParted::PartitionManager::GptDiskPartitionTable::GetPartition(int index, WP_PART_INFO& partitionInfo)
+bool Leet::WinParted::PartitionManager::GptDiskPartitionTable::GetPartition(int index, WP_PART_INFO& partitionInfo) const
 {
 	if (index >= m_partitions.size() || index < 0)
 	{
@@ -121,7 +122,7 @@ bool Leet::WinParted::PartitionManager::GptDiskPartitionTable::FlushChangesToDis
 		return false;
 	}
 
-	unsigned long long partitionTableSize = m_gptHeader.TableEntryCount * m_gptHeader.TableEntrySize;
+	unsigned long long partitionTableSize = static_cast<unsigned long long>(m_gptHeader.TableEntryCount) * m_gptHeader.TableEntrySize;
 	if (unsigned long long remainder = partitionTableSize % m_diskInfo.SectorSize) partitionTableSize += m_diskInfo.SectorSize - remainder;
 
 	std::vector<char> gptBuffer(m_diskInfo.SectorSize);
@@ -177,7 +178,7 @@ bool Leet::WinParted::PartitionManager::GptDiskPartitionTable::FlushChangesToDis
 	}
 
 	wlogc(m_manager.logger, PANTHER_LL_VERBOSE, L"Writing main GPT table to disk.");
-	if (SetFilePointer(hDisk, m_gptHeader.TableLBA.ULL * m_diskInfo.SectorSize, nullptr, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
+	if (SetFilePointer(hDisk, static_cast<long>(m_gptHeader.TableLBA.ULL * m_diskInfo.SectorSize), nullptr, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
 	{
 		wlogf(m_manager.logger, PANTHER_LL_BASIC, MAX_PATH, L"Failed to set file pointer to main GPT table location: SetFilePointer returned %d", GetLastError());
 		return false;
@@ -217,7 +218,15 @@ bool Leet::WinParted::PartitionManager::GptDiskPartitionTable::FlushChangesToDis
 	}
 
 	wlogc(m_manager.logger, PANTHER_LL_VERBOSE, L"Finished saving partition table.");
+	
+	// Classic WinParted reloaded the partition table, but this is not necessary here
+	// Only need to unset the new table flag, since the partition table is now on disk
+	m_newTable = false;
 
-	return false;
+	return true;
+}
 
+bool Leet::WinParted::PartitionManager::GptDiskPartitionTable::DiscardChanges()
+{
+	return Load();
 }
