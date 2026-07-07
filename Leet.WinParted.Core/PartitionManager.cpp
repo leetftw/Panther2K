@@ -6,7 +6,7 @@
 
 extern wchar_t* CleanString(const wchar_t* string);
 
-bool GetPhysicalDriveInfo(const wchar_t* dosName, Leet::WinParted::WP_DISK_INFO& diskInfo, Leet::Panther2K::Util::Logger* logger)
+static bool GetPhysicalDriveInfo(const wchar_t* dosName, Leet::WinParted::WP_DISK_INFO& diskInfo, Leet::Panther2K::Util::Logger* logger)
 {
 	diskInfo.DiskNumber = wcstol(dosName + 13, nullptr, 10);
 	swprintf(diskInfo.DiskPath, 64, L"\\\\.\\PHYSICALDRIVE%d", diskInfo.DiskNumber);
@@ -82,6 +82,7 @@ bool GetPhysicalDriveInfo(const wchar_t* dosName, Leet::WinParted::WP_DISK_INFO&
 	}
 
 	diskInfo.PartitionCount = dli->PartitionCount;
+	return true;
 }
 
 void Leet::WinParted::PartitionManager::Refresh()
@@ -90,17 +91,17 @@ void Leet::WinParted::PartitionManager::Refresh()
 	m_diskInfos.clear();
 
 	unsigned int bufferSize = 8192;
-	wchar_t* dosdevs = static_cast<wchar_t*>(safeMalloc(logger, sizeof(wchar_t*) * bufferSize));
-	DWORD result = QueryDosDeviceW(nullptr, dosdevs, bufferSize);
+	wchar_t* dosDevs = static_cast<wchar_t*>(safeMalloc(logger, sizeof(wchar_t*) * bufferSize));
+	DWORD result = QueryDosDeviceW(nullptr, dosDevs, bufferSize);
 	while (result == 0 && GetLastError() == ERROR_INSUFFICIENT_BUFFER)
 	{
 		bufferSize *= 2;
-		safeFree(logger, dosdevs);
-		dosdevs = static_cast<wchar_t*>(safeMalloc(logger, sizeof(wchar_t*) * bufferSize));
-		result = QueryDosDeviceW(nullptr, dosdevs, bufferSize);
+		safeFree(logger, dosDevs);
+		dosDevs = static_cast<wchar_t*>(safeMalloc(logger, sizeof(wchar_t*) * bufferSize));
+		result = QueryDosDeviceW(nullptr, dosDevs, bufferSize);
 	}
 
-	for (const wchar_t* pos = dosdevs; *pos; pos += lstrlenW(pos) + 1)
+	for (const wchar_t* pos = dosDevs; *pos; pos += lstrlenW(pos) + 1)
 	{
 		if (wcsncmp(pos, L"PhysicalDrive", 13) != 0)
 			continue;
@@ -110,4 +111,31 @@ void Leet::WinParted::PartitionManager::Refresh()
 		if (GetPhysicalDriveInfo(pos, diskInfo, logger))
 			m_diskInfos.push_back(diskInfo);
 	}
+}
+
+std::weak_ptr<Leet::WinParted::PartitionManager::DiskPartitionTable> Leet::WinParted::PartitionManager::Disk::OpenPartitionTable(WP_OPERATING_MODE mode) const
+{
+	std::weak_ptr<DiskPartitionTable> partitionTable;
+	switch (mode)
+	{
+	case WP_OPERATING_MODE::GPT:
+		partitionTable = m_manager.CreateObject<GptDiskPartitionTable>(m_diskInfo);
+		break;
+	case WP_OPERATING_MODE::MBR:
+		partitionTable = m_manager.CreateObject<MbrDiskPartitionTable>(m_diskInfo);
+		break;
+	default:
+		break;
+	}
+
+	if (std::shared_ptr<DiskPartitionTable> table = partitionTable.lock())
+		if (!table->Load())
+			partitionTable = { };
+
+	return partitionTable;
+}
+
+Leet::WinParted::WP_DISK_INFO Leet::WinParted::PartitionManager::Disk::GetDiskInfo() const
+{
+	return m_diskInfo;
 }

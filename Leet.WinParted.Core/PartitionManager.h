@@ -8,7 +8,12 @@
 #include <unordered_map>
 #include <functional>
 
+#include "PartitionTable.h"
+
 #include "../Leet.Panther2K.Util/include/PantherLogger.h"
+#include <stdexcept>
+
+#include "PartitionManager.h"
 
 #define PartitionTypeCount 224
 #define PartitionTypeCommonCount 16
@@ -68,6 +73,7 @@ namespace Leet
 
 		struct WP_PART_LAYOUT
 		{
+			WP_OPERATING_MODE OperatingMode;
 			int PartitionCount;
 			WP_PART_DESCRIPTION Partitions[1];
 		};
@@ -100,8 +106,11 @@ namespace Leet
 			{
 			public:
 				virtual ~PartitionManagerObject() = default;
+			protected:
+				PartitionManagerObject(PartitionManager& m) : m_manager(m) { }
 			private:
 				friend class PartitionManager;
+				PartitionManager& m_manager;
 				int id;
 			};
 
@@ -111,39 +120,81 @@ namespace Leet
 			{
 			public:
 				/*WP_TABLE_TYPE GetPartitionTableType(WP_DISK_INFO* diskInfo);*/
-				std::weak_ptr<DiskPartitionTable> OpenPartitionTable(WP_OPERATING_MODE mode)
-				{
-					if (mode != WP_OPERATING_MODE::GPT && mode != WP_OPERATING_MODE::MBR)
-						return std::weak_ptr<DiskPartitionTable>();
-					return m_manager.CreateObject<DiskPartitionTable>(m_diskInfo);
-				}
-				WP_DISK_INFO GetDiskInfo()
-				{
-					return m_diskInfo;
-				}
+				std::weak_ptr<DiskPartitionTable> OpenPartitionTable(WP_OPERATING_MODE mode) const;
+				WP_DISK_INFO GetDiskInfo() const;
 			private:
 				friend class PartitionManager;
-				PartitionManager& m_manager;
 				WP_DISK_INFO& m_diskInfo;
-				HANDLE diskHandle;
-				Disk(PartitionManager& m, WP_DISK_INFO& info) : m_manager(m), m_diskInfo(info) { };
+				Disk(PartitionManager& m, WP_DISK_INFO& info) : PartitionManagerObject(m), m_diskInfo(info) { }
 			};
 
 			class DiskPartitionTable : public PartitionManagerObject
 			{
 			public:
+				/// <summary>
+				/// Return the number of partitions on the disk.
+				/// </summary>
+				virtual int GetPartitionCount() { return 0; }
+				/// <summary>
+				/// Retrieves the partition information for the partition at the given index.
+				/// </summary>
+				/// <param name="index">The index of the partition to retrieve information of</param>
+				/// <param name="partitionInfo">A reference to the structure to store the information in</param>
+				/// <returns>true if the operation succeeded, false otherwise.</returns>
+				virtual bool GetPartition(int index, WP_PART_INFO& partitionInfo) { return false; }
+				virtual bool CreatePartition() { return false; }
+				virtual bool DeletePartition(int index) { return false; }
+				virtual bool Zap() { return false; }
+				virtual bool FlushChangesToDisk() { return false; }
+				virtual bool DiscardChanges() { return false; }
 
+				bool ApplyPartitionLayout(WP_PART_LAYOUT* layout);
+			protected:
+				friend class Disk;
+				virtual bool Load() { return false; }
 			private:
 				friend class PartitionManager;
-				PartitionManager& m_manager;
 				WP_DISK_INFO& m_diskInfo;
-				DiskPartitionTable(PartitionManager& m, WP_DISK_INFO& info) : m_manager(m), m_diskInfo(info) {};
+				bool m_newTable = false;
+				DiskPartitionTable(PartitionManager& m, WP_DISK_INFO& info) : PartitionManagerObject(m), m_diskInfo(info) { }
 
-				/*bool SavePartitionTableToDisk();
-				bool AddPartition(PartitionInformation* partInfo, unsigned long long flags);
-				bool DeletePartition(PartitionInformation* partInfo);
-				HRESULT ApplyPartitionLayoutGPT(WP_PART_LAYOUT* layout);
-				HRESULT ApplyPartitionLayoutMBR(WP_PART_LAYOUT* layout);*/
+				/*bool SavePartitionTableToDisk();*/
+			};
+
+			class GptDiskPartitionTable : public DiskPartitionTable
+			{
+			public:
+				int GetPartitionCount() override;
+				bool GetPartition(int index, WP_PART_INFO& partitionInfo) override;
+				//bool CreatePartition() override;
+				bool DeletePartition(int index) override;
+				bool FlushChangesToDisk() override;
+				//bool DiscardChanges() override;
+			protected:
+				bool Load() override;
+			private:
+				friend class PartitionManager;
+				GPT_HEADER m_gptHeader = { };
+				std::vector<GPT_ENTRY> m_gptEntries = { };
+				std::vector<WP_PART_INFO> m_partitions = { };
+
+				GptDiskPartitionTable(PartitionManager& manager, WP_DISK_INFO& info) : DiskPartitionTable(manager, info) { }
+			};
+
+			class MbrDiskPartitionTable : public DiskPartitionTable
+			{
+			public:
+				//int GetPartitionCount() override;
+				//bool CreatePartition() override;
+				//bool DeletePartition(int index) override;
+				//bool FlushChangesToDisk() override;
+				//bool DiscardChanges() override;
+			protected:
+				//bool Load() override;
+			private:
+				friend class PartitionManager;
+
+				MbrDiskPartitionTable(PartitionManager& manager, WP_DISK_INFO& info) : DiskPartitionTable(manager, info) {}
 			};
 
 			/// <summary>
@@ -152,12 +203,13 @@ namespace Leet
 			std::weak_ptr<Disk> OpenDisk(unsigned int diskIndex)
 			{
 				if (diskIndex >= m_diskInfos.size())
-					return std::weak_ptr<Disk>();
+					return { };
 				return CreateObject<Disk>(m_diskInfos[diskIndex]);
 			}
 
 		private:
-			friend class Disk;
+			friend class PartitionManagerObject;
+			
 			int m_currentId = 0;
 			std::vector<WP_DISK_INFO> m_diskInfos;
 			std::unordered_map<int, std::shared_ptr<PartitionManagerObject>> m_openHandles;
@@ -206,7 +258,7 @@ namespace Leet
 			static GPT_HEADER CurrentDiskGPT;
 			static GPT_ENTRY* CurrentDiskGPTTable;
 			static OperatingMode CurrentDiskOperatingMode;
-			static PartitionInformation* CurrentDiskPartitions;
+			static WP_PART_INFO* CurrentDiskPartitions;
 			static long CurrentDiskPartitionCount;
 			static bool CurrentDiskPartitionsModified;
 			static bool CurrentDiskPartitionTableDestroyed;
@@ -216,11 +268,11 @@ namespace Leet
 			// Partition manipulation
 			//
 
-			static bool LoadPartition(PartitionInformation* partition);
+			static bool LoadPartition(WP_PART_INFO* partition);
 			static bool SetCurrentPartitionType(short value);
 			static bool SetCurrentPartitionGuid(GUID value);
 
-			static PartitionInformation CurrentPartition;
+			static WP_PART_INFO CurrentPartition;
 
 			//
 			// Miscellaneous conversion stuff

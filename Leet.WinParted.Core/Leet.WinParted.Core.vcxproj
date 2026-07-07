@@ -138,12 +138,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="GptDiskPartitionTable.cpp" />
     <ClCompile Include="PartitionManager.cpp" />
+    <ClCompile Include="utils.cpp" />
     <ClCompile Include="winmain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PartitionManager.h" />
-    <ClInclude Include="Win32Handle.h" />
+    <ClInclude Include="PartitionTable.h" />
+    <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Leet.Panther2K.Util\P2KConsole.vcxproj">
