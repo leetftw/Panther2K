@@ -142,7 +142,7 @@ namespace Leet
 				/// <param name="partitionInfo">A reference to the structure to store the information in</param>
 				/// <returns>true if the operation succeeded, false otherwise.</returns>
 				virtual bool GetPartition(int index, WP_PART_INFO& partitionInfo) const { return false; } 
-				virtual bool CreatePartition() { return false; }
+				virtual bool CreatePartition(int number, WP_PART_TYPE& type, unsigned long long firstSectors, unsigned long long sectorCount) { return false; }
 				virtual bool DeletePartition(int index) { return false; }
 				virtual bool Zap() { return false; }
 				virtual bool FlushChangesToDisk() { return false; }
@@ -166,8 +166,9 @@ namespace Leet
 			public:
 				int GetPartitionCount() const override;
 				bool GetPartition(int index, WP_PART_INFO& partitionInfo) const override;
-				//bool CreatePartition() override;
+				bool CreatePartition(int number, WP_PART_TYPE& type, unsigned long long firstSectors, unsigned long long sectorCount) override;
 				bool DeletePartition(int index) override;
+				bool Zap() override;
 				bool FlushChangesToDisk() override;
 				bool DiscardChanges() override;
 			protected:
@@ -229,7 +230,7 @@ namespace Leet
 			void SetLogger(Panther2K::Util::Logger* logger);
 			void SetCallback(std::function<WP_CALLBACK_RESULT(const WP_CALLBACK_INFO&)> callback);
 
-			static const PartitionType GptTypes[PartitionTypeCount];
+			static const WP_PART_TYPE GptTypes[];
 
 			/// <summary>
 			/// Reads all connected disks and updates the internal disk information table. This function invalidates ALL outstanding handles.

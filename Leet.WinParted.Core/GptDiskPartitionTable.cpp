@@ -18,17 +18,25 @@ bool Leet::WinParted::PartitionManager::GptDiskPartitionTable::Load()
 		return false;
 	}
 
-	m_gptHeader = *reinterpret_cast<GPT_HEADER*>(headerBuffer.data() + m_diskInfo.SectorSize);
-	m_gptEntries.clear();
-	m_partitions.clear();
+	if (m_gptHeader.TableEntrySize != sizeof(GPT_ENTRY))
+	{
+		wlogc(m_manager.logger, PANTHER_LL_NORMAL, L"GPT entry size mismatch, expected %d, got %d. Creating new GPT table.", sizeof(GPT_ENTRY), m_gptHeader.TableEntrySize);
+
+		// TODO: Create and flush protective MBR before creating new GPT
+		return Zap();
+	}
 
 	if (m_gptHeader.Signature != 0x5452415020494645ULL)
 	{
-		// TODO: Initialize new GPT
 		wlogc(m_manager.logger, PANTHER_LL_NORMAL, L"The disk does not have a valid GPT, creating new table");
-		m_newTable = true;
-		return true;
+
+		// TODO: Create and flush protective MBR before creating new GPT
+		return Zap();
 	}
+
+	m_gptHeader = *reinterpret_cast<GPT_HEADER*>(headerBuffer.data() + m_diskInfo.SectorSize);
+	m_gptEntries.clear();
+	m_partitions.clear();
 
 	m_newTable = false;
 
@@ -88,6 +96,64 @@ bool Leet::WinParted::PartitionManager::GptDiskPartitionTable::GetPartition(int 
 	return true;
 }
 
+bool Leet::WinParted::PartitionManager::GptDiskPartitionTable::CreatePartition(int number, WP_PART_TYPE& type, unsigned long long firstSector, unsigned long long sectorCount)
+{
+	unsigned long long lastSector = firstSector + sectorCount - 1;
+	// possible with integer overflow
+	if (lastSector < firstSector)
+	{
+		wlogc(m_manager.logger, PANTHER_LL_NORMAL, L"Partition creation failed: sector count overflowed.");
+		return false;
+	}
+	if (firstSector > m_gptHeader.LastUsableLBA.ULL || lastSector > m_gptHeader.LastUsableLBA.ULL || firstSector < m_gptHeader.FirstUsableLBA.ULL || lastSector < m_gptHeader.FirstUsableLBA.ULL)
+	{
+		wlogc(m_manager.logger, PANTHER_LL_NORMAL, L"Partition creation failed: partition is outside of usable LBA range.");
+		return false;
+	}
+
+	// find available location
+	int i;
+	for (i = 0; i < m_gptEntries.size(); i++)
+	{
+		GPT_ENTRY& entry = m_gptEntries[i];
+		if (memcmp(&entry.TypeGUID, &GUID_NULL, sizeof(GUID)) == 0)
+		{
+			for (const WP_PART_INFO& partition : m_partitions)
+			{
+				if ((firstSector >= partition.StartLBA.ULL && firstSector <= partition.EndLBA.ULL) ||
+					(lastSector >= partition.StartLBA.ULL && lastSector <= partition.EndLBA.ULL) ||
+					(firstSector <= partition.StartLBA.ULL && lastSector >= partition.EndLBA.ULL))
+				{
+					wlogc(m_manager.logger, PANTHER_LL_NORMAL, L"Warning: new partition overlaps with an existing partition!");
+					return false;
+				}
+			}
+			// found an available entry
+			break;
+		}
+	}
+
+	GPT_ENTRY newEntry = { };
+	newEntry.StartLBA.ULL = firstSector;
+	newEntry.EndLBA.ULL = lastSector;
+	newEntry.TypeGUID = type.TypeGUID;
+	CoCreateGuid(&newEntry.UniqueGUID);
+	wcscpy_s(newEntry.Name, type.Name);
+	m_gptEntries[i] = newEntry;
+
+	WP_PART_INFO newPartition = { };
+	newPartition.DiskNumber = m_diskInfo.DiskNumber;
+	newPartition.PartitionNumber = i + 1;
+	newPartition.Type.TypeGUID = newEntry.TypeGUID;
+	newPartition.StartLBA = newEntry.StartLBA;
+	newPartition.EndLBA = newEntry.EndLBA;
+	newPartition.SectorCount = newPartition.EndLBA.ULL - newPartition.StartLBA.ULL + 1;
+	wcscpy_s(newPartition.Name, newEntry.Name);
+	m_partitions.push_back(newPartition);
+
+	return false;
+}
+
 bool Leet::WinParted::PartitionManager::GptDiskPartitionTable::DeletePartition(int index)
 {
 	if (index > m_partitions.size() || index < 0)
@@ -107,6 +173,37 @@ bool Leet::WinParted::PartitionManager::GptDiskPartitionTable::DeletePartition(i
 	m_gptEntries[gptIndex] = { };
 	m_partitions.erase(m_partitions.begin() + index);
 
+	return true;
+}
+
+bool Leet::WinParted::PartitionManager::GptDiskPartitionTable::Zap()
+{
+	wlogc(m_manager.logger, PANTHER_LL_NORMAL, L"Creating new GPT partition table on disk %s", m_diskInfo.DiskPath);
+	
+	m_gptHeader = { };
+	m_gptEntries.clear();
+	m_partitions.clear();
+
+	m_gptHeader.Signature = 0x5452415020494645ULL;
+	m_gptHeader.Revision = 0x00010000;
+	m_gptHeader.HeaderSize = sizeof(GPT_HEADER);
+	m_gptHeader.TableEntrySize = sizeof(GPT_ENTRY);
+	m_gptHeader.TableEntryCount = 128;
+	
+	unsigned long long partitionTableSize = m_gptHeader.TableEntryCount * m_gptHeader.TableEntrySize;
+	if (unsigned long long remainder = partitionTableSize % m_diskInfo.SectorSize) partitionTableSize += m_diskInfo.SectorSize - remainder;
+	
+	m_gptHeader.CurrentHeaderLBA.ULL = 1;
+	m_gptHeader.BackupHeaderLBA.ULL = m_diskInfo.SectorCount - 1; 
+	m_gptHeader.FirstUsableLBA.ULL = 2 + (partitionTableSize / m_diskInfo.SectorSize);
+	m_gptHeader.LastUsableLBA.ULL = m_diskInfo.SectorCount - 2 - (partitionTableSize / m_diskInfo.SectorSize);
+
+	CoCreateGuid(&m_gptHeader.DiskGUID);
+
+	for (int i = 0; i < m_gptHeader.TableEntryCount; i++)
+		m_gptEntries.push_back({ });
+
+	m_newTable = true;
 	return true;
 }
 

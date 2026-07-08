@@ -77,11 +77,9 @@ struct VolumeInformation
 
 struct WP_PART_TYPE
 {
-	union
-	{
-		GUID TypeGUID;
-		char SystemID;
-	};
+	unsigned short GdiskId;
+	GUID TypeGUID;
+	const wchar_t* Name;
 };
 
 struct WP_PART_INFO

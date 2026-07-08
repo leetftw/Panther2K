@@ -2,7 +2,8 @@
 
 #include <vector>
 #include <Windows.h>
-#include "Win32Handle.h"
+
+#include "utils.h"
 
 extern wchar_t* CleanString(const wchar_t* string);
 
@@ -10,7 +11,7 @@ static bool GetPhysicalDriveInfo(const wchar_t* dosName, Leet::WinParted::WP_DIS
 {
 	diskInfo.DiskNumber = wcstol(dosName + 13, nullptr, 10);
 	swprintf(diskInfo.DiskPath, 64, L"\\\\.\\PHYSICALDRIVE%d", diskInfo.DiskNumber);
-	Win32Handle diskFileHandle(CreateFileW(diskInfo.DiskPath, FILE_READ_DATA | FILE_READ_ATTRIBUTES | SYNCHRONIZE | FILE_TRAVERSE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr));
+	Leet::WinParted::Utils::Win32Handle diskFileHandle(CreateFileW(diskInfo.DiskPath, FILE_READ_DATA | FILE_READ_ATTRIBUTES | SYNCHRONIZE | FILE_TRAVERSE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr));
 	if (diskFileHandle == INVALID_HANDLE_VALUE)
 		return false;
 	
@@ -111,6 +112,8 @@ void Leet::WinParted::PartitionManager::Refresh()
 		if (GetPhysicalDriveInfo(pos, diskInfo, logger))
 			m_diskInfos.push_back(diskInfo);
 	}
+
+	safeFree(logger, dosDevs);
 }
 
 std::weak_ptr<Leet::WinParted::PartitionManager::DiskPartitionTable> Leet::WinParted::PartitionManager::Disk::OpenPartitionTable(WP_OPERATING_MODE mode) const

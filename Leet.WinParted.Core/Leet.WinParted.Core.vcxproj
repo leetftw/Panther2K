@@ -137,6 +137,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BuiltinTypes.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="GptDiskPartitionTable.cpp" />
     <ClCompile Include="PartitionManager.cpp" />
