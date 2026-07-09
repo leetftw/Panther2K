@@ -11,6 +11,22 @@
 #define CONSOLE_COLOR_LIGHTFG 4
 #define CONSOLE_COLOR_DARKFG 5
 
+#if PANTHER_RELEASE_TYPE == PANTHER_RT_RELEASE
+
+#define CONSOLE_DEF_COLOR_BG { 0, 0, 170 }
+
+#else
+
+#define CONSOLE_DEF_COLOR_BG { 170 / 3, 0, 170 / 2 }
+
+#endif
+
+#define CONSOLE_DEF_COLOR_FG { 170, 170, 170 }
+#define CONSOLE_DEF_COLOR_ERROR { 170, 0, 0 }
+#define CONSOLE_DEF_COLOR_PROGBAR { 255, 255, 0 }
+#define CONSOLE_DEF_COLOR_LIGHTFG { 255, 255, 255 }
+#define CONSOLE_DEF_COLOR_DARKFG { 0, 0, 0 }
+
 wchar_t* CleanString(const wchar_t* string);
 wchar_t** SplitStringToLines(const wchar_t* string, int maxWidth, int* lineCount);
 

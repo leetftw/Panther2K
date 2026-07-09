@@ -1,3 +1,4 @@
+#include "include/PantherVersion.h"
 #include "include/PantherLogger.h"
 #include <time.h>
 #include <stdio.h>

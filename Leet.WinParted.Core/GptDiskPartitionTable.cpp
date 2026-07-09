@@ -17,10 +17,11 @@ bool Leet::WinParted::PartitionManager::GptDiskPartitionTable::Load()
 		wlogf(m_manager.logger, PANTHER_LL_BASIC, MAX_PATH, L"");
 		return false;
 	}
+	m_gptHeader = *reinterpret_cast<GPT_HEADER*>(headerBuffer.data() + m_diskInfo.SectorSize);
 
 	if (m_gptHeader.TableEntrySize != sizeof(GPT_ENTRY))
 	{
-		wlogc(m_manager.logger, PANTHER_LL_NORMAL, L"GPT entry size mismatch, expected %d, got %d. Creating new GPT table.", sizeof(GPT_ENTRY), m_gptHeader.TableEntrySize);
+		wlogf(m_manager.logger, PANTHER_LL_NORMAL, MAX_PATH, L"GPT entry size mismatch, expected %d, got %d. Creating new GPT table.", sizeof(GPT_ENTRY), m_gptHeader.TableEntrySize);
 
 		// TODO: Create and flush protective MBR before creating new GPT
 		return Zap();
@@ -34,7 +35,6 @@ bool Leet::WinParted::PartitionManager::GptDiskPartitionTable::Load()
 		return Zap();
 	}
 
-	m_gptHeader = *reinterpret_cast<GPT_HEADER*>(headerBuffer.data() + m_diskInfo.SectorSize);
 	m_gptEntries.clear();
 	m_partitions.clear();
 

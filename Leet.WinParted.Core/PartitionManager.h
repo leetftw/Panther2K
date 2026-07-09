@@ -198,6 +198,11 @@ namespace Leet
 				MbrDiskPartitionTable(PartitionManager& manager, WP_DISK_INFO& info) : DiskPartitionTable(manager, info) {}
 			};
 
+			int GetDiskCount() const
+			{
+				return m_diskInfos.size();
+			}
+
 			/// <summary>
 			/// Opens a disk handle by its index number. 
 			/// </summary>

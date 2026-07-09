@@ -168,6 +168,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\PantherLayout.h" />
+    <ClInclude Include="include\PantherText.h" />
+    <ClInclude Include="layout\Control.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="include\P2KBaseConsole.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -197,11 +200,23 @@
     <ClInclude Include="include\PantherVersion.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="layout\HeaderControl.h" />
+    <ClInclude Include="layout\LabelControl.h" />
+    <ClInclude Include="layout\ListViewControl.h" />
+    <ClInclude Include="layout\Page.h" />
+    <ClInclude Include="layout\StatusBarControl.h" />
+    <ClInclude Include="text\ColumnFormatter.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Console.cpp" />
     <ClCompile Include="CustomConsole.cpp" />
+    <ClCompile Include="layout\HeaderControl.cpp" />
+    <ClCompile Include="layout\LabelControl.cpp" />
+    <ClCompile Include="layout\ListViewControl.cpp" />
+    <ClCompile Include="layout\Page.cpp" />
+    <ClCompile Include="layout\StatusBarControl.cpp" />
     <ClCompile Include="Logger.cpp" />
+    <ClCompile Include="text\ColumnFormatter.cpp" />
     <ClCompile Include="Win32Console.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

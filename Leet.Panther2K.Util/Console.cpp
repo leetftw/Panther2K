@@ -1,3 +1,4 @@
+#include "include/PantherVersion.h"
 #include "include/P2KBaseConsole.h"
 #include <iostream>
 #include "include/PantherLogger.h"
@@ -10,12 +11,12 @@ Console::Console()
     {
         colorTableSize = 6;
         colorTable = (CONSOLE_COLOR*)safeMalloc(nullptr, sizeof(CONSOLE_COLOR) * colorTableSize);
-        colorTable[CONSOLE_COLOR_BG] =      CONSOLE_COLOR{ 0, 0, 170 };
-        colorTable[CONSOLE_COLOR_FG] =      CONSOLE_COLOR{ 170, 170, 170 };
-        colorTable[CONSOLE_COLOR_ERROR] =   CONSOLE_COLOR{ 170, 0, 0 };
-        colorTable[CONSOLE_COLOR_PROGBAR] = CONSOLE_COLOR{ 255, 255, 0 };
-        colorTable[CONSOLE_COLOR_LIGHTFG] = CONSOLE_COLOR{ 255, 255, 255 };
-        colorTable[CONSOLE_COLOR_DARKFG] =  CONSOLE_COLOR{ 0, 0, 0 };
+        colorTable[CONSOLE_COLOR_BG] =      CONSOLE_COLOR CONSOLE_DEF_COLOR_BG;
+        colorTable[CONSOLE_COLOR_FG] =      CONSOLE_COLOR CONSOLE_DEF_COLOR_FG;
+        colorTable[CONSOLE_COLOR_ERROR] =   CONSOLE_COLOR CONSOLE_DEF_COLOR_ERROR;
+        colorTable[CONSOLE_COLOR_PROGBAR] = CONSOLE_COLOR CONSOLE_DEF_COLOR_PROGBAR;
+        colorTable[CONSOLE_COLOR_LIGHTFG] = CONSOLE_COLOR CONSOLE_DEF_COLOR_LIGHTFG;
+        colorTable[CONSOLE_COLOR_DARKFG] =  CONSOLE_COLOR CONSOLE_DEF_COLOR_DARKFG;
     }
 }
 

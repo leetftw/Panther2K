@@ -223,16 +223,14 @@ StepResult Leet::Panther2K::SetupManager::LoadConfiguration()
 
     // TODO: Console should really not be dependent on this pointer
     Leet::Panther2K::Util::CONSOLE_COLOR* colors = new Leet::Panther2K::Util::CONSOLE_COLOR[6];
-#if PANTHER_RELEASE_TYPE == PANTHER_RT_RELEASE
-    colors[0] = { 0, 0, 170 };
-#else
-    colors[0] = { 170 / 3, 0, 170 / 2 };
-#endif
-    colors[1] = { 170, 170, 170 };
-    colors[2] = { 170, 0, 0 };
-    colors[3] = { 255, 255, 0 };
-    colors[4] = { 255, 255, 255 };
-    colors[5] = { 0, 0, 0 };
+
+    colors[0] = CONSOLE_DEF_COLOR_BG;
+    colors[1] = CONSOLE_DEF_COLOR_FG;
+    colors[2] = CONSOLE_DEF_COLOR_ERROR;
+    colors[3] = CONSOLE_DEF_COLOR_PROGBAR;
+    colors[4] = CONSOLE_DEF_COLOR_LIGHTFG;
+    colors[5] = CONSOLE_DEF_COLOR_DARKFG;
+
     if (config->HasConsole())
     {
         if (!config->ValidateConsole(logger))
@@ -281,6 +279,7 @@ StepResult Leet::Panther2K::SetupManager::LoadConfiguration()
     {
         wlogc(logger, PANTHER_LL_NORMAL, L"[Client] No console configuration found, using defaults.");
 	}
+
     console->SetColorTable(colors, 6);
 
     if (config->ValidateLogLevel(logger))
