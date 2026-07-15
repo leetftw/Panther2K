@@ -147,6 +147,7 @@ namespace Leet
 				virtual bool Zap() { return false; }
 				virtual bool FlushChangesToDisk() { return false; }
 				virtual bool DiscardChanges() { return false; }
+				WP_DISK_INFO GetDiskInfo() const { return m_diskInfo; }
 
 				bool ApplyPartitionLayout(WP_PART_LAYOUT* layout);
 			protected:
@@ -219,6 +220,7 @@ namespace Leet
 			int m_currentId = 0;
 			std::vector<WP_DISK_INFO> m_diskInfos;
 			std::unordered_map<int, std::shared_ptr<PartitionManagerObject>> m_openHandles;
+			static const WP_PART_TYPE s_builtinTypes[];
 
 			template <typename T, typename... Args> std::weak_ptr<T> CreateObject(Args&&... args) {
 				std::shared_ptr<T> obj(new T(*this, std::forward<Args>(args)...));
@@ -235,7 +237,10 @@ namespace Leet
 			void SetLogger(Panther2K::Util::Logger* logger);
 			void SetCallback(std::function<WP_CALLBACK_RESULT(const WP_CALLBACK_INFO&)> callback);
 
-			static const WP_PART_TYPE GptTypes[];
+			// 
+			// WP_PART_TYPE helpers
+			//
+			static WP_PART_TYPE GetPartTypeFromGuid(GUID& guid);
 
 			/// <summary>
 			/// Reads all connected disks and updates the internal disk information table. This function invalidates ALL outstanding handles.

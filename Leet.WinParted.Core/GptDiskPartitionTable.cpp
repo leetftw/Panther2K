@@ -68,7 +68,7 @@ bool Leet::WinParted::PartitionManager::GptDiskPartitionTable::Load()
 
 		partitionInfo.DiskNumber = m_diskInfo.DiskNumber;
 		partitionInfo.PartitionNumber = i + 1;
-		partitionInfo.Type.TypeGUID = entry->TypeGUID;
+		partitionInfo.Type = m_manager.GetPartTypeFromGuid(entry->TypeGUID);
 		partitionInfo.StartLBA = entry->StartLBA;
 		partitionInfo.EndLBA = entry->EndLBA;
 		partitionInfo.SectorCount = partitionInfo.EndLBA.ULL - partitionInfo.StartLBA.ULL + 1;
@@ -144,7 +144,7 @@ bool Leet::WinParted::PartitionManager::GptDiskPartitionTable::CreatePartition(i
 	WP_PART_INFO newPartition = { };
 	newPartition.DiskNumber = m_diskInfo.DiskNumber;
 	newPartition.PartitionNumber = i + 1;
-	newPartition.Type.TypeGUID = newEntry.TypeGUID;
+	newPartition.Type = type;
 	newPartition.StartLBA = newEntry.StartLBA;
 	newPartition.EndLBA = newEntry.EndLBA;
 	newPartition.SectorCount = newPartition.EndLBA.ULL - newPartition.StartLBA.ULL + 1;

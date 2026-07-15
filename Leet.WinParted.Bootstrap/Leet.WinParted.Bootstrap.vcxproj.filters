@@ -18,10 +18,27 @@
     <ClCompile Include="Leet.WinParted.Bootstrap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DiskSelectionPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PartitioningPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\Leet.WinParted.PartitionManager\WinParted.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DiskSelectionPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PartitioningPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BuiltinPartitionTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 #include "../include/PantherConsole.h"
+#include "SpacerControl.h"
 
 using namespace Leet::LibPanther::Layout;
 
@@ -28,7 +29,7 @@ void Page::AddControl(std::shared_ptr<Control> control)
 	{
 		control->SetPosition(3, m_currentStackY);
 		if (control->GetHeight() > 0)
-			m_currentStackY += control->GetHeight() + 1;
+			m_currentStackY += control->GetHeight();
 		else if (control->GetHeight() < 0)
 		{
 			control->SetHeight(m_console->GetSize().cy - m_currentFixedHeight - m_currentStackY);
@@ -47,6 +48,11 @@ void Page::AddControl(std::shared_ptr<Control> control)
 		m_focusedControlIndex = static_cast<int>(m_controls.size() - 1);
 		m_controls.back()->SetFocused(true);
 	}
+}
+
+void Page::Spacer(int height)
+{
+	AddControl(std::make_shared<SpacerControl>(height));
 }
 
 void Page::CycleFocus(bool forward)

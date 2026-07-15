@@ -8,6 +8,14 @@ namespace Leet::Panther2K::Util { class Console; }
 
 namespace Leet::LibPanther::Layout
 {
+	typedef enum PageResult
+	{
+		PageExit,
+		PageSuccess,
+		PageContinue,
+		PageGoBack,
+	};
+
 	class Page
 	{
 	private:
@@ -23,6 +31,7 @@ namespace Leet::LibPanther::Layout
 
 		Leet::Panther2K::Util::Console* GetConsole() const { return m_console; }
 		void AddControl(std::shared_ptr<Control> control);
+		void Spacer(int height);
 		void CycleFocus(bool forward = true);
 
 		void RunPage();

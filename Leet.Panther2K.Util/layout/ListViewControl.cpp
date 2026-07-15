@@ -14,6 +14,13 @@ void ListViewControl::AddItem(const std::wstring& item)
 	m_items.push_back(item);
 }
 
+void ListViewControl::ClearItems()
+{
+	m_items.clear();
+	m_selectedIndex = 0;
+	m_scrollIndex = 0;
+}
+
 void ListViewControl::SetHeader(const std::wstring& header)
 {
 	m_header = header;

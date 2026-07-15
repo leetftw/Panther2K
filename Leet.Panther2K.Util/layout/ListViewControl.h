@@ -14,11 +14,13 @@ namespace Leet::LibPanther::Layout
 		std::wstring m_header;
 	public:
 		ListViewControl(int displayHeight = -1);
-
+		
 		void Draw(Leet::Panther2K::Util::Console* console) override;
 		bool HandleInput(KEY_EVENT_RECORD* key) override;
 
 		void AddItem(const std::wstring& item);
+		void ClearItems();
+
 		void SetHeader(const std::wstring& header);
 		int GetSelectedIndex() const;
 	};

@@ -21,9 +21,6 @@
     <ClCompile Include="PartitionManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="winmain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GptDiskPartitionTable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -43,6 +40,9 @@
     </ClInclude>
     <ClInclude Include="utils.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\WinParted.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -204,6 +204,7 @@
     <ClInclude Include="layout\LabelControl.h" />
     <ClInclude Include="layout\ListViewControl.h" />
     <ClInclude Include="layout\Page.h" />
+    <ClInclude Include="layout\SpacerControl.h" />
     <ClInclude Include="layout\StatusBarControl.h" />
     <ClInclude Include="text\ColumnFormatter.h" />
   </ItemGroup>
@@ -214,6 +215,7 @@
     <ClCompile Include="layout\LabelControl.cpp" />
     <ClCompile Include="layout\ListViewControl.cpp" />
     <ClCompile Include="layout\Page.cpp" />
+    <ClCompile Include="layout\SpacerControl.cpp" />
     <ClCompile Include="layout\StatusBarControl.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="text\ColumnFormatter.cpp" />

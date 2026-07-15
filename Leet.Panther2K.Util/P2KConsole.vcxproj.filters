@@ -66,6 +66,9 @@
     <ClInclude Include="include\PantherText.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="layout\SpacerControl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CustomConsole.cpp">
@@ -96,6 +99,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="layout\Page.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="layout\SpacerControl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -75,24 +75,28 @@
     <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
     <CopyLocalProjectReference>true</CopyLocalProjectReference>
     <CopyLocalDebugSymbols>true</CopyLocalDebugSymbols>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)Leet.Panther2K.Util\include;$(SolutionDir)Leet.WinParted.Core\include</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)build\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
     <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
     <CopyLocalProjectReference>true</CopyLocalProjectReference>
     <CopyLocalDebugSymbols>true</CopyLocalDebugSymbols>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)Leet.Panther2K.Util\include;$(SolutionDir)Leet.WinParted.Core\include</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)build\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
     <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
     <CopyLocalProjectReference>true</CopyLocalProjectReference>
     <CopyLocalDebugSymbols>true</CopyLocalDebugSymbols>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)Leet.Panther2K.Util\include;$(SolutionDir)Leet.WinParted.Core\include</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)build\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
     <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
     <CopyLocalProjectReference>true</CopyLocalProjectReference>
     <CopyLocalDebugSymbols>true</CopyLocalDebugSymbols>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)Leet.Panther2K.Util\include;$(SolutionDir)Leet.WinParted.Core\include</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -101,6 +105,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -116,6 +121,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -131,6 +137,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -146,6 +153,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -155,17 +163,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DiskSelectionPage.cpp" />
     <ClCompile Include="Leet.WinParted.Bootstrap.cpp" />
+    <ClCompile Include="PartitioningPage.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\Leet.WinParted.PartitionManager\WinParted.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Leet.WinParted.PartitionManager\WinParted.vcxproj">
-      <Project>{e999838a-4f2d-4748-a038-39e2bdb49722}</Project>
+    <ProjectReference Include="..\Leet.WinParted.Core\Leet.WinParted.Core.vcxproj">
+      <Project>{ed6f84a8-cd4e-4e7b-a902-a9f3e506785a}</Project>
+      <Private>false</Private>
       <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BuiltinPartitionTypes.h" />
+    <ClInclude Include="DiskSelectionPage.h" />
+    <ClInclude Include="PartitioningPage.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

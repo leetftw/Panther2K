@@ -2,9 +2,22 @@
 
 using namespace Leet::WinParted;
 
+WP_PART_TYPE PartitionManager::GetPartTypeFromGuid(GUID& guid)
+{	
+	int i = 0;
+	while (s_builtinTypes[i].Name)
+	{
+		if (memcmp(&guid, &s_builtinTypes[i].TypeGUID, sizeof(GUID)) == 0)
+			return s_builtinTypes[i];
+		i++;
+	}
+
+	return WP_PART_TYPE(0xFFFF, guid, L"Unknown Type");
+}
+
 // Taken from GPT fdisk (gdisk) source code
 // Modified a bit to work within the use of this application
-const WP_PART_TYPE PartitionManager::GptTypes[PartitionTypeCount]
+const WP_PART_TYPE PartitionManager::s_builtinTypes[]
 {
 	// Both GPT and MBR define all zeroes as an unused entry
 	{ 0x0000, { 0x00000000, 0x0000, 0x0000, { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } }, L"Unused entry" },
